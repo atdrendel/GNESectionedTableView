@@ -1,0 +1,482 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		578E75791934B69E00333D86 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 578E75781934B69E00333D86 /* Cocoa.framework */; };
+		578E75831934B69E00333D86 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 578E75811934B69E00333D86 /* InfoPlist.strings */; };
+		578E75851934B69E00333D86 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 578E75841934B69E00333D86 /* main.m */; };
+		578E75891934B69E00333D86 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 578E75871934B69E00333D86 /* Credits.rtf */; };
+		578E758C1934B69E00333D86 /* GNEAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 578E758B1934B69E00333D86 /* GNEAppDelegate.m */; };
+		578E758F1934B69E00333D86 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 578E758D1934B69E00333D86 /* MainMenu.xib */; };
+		578E75911934B69E00333D86 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 578E75901934B69E00333D86 /* Images.xcassets */; };
+		578E75981934B69E00333D86 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 578E75971934B69E00333D86 /* XCTest.framework */; };
+		578E75991934B69E00333D86 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 578E75781934B69E00333D86 /* Cocoa.framework */; };
+		578E75A11934B69E00333D86 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 578E759F1934B69E00333D86 /* InfoPlist.strings */; };
+		578E75A31934B69E00333D86 /* GNESectionedTableViewTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 578E75A21934B69E00333D86 /* GNESectionedTableViewTests.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		578E759A1934B69E00333D86 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 578E756D1934B69E00333D86 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 578E75741934B69E00333D86;
+			remoteInfo = GNESectionedTableView;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		578E75751934B69E00333D86 /* GNESectionedTableView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GNESectionedTableView.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		578E75781934B69E00333D86 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		578E757B1934B69E00333D86 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		578E757C1934B69E00333D86 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		578E757D1934B69E00333D86 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		578E75801934B69E00333D86 /* GNESectionedTableView-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GNESectionedTableView-Info.plist"; sourceTree = "<group>"; };
+		578E75821934B69E00333D86 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		578E75841934B69E00333D86 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		578E75861934B69E00333D86 /* GNESectionedTableView-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GNESectionedTableView-Prefix.pch"; sourceTree = "<group>"; };
+		578E75881934B69E00333D86 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
+		578E758A1934B69E00333D86 /* GNEAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GNEAppDelegate.h; sourceTree = "<group>"; };
+		578E758B1934B69E00333D86 /* GNEAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GNEAppDelegate.m; sourceTree = "<group>"; };
+		578E758E1934B69E00333D86 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		578E75901934B69E00333D86 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		578E75961934B69E00333D86 /* GNESectionedTableViewTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GNESectionedTableViewTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		578E75971934B69E00333D86 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		578E759E1934B69E00333D86 /* GNESectionedTableViewTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GNESectionedTableViewTests-Info.plist"; sourceTree = "<group>"; };
+		578E75A01934B69E00333D86 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		578E75A21934B69E00333D86 /* GNESectionedTableViewTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GNESectionedTableViewTests.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		578E75721934B69E00333D86 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				578E75791934B69E00333D86 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		578E75931934B69E00333D86 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				578E75991934B69E00333D86 /* Cocoa.framework in Frameworks */,
+				578E75981934B69E00333D86 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		578E756C1934B69E00333D86 = {
+			isa = PBXGroup;
+			children = (
+				578E757E1934B69E00333D86 /* GNESectionedTableView */,
+				578E759C1934B69E00333D86 /* GNESectionedTableViewTests */,
+				578E75771934B69E00333D86 /* Frameworks */,
+				578E75761934B69E00333D86 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		578E75761934B69E00333D86 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				578E75751934B69E00333D86 /* GNESectionedTableView.app */,
+				578E75961934B69E00333D86 /* GNESectionedTableViewTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		578E75771934B69E00333D86 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				578E75781934B69E00333D86 /* Cocoa.framework */,
+				578E75971934B69E00333D86 /* XCTest.framework */,
+				578E757A1934B69E00333D86 /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		578E757A1934B69E00333D86 /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				578E757B1934B69E00333D86 /* AppKit.framework */,
+				578E757C1934B69E00333D86 /* CoreData.framework */,
+				578E757D1934B69E00333D86 /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		578E757E1934B69E00333D86 /* GNESectionedTableView */ = {
+			isa = PBXGroup;
+			children = (
+				578E758A1934B69E00333D86 /* GNEAppDelegate.h */,
+				578E758B1934B69E00333D86 /* GNEAppDelegate.m */,
+				578E758D1934B69E00333D86 /* MainMenu.xib */,
+				578E75901934B69E00333D86 /* Images.xcassets */,
+				578E757F1934B69E00333D86 /* Supporting Files */,
+			);
+			path = GNESectionedTableView;
+			sourceTree = "<group>";
+		};
+		578E757F1934B69E00333D86 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				578E75801934B69E00333D86 /* GNESectionedTableView-Info.plist */,
+				578E75811934B69E00333D86 /* InfoPlist.strings */,
+				578E75841934B69E00333D86 /* main.m */,
+				578E75861934B69E00333D86 /* GNESectionedTableView-Prefix.pch */,
+				578E75871934B69E00333D86 /* Credits.rtf */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		578E759C1934B69E00333D86 /* GNESectionedTableViewTests */ = {
+			isa = PBXGroup;
+			children = (
+				578E75A21934B69E00333D86 /* GNESectionedTableViewTests.m */,
+				578E759D1934B69E00333D86 /* Supporting Files */,
+			);
+			path = GNESectionedTableViewTests;
+			sourceTree = "<group>";
+		};
+		578E759D1934B69E00333D86 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				578E759E1934B69E00333D86 /* GNESectionedTableViewTests-Info.plist */,
+				578E759F1934B69E00333D86 /* InfoPlist.strings */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		578E75741934B69E00333D86 /* GNESectionedTableView */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 578E75A61934B69E00333D86 /* Build configuration list for PBXNativeTarget "GNESectionedTableView" */;
+			buildPhases = (
+				578E75711934B69E00333D86 /* Sources */,
+				578E75721934B69E00333D86 /* Frameworks */,
+				578E75731934B69E00333D86 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GNESectionedTableView;
+			productName = GNESectionedTableView;
+			productReference = 578E75751934B69E00333D86 /* GNESectionedTableView.app */;
+			productType = "com.apple.product-type.application";
+		};
+		578E75951934B69E00333D86 /* GNESectionedTableViewTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 578E75A91934B69E00333D86 /* Build configuration list for PBXNativeTarget "GNESectionedTableViewTests" */;
+			buildPhases = (
+				578E75921934B69E00333D86 /* Sources */,
+				578E75931934B69E00333D86 /* Frameworks */,
+				578E75941934B69E00333D86 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				578E759B1934B69E00333D86 /* PBXTargetDependency */,
+			);
+			name = GNESectionedTableViewTests;
+			productName = GNESectionedTableViewTests;
+			productReference = 578E75961934B69E00333D86 /* GNESectionedTableViewTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		578E756D1934B69E00333D86 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				CLASSPREFIX = GNE;
+				LastUpgradeCheck = 0510;
+				ORGANIZATIONNAME = "Gone East LLC";
+				TargetAttributes = {
+					578E75951934B69E00333D86 = {
+						TestTargetID = 578E75741934B69E00333D86;
+					};
+				};
+			};
+			buildConfigurationList = 578E75701934B69E00333D86 /* Build configuration list for PBXProject "GNESectionedTableView" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 578E756C1934B69E00333D86;
+			productRefGroup = 578E75761934B69E00333D86 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				578E75741934B69E00333D86 /* GNESectionedTableView */,
+				578E75951934B69E00333D86 /* GNESectionedTableViewTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		578E75731934B69E00333D86 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				578E75831934B69E00333D86 /* InfoPlist.strings in Resources */,
+				578E75911934B69E00333D86 /* Images.xcassets in Resources */,
+				578E75891934B69E00333D86 /* Credits.rtf in Resources */,
+				578E758F1934B69E00333D86 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		578E75941934B69E00333D86 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				578E75A11934B69E00333D86 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		578E75711934B69E00333D86 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				578E75851934B69E00333D86 /* main.m in Sources */,
+				578E758C1934B69E00333D86 /* GNEAppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		578E75921934B69E00333D86 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				578E75A31934B69E00333D86 /* GNESectionedTableViewTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		578E759B1934B69E00333D86 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 578E75741934B69E00333D86 /* GNESectionedTableView */;
+			targetProxy = 578E759A1934B69E00333D86 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		578E75811934B69E00333D86 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				578E75821934B69E00333D86 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		578E75871934B69E00333D86 /* Credits.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				578E75881934B69E00333D86 /* en */,
+			);
+			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		578E758D1934B69E00333D86 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				578E758E1934B69E00333D86 /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+		578E759F1934B69E00333D86 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				578E75A01934B69E00333D86 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		578E75A41934B69E00333D86 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		578E75A51934B69E00333D86 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		578E75A71934B69E00333D86 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "GNESectionedTableView/GNESectionedTableView-Prefix.pch";
+				INFOPLIST_FILE = "GNESectionedTableView/GNESectionedTableView-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		578E75A81934B69E00333D86 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "GNESectionedTableView/GNESectionedTableView-Prefix.pch";
+				INFOPLIST_FILE = "GNESectionedTableView/GNESectionedTableView-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		578E75AA1934B69E00333D86 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/GNESectionedTableView.app/Contents/MacOS/GNESectionedTableView";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "GNESectionedTableView/GNESectionedTableView-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = "GNESectionedTableViewTests/GNESectionedTableViewTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = xctest;
+			};
+			name = Debug;
+		};
+		578E75AB1934B69E00333D86 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/GNESectionedTableView.app/Contents/MacOS/GNESectionedTableView";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "GNESectionedTableView/GNESectionedTableView-Prefix.pch";
+				INFOPLIST_FILE = "GNESectionedTableViewTests/GNESectionedTableViewTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = xctest;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		578E75701934B69E00333D86 /* Build configuration list for PBXProject "GNESectionedTableView" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				578E75A41934B69E00333D86 /* Debug */,
+				578E75A51934B69E00333D86 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		578E75A61934B69E00333D86 /* Build configuration list for PBXNativeTarget "GNESectionedTableView" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				578E75A71934B69E00333D86 /* Debug */,
+				578E75A81934B69E00333D86 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		578E75A91934B69E00333D86 /* Build configuration list for PBXNativeTarget "GNESectionedTableViewTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				578E75AA1934B69E00333D86 /* Debug */,
+				578E75AB1934B69E00333D86 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 578E756D1934B69E00333D86 /* Project object */;
+}
