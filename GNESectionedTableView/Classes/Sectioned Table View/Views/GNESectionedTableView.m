@@ -18,7 +18,10 @@
 static NSString * const kOutlineViewOutlineColumnIdentifier = @"com.goneeast.OutlineViewOutlineColumn";
 static NSString * const kOutlineViewStandardColumnIdentifier = @"com.goneeast.OutlineViewStandardColumn";
 
-static NSString * const kOutlineViewColumnViewIdentifier = @"com.goneeast.OutlineViewColumnViewIdentifier";
+static NSString * const kOutlineViewStandardHeaderRowViewIdentifier =
+                                                        @"com.goneeast.OutlineViewStandardHeaderRowViewIdentifier";
+static NSString * const kOutlineViewStandardHeaderCellViewIdentifier =
+                                                        @"com.goneeast.OutlineViewStandardHeaderCellViewIdentifier";
 
 static const CGFloat kDefaultRowHeight = 32.0f;
 static const CGFloat kInvisibleRowHeight = 0.00001f;
@@ -79,10 +82,19 @@ static const CGFloat kInvisibleRowHeight = 0.00001f;
     _outlineViewParentItems = [NSMutableArray array];
     _outlineViewItems = [NSMutableArray array];
     
+    [self setDataSource:self];
+    [self setDelegate:self];
+    
     _privateOutlineColumn = [[NSTableColumn alloc] initWithIdentifier:kOutlineViewOutlineColumnIdentifier];
     [self setOutlineTableColumn:_privateOutlineColumn];
     NSTableColumn *standardColumn = [[NSTableColumn alloc] initWithIdentifier:kOutlineViewStandardColumnIdentifier];
+    [standardColumn setResizingMask:NSTableColumnAutoresizingMask];
     [self addTableColumn:standardColumn];
+    [standardColumn setWidth:[self bounds].size.width];
+    
+    [self setHeaderView:nil];
+    
+    [self expandItem:nil expandChildren:YES];
 }
 
 
@@ -388,6 +400,7 @@ static const CGFloat kInvisibleRowHeight = 0.00001f;
         [strongSelf p_buildOutlineViewItemArrays];
         
         [super reloadData];
+        [strongSelf expandItem:nil expandChildren:YES];
     }];
 }
 
@@ -395,14 +408,6 @@ static const CGFloat kInvisibleRowHeight = 0.00001f;
 // ------------------------------------------------------------------------------------------
 #pragma mark - NSOutlineView - Cell Frames
 // ------------------------------------------------------------------------------------------
-- (NSRect)frameOfCellAtColumn:(NSInteger __unused)column row:(NSInteger __unused)row
-{
-    NSAssert1(NO, @"It is forbidden to call %@. Use frameOfCellAtIndexPath: instead", NSStringFromSelector(_cmd));
-    
-    return CGRectZero;
-}
-
-
 - (NSRect)frameOfOutlineCellAtRow:(NSInteger __unused)row
 {
     return CGRectZero;
@@ -514,10 +519,35 @@ static const CGFloat kInvisibleRowHeight = 0.00001f;
 }
 
 
-- (NSTableRowView *)outlineView:(NSOutlineView * __unused)outlineView rowViewForItem:(GNEOutlineViewItem *)item
+- (NSTableRowView *)outlineView:(NSOutlineView *)outlineView rowViewForItem:(GNEOutlineViewItem *)item
 {
     NSParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
     
+    // Section header
+    if (item.parentItem == nil)
+    {
+        if ([self.tableViewDelegate respondsToSelector:@selector(tableView:rowViewForHeaderInSection:)])
+        {
+            return [self.tableViewDelegate tableView:self rowViewForHeaderInSection:item.indexPath.gne_section];
+        }
+        else
+        {
+            NSTableRowView *rowView = [outlineView makeViewWithIdentifier:kOutlineViewStandardHeaderRowViewIdentifier
+                                                                    owner:outlineView];
+            
+            if (rowView == nil)
+            {
+                rowView = [[NSTableRowView alloc] initWithFrame:CGRectZero];
+                [rowView setAutoresizingMask:NSViewWidthSizable];
+                rowView.identifier = kOutlineViewStandardHeaderRowViewIdentifier;
+                rowView.backgroundColor = [NSColor clearColor];
+            }
+            
+            return rowView;
+        }
+    }
+    
+    // Row
     if ([self.tableViewDataSource respondsToSelector:@selector(tableView:rowViewForRowAtIndexPath:)])
     {
         return [self.tableViewDataSource tableView:self rowViewForRowAtIndexPath:item.indexPath];
@@ -527,24 +557,28 @@ static const CGFloat kInvisibleRowHeight = 0.00001f;
 }
 
 
-- (NSView *)outlineView:(NSOutlineView *)outlineView
-     viewForTableColumn:(NSTableColumn *)tableColumn
+- (NSView *)outlineView:(NSOutlineView * __unused)outlineView
+     viewForTableColumn:(NSTableColumn * __unused)tableColumn
                    item:(GNEOutlineViewItem *)item
 {
     NSParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
     
-    NSView *columnView = [outlineView makeViewWithIdentifier:kOutlineViewColumnViewIdentifier owner:outlineView];
-    
-    if (columnView == nil)
+    // Section header
+    if (item.parentItem == nil)
     {
-        columnView = [[NSView alloc] initWithFrame:CGRectZero];
-        [columnView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-        [columnView setWantsLayer:YES];
-        CALayer *layer = [columnView layer];
-        layer.backgroundColor = [[NSColor clearColor] CGColor];
+        if ([self.tableViewDelegate respondsToSelector:@selector(tableView:cellViewForHeaderInSection:)])
+        {
+            return [self.tableViewDelegate tableView:self cellViewForHeaderInSection:item.indexPath.gne_section];
+        }
     }
     
-    return columnView;
+    // Row
+    if ([self.tableViewDataSource respondsToSelector:@selector(tableView:cellViewForRowAtIndexPath:)])
+    {
+        return [self.tableViewDataSource tableView:self cellViewForRowAtIndexPath:item.indexPath];
+    }
+    
+    return nil;
 }
 
 
@@ -561,6 +595,7 @@ static const CGFloat kInvisibleRowHeight = 0.00001f;
         _tableViewDataSource = tableViewDataSource;
         
         [self reloadData];
+        [self expandItem:nil expandChildren:YES];
     }
 }
 
@@ -575,6 +610,7 @@ static const CGFloat kInvisibleRowHeight = 0.00001f;
         _tableViewDelegate = tableViewDelegate;
         
         [self reloadData];
+        [self expandItem:nil expandChildren:YES];
     }
 }
 

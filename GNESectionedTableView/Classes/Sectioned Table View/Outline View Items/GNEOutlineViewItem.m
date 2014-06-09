@@ -76,7 +76,7 @@ NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentIte
 }
 
 
-+ (NSArray *)readableTypesForPasteboard:(NSPasteboard *)pasteboard
++ (NSArray *)readableTypesForPasteboard:(NSPasteboard * __unused)pasteboard
 {
     return @[GNEOutlineViewItemPasteboardType];
 }
@@ -85,7 +85,7 @@ NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentIte
 // ------------------------------------------------------------------------------------------
 #pragma mark - NSPasteboardWriter
 // ------------------------------------------------------------------------------------------
-- (NSArray *)writableTypesForPasteboard:(NSPasteboard *)pasteboard
+- (NSArray *)writableTypesForPasteboard:(NSPasteboard * __unused)pasteboard
 {
     return @[GNEOutlineViewItemPasteboardType];
 }
@@ -109,8 +109,8 @@ NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentIte
 // ------------------------------------------------------------------------------------------
 - (NSString *)description
 {
-    NSInteger row = (self.indexPath) ? self.indexPath.gne_row : -1;
-    NSInteger section = (self.indexPath) ? self.indexPath.gne_section : -1;
+    NSInteger row = (self.indexPath) ? (NSInteger)self.indexPath.gne_row : -1;
+    NSInteger section = (self.indexPath) ? (NSInteger)self.indexPath.gne_section : -1;
     
     return [NSString
             stringWithFormat:@"<%@: %p, row:%ld section:%ld>", [self className], self, (long)row, (long)section];
@@ -122,7 +122,7 @@ NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentIte
 // ------------------------------------------------------------------------------------------
 - (void)setIndexPath:(NSIndexPath *)indexPath
 {
-    NSParameterAssert(indexPath != nil);
+    NSParameterAssert(indexPath);
     
     if (_indexPath != indexPath)
     {
@@ -133,7 +133,7 @@ NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentIte
 
 - (void)setParentItem:(GNEOutlineViewParentItem *)parentItem
 {
-    NSParameterAssert(parentItem != nil);
+    NSParameterAssert(parentItem);
     
     if (_parentItem != parentItem)
     {

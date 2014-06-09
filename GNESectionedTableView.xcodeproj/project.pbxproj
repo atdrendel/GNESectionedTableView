@@ -17,6 +17,10 @@
 		572E26DC1945676B000F4656 /* GNEOutlineViewParentItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26D11945676B000F4656 /* GNEOutlineViewParentItem.m */; };
 		572E26DD1945676B000F4656 /* GNESectionedTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26D41945676B000F4656 /* GNESectionedTableView.m */; };
 		572E26DE1945676B000F4656 /* GNESectionedTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26D41945676B000F4656 /* GNESectionedTableView.m */; };
+		572E26EA1945683A000F4656 /* GNETableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26E91945683A000F4656 /* GNETableViewController.m */; };
+		572E26EB1945683A000F4656 /* GNETableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26E91945683A000F4656 /* GNETableViewController.m */; };
+		572E26EE1945684F000F4656 /* GNETableViewDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26ED1945684F000F4656 /* GNETableViewDataSource.m */; };
+		572E26EF1945684F000F4656 /* GNETableViewDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26ED1945684F000F4656 /* GNETableViewDataSource.m */; };
 		578E75791934B69E00333D86 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 578E75781934B69E00333D86 /* Cocoa.framework */; };
 		578E75831934B69E00333D86 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 578E75811934B69E00333D86 /* InfoPlist.strings */; };
 		578E75851934B69E00333D86 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 578E75841934B69E00333D86 /* main.m */; };
@@ -29,6 +33,8 @@
 		578E75A31934B69E00333D86 /* GNESectionedTableViewTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 578E75A21934B69E00333D86 /* GNESectionedTableViewTests.m */; };
 		578E75B61934BC1D00333D86 /* GNEAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 578E75B21934BC1D00333D86 /* GNEAppDelegate.m */; };
 		578E75B71934BC1D00333D86 /* GNEAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 578E75B21934BC1D00333D86 /* GNEAppDelegate.m */; };
+		57A128B8194574C200B72A49 /* GNETableCellView.m in Sources */ = {isa = PBXBuildFile; fileRef = 57A128B7194574C200B72A49 /* GNETableCellView.m */; };
+		57A128B9194574C200B72A49 /* GNETableCellView.m in Sources */ = {isa = PBXBuildFile; fileRef = 57A128B7194574C200B72A49 /* GNETableCellView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +58,10 @@
 		572E26D11945676B000F4656 /* GNEOutlineViewParentItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEOutlineViewParentItem.m; sourceTree = "<group>"; };
 		572E26D31945676B000F4656 /* GNESectionedTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNESectionedTableView.h; sourceTree = "<group>"; };
 		572E26D41945676B000F4656 /* GNESectionedTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNESectionedTableView.m; sourceTree = "<group>"; };
+		572E26E81945683A000F4656 /* GNETableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNETableViewController.h; sourceTree = "<group>"; };
+		572E26E91945683A000F4656 /* GNETableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNETableViewController.m; sourceTree = "<group>"; };
+		572E26EC1945684F000F4656 /* GNETableViewDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNETableViewDataSource.h; sourceTree = "<group>"; };
+		572E26ED1945684F000F4656 /* GNETableViewDataSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNETableViewDataSource.m; sourceTree = "<group>"; };
 		578E75751934B69E00333D86 /* GNESectionedTableView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GNESectionedTableView.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		578E75781934B69E00333D86 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		578E757B1934B69E00333D86 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -71,6 +81,8 @@
 		578E75A21934B69E00333D86 /* GNESectionedTableViewTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GNESectionedTableViewTests.m; sourceTree = "<group>"; };
 		578E75B11934BC1D00333D86 /* GNEAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEAppDelegate.h; sourceTree = "<group>"; };
 		578E75B21934BC1D00333D86 /* GNEAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEAppDelegate.m; sourceTree = "<group>"; };
+		57A128B6194574C200B72A49 /* GNETableCellView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNETableCellView.h; sourceTree = "<group>"; };
+		57A128B7194574C200B72A49 /* GNETableCellView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNETableCellView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -147,6 +159,43 @@
 			children = (
 				572E26D31945676B000F4656 /* GNESectionedTableView.h */,
 				572E26D41945676B000F4656 /* GNESectionedTableView.m */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		572E26DF194567B6000F4656 /* Sample Project */ = {
+			isa = PBXGroup;
+			children = (
+				572E26E0194567D0000F4656 /* Data Sources */,
+				572E26E619456822000F4656 /* View Controllers */,
+				572E26E719456822000F4656 /* Views */,
+			);
+			path = "Sample Project";
+			sourceTree = "<group>";
+		};
+		572E26E0194567D0000F4656 /* Data Sources */ = {
+			isa = PBXGroup;
+			children = (
+				572E26EC1945684F000F4656 /* GNETableViewDataSource.h */,
+				572E26ED1945684F000F4656 /* GNETableViewDataSource.m */,
+			);
+			path = "Data Sources";
+			sourceTree = "<group>";
+		};
+		572E26E619456822000F4656 /* View Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				572E26E81945683A000F4656 /* GNETableViewController.h */,
+				572E26E91945683A000F4656 /* GNETableViewController.m */,
+			);
+			path = "View Controllers";
+			sourceTree = "<group>";
+		};
+		572E26E719456822000F4656 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				57A128B6194574C200B72A49 /* GNETableCellView.h */,
+				57A128B7194574C200B72A49 /* GNETableCellView.m */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -234,6 +283,7 @@
 		578E75B01934BC1D00333D86 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				572E26DF194567B6000F4656 /* Sample Project */,
 				572E26C51945676B000F4656 /* Sectioned Table View */,
 				578E75B11934BC1D00333D86 /* GNEAppDelegate.h */,
 				578E75B21934BC1D00333D86 /* GNEAppDelegate.m */,
@@ -344,6 +394,9 @@
 				572E26D51945676B000F4656 /* NSIndexPath+GNESectionedTableView.m in Sources */,
 				578E75B61934BC1D00333D86 /* GNEAppDelegate.m in Sources */,
 				572E26DD1945676B000F4656 /* GNESectionedTableView.m in Sources */,
+				572E26EA1945683A000F4656 /* GNETableViewController.m in Sources */,
+				572E26EE1945684F000F4656 /* GNETableViewDataSource.m in Sources */,
+				57A128B8194574C200B72A49 /* GNETableCellView.m in Sources */,
 				572E26D91945676B000F4656 /* GNEOutlineViewItem.m in Sources */,
 				572E26D71945676B000F4656 /* NSOutlineView+GNE_Additions.m in Sources */,
 				572E26DB1945676B000F4656 /* GNEOutlineViewParentItem.m in Sources */,
@@ -358,6 +411,9 @@
 				572E26D61945676B000F4656 /* NSIndexPath+GNESectionedTableView.m in Sources */,
 				578E75B71934BC1D00333D86 /* GNEAppDelegate.m in Sources */,
 				572E26DE1945676B000F4656 /* GNESectionedTableView.m in Sources */,
+				572E26EB1945683A000F4656 /* GNETableViewController.m in Sources */,
+				572E26EF1945684F000F4656 /* GNETableViewDataSource.m in Sources */,
+				57A128B9194574C200B72A49 /* GNETableCellView.m in Sources */,
 				572E26DA1945676B000F4656 /* GNEOutlineViewItem.m in Sources */,
 				572E26D81945676B000F4656 /* NSOutlineView+GNE_Additions.m in Sources */,
 				572E26DC1945676B000F4656 /* GNEOutlineViewParentItem.m in Sources */,
