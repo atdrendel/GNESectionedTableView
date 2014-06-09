@@ -10,7 +10,7 @@
 
 @implementation GNEAppDelegate
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+- (void)applicationDidFinishLaunching:(NSNotification * __unused)aNotification
 {
     // Insert code here to initialize your application
 }
