@@ -7,6 +7,8 @@
 //
 
 #import "GNETableViewDataSource.h"
+#import "GNETableCellView.h"
+#import "GNEHeaderCellView.h"
 
 
 // ------------------------------------------------------------------------------------------
@@ -58,6 +60,7 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 - (void)p_buildAndConfigureSectionsAndRows
 {
     NSUInteger sectionCount = arc4random_uniform(10);
+    sectionCount = 10;
     
     self.sections = [NSMutableArray arrayWithCapacity:sectionCount];
     self.rows = [NSMutableArray arrayWithCapacity:sectionCount];
@@ -67,6 +70,7 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
         [self.sections addObject:[NSString stringWithFormat:@"%lu", section]];
         
         NSUInteger rowCount = arc4random_uniform(10);
+        rowCount = 10;
         NSMutableArray *rowsArray = [NSMutableArray arrayWithCapacity:rowCount];
         for (NSUInteger row = 0; row < rowCount; row++)
         {
@@ -113,16 +117,14 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 - (NSTableCellView *)tableView:(GNESectionedTableView *)tableView
      cellViewForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSTableCellView *cellView = [tableView makeViewWithIdentifier:kCellViewIdentifier owner:tableView];
+    GNETableCellView *cellView = [tableView makeViewWithIdentifier:kCellViewIdentifier owner:tableView];
     
     if (cellView == nil)
     {
-        cellView = [[NSTableCellView alloc] initWithFrame:CGRectZero];
+        cellView = [[GNETableCellView alloc] initWithFrame:CGRectZero];
         [cellView setAutoresizingMask:NSViewWidthSizable];
         cellView.identifier = kCellViewIdentifier;
-        cellView.textField.stringValue = [NSString stringWithFormat:@"%lu, %lu",
-                                          indexPath.gne_section,
-                                          indexPath.gne_row];
+        cellView.title = [NSString stringWithFormat:@"%lu, %lu", indexPath.gne_section, indexPath.gne_row];
     }
     
     return cellView;
@@ -140,8 +142,13 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 
 
 -       (CGFloat)tableView:(GNESectionedTableView * __unused)tableView
-  heightForHeaderInSection:(NSUInteger __unused)section
+  heightForHeaderInSection:(NSUInteger)section
 {
+    if (section == 0)
+    {
+        return 0.0f;
+    }
+    
     return 22.0f;
 }
 
@@ -149,12 +156,17 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 - (NSTableRowView *)tableView:(GNESectionedTableView *)tableView
     rowViewForHeaderInSection:(NSUInteger __unused)section
 {
+    if (section == 0)
+    {
+        return nil;
+    }
+    
     NSTableRowView *rowView = [tableView makeViewWithIdentifier:kHeaderRowViewIdentifier owner:tableView];
     
     if (rowView == nil)
     {
-        rowView = [[NSTableRowView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 200.0f, 36.0f)];
-        [rowView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+        rowView = [[NSTableRowView alloc] initWithFrame:CGRectZero];
+        [rowView setAutoresizingMask:NSViewWidthSizable];
         rowView.identifier = kHeaderRowViewIdentifier;
         rowView.backgroundColor = [NSColor greenColor];
     }
@@ -164,18 +176,36 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 
 
 - (NSTableCellView *)tableView:(GNESectionedTableView *)tableView
-    cellViewForHeaderInSection:(NSUInteger __unused)section
+    cellViewForHeaderInSection:(NSUInteger)section
 {
-    NSTableCellView *cellView = [tableView makeViewWithIdentifier:kHeaderCellViewIdentifier owner:tableView];
+    if (section == 0)
+    {
+        return nil;
+    }
+    
+    GNEHeaderCellView *cellView = [tableView makeViewWithIdentifier:kHeaderCellViewIdentifier owner:tableView];
     
     if (cellView == nil)
     {
-        cellView = [[NSTableCellView alloc] initWithFrame:CGRectZero];
+        cellView = [[GNEHeaderCellView alloc] initWithFrame:CGRectZero];
         [cellView setAutoresizingMask:NSViewWidthSizable];
         cellView.identifier = kHeaderCellViewIdentifier;
     }
     
+    cellView.title = [NSString stringWithFormat:@"Section %lu", section];
+    
     return cellView;
+}
+
+
+- (BOOL)tableView:(GNESectionedTableView * __unused)tableView shouldSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.gne_section == 0)
+    {
+        return NO;
+    }
+    
+    return YES;
 }
 
 

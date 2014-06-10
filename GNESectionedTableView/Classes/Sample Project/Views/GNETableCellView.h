@@ -6,8 +6,10 @@
 //  Copyright (c) 2014 Gone East LLC. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-
 @interface GNETableCellView : NSTableCellView
+
+
+@property (nonatomic, copy) NSString *title;
+
 
 @end

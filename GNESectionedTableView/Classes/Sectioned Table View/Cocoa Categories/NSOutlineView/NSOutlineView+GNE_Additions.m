@@ -14,9 +14,11 @@
 - (void)performAfterAnimations:(NSOutlineViewBlock)block
 {
     __weak typeof(self) weakSelf = self;
+    
     [[NSAnimationContext currentContext] setCompletionHandler:^()
     {
-        block(weakSelf);
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        block(strongSelf);
     }];
 }
 

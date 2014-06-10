@@ -56,6 +56,10 @@
 @optional
 - (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForHeaderInSection:(NSUInteger)section;
 
+/* Selection */
+@optional
+- (BOOL)tableView:(GNESectionedTableView *)tableView shouldSelectRowAtIndexPath:(NSIndexPath *)indexPath;
+
 
 @end
 

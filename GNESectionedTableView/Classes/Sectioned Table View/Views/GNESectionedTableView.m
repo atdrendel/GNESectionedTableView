@@ -24,7 +24,12 @@ static NSString * const kOutlineViewStandardHeaderCellViewIdentifier =
                                                         @"com.goneeast.OutlineViewStandardHeaderCellViewIdentifier";
 
 static const CGFloat kDefaultRowHeight = 32.0f;
+
+#ifdef UNSAFE_ROW_HEIGHT_ALLOWED
 static const CGFloat kInvisibleRowHeight = 0.00001f;
+#else
+static const CGFloat kInvisibleRowHeight = 1.0f;
+#endif
 
 
 // ------------------------------------------------------------------------------------------
@@ -88,7 +93,6 @@ static const CGFloat kInvisibleRowHeight = 0.00001f;
     _privateOutlineColumn = [[NSTableColumn alloc] initWithIdentifier:kOutlineViewOutlineColumnIdentifier];
     [self setOutlineTableColumn:_privateOutlineColumn];
     NSTableColumn *standardColumn = [[NSTableColumn alloc] initWithIdentifier:kOutlineViewStandardColumnIdentifier];
-    [standardColumn setResizingMask:NSTableColumnAutoresizingMask];
     [self addTableColumn:standardColumn];
     [standardColumn setWidth:[self bounds].size.width];
     
@@ -579,6 +583,27 @@ static const CGFloat kInvisibleRowHeight = 0.00001f;
     }
     
     return nil;
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - NSOutlineViewDelegate - Selection
+// ------------------------------------------------------------------------------------------
+- (BOOL)outlineView:(NSOutlineView * __unused)outlineView shouldSelectItem:(GNEOutlineViewItem *)item
+{
+    NSParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    
+    if (item == nil)
+    {
+        return NO;
+    }
+    
+    if ([self.tableViewDelegate respondsToSelector:@selector(tableView:shouldSelectRowAtIndexPath:)])
+    {
+        return [self.tableViewDelegate tableView:self shouldSelectRowAtIndexPath:item.indexPath];
+    }
+    
+    return YES;
 }
 
 

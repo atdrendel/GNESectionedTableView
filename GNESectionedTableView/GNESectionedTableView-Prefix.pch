@@ -5,6 +5,7 @@
 //
 
 #ifdef __OBJC__
-    #import <Cocoa/Cocoa.h>
+    @import Cocoa;
+    @import QuartzCore;
     #import "NSIndexPath+GNESectionedTableView.h"
 #endif
