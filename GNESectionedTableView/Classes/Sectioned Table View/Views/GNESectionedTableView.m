@@ -161,6 +161,10 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 // ------------------------------------------------------------------------------------------
 - (void)insertRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
+#ifdef DEBUG
+    NSLog(@"%@\n%@", NSStringFromSelector(_cmd), indexPaths);
+#endif
+    
     [self p_checkIndexPathsArray:indexPaths];
     
     NSArray *groupedIndexPaths = [self p_sortedIndexPathsGroupedBySectionInIndexPaths:indexPaths];
@@ -196,6 +200,8 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
             [self p_updateIndexPathsForOutlineViewItemsInSection:section];
         }
     }
+    
+    [self p_checkDataSourceIntegrity];
 }
 
 
@@ -220,39 +226,58 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 
 - (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
+#ifdef DEBUG
+    NSLog(@"%@\n%@", NSStringFromSelector(_cmd), sections);
+#endif
+    
     NSParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:numberOfRowsInSection:)]);
     
     NSMutableIndexSet *insertedSections = [NSMutableIndexSet indexSet];
     
+    NSMutableArray *outlineViewParentItemsCopy = [NSMutableArray arrayWithArray:self.outlineViewParentItems];
+    NSMutableArray *outlineViewItemsCopy = [NSMutableArray arrayWithArray:self.outlineViewItems];
+    
     [sections enumerateIndexesUsingBlock:^(NSUInteger proposedSection, BOOL *stop __unused)
     {
-        NSUInteger sectionCount = [self.outlineViewParentItems count];
-        NSUInteger section = (proposedSection > sectionCount) ? sectionCount : proposedSection;
-        
-        NSIndexPath *parentItemIndexPath = [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
-        GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc]
-                                                initWithIndexPath:parentItemIndexPath];
-        parentItem.visible = [self p_outlineViewParentItemIsVisibleForSection:section];
-        [self.outlineViewParentItems gne_insertObject:parentItem atIndex:section];
-        
-        NSUInteger rowCount = [self.tableViewDataSource tableView:self numberOfRowsInSection:section];
-        
-        NSMutableArray *rows = [NSMutableArray arrayWithCapacity:rowCount];
-        [self.outlineViewItems gne_insertObject:rows atIndex:section];
-        
-        for (NSUInteger row = 0; row < rowCount; row++)
+        @autoreleasepool
         {
-            NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
-            GNEOutlineViewItem *item = [[GNEOutlineViewItem alloc] initWithIndexPath:indexPath
-                                                                          parentItem:parentItem];
+            NSUInteger sectionCount = [outlineViewParentItemsCopy count];
+            NSUInteger section = (proposedSection > sectionCount) ? sectionCount : proposedSection;
             
-            [rows addObject:item];
+            NSIndexPath *parentItemIndexPath = [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
+            GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc]
+                                                    initWithIndexPath:parentItemIndexPath];
+            parentItem.visible = [self p_outlineViewParentItemIsVisibleForSection:section];
+            [outlineViewParentItemsCopy gne_insertObject:parentItem atIndex:section];
+            
+            NSMutableArray *rows = [NSMutableArray array];
+            [outlineViewItemsCopy gne_insertObject:rows atIndex:section];
+            
+            NSUInteger rowCount = [self.tableViewDataSource tableView:self numberOfRowsInSection:section];
+            
+            for (NSUInteger row = 0; row < rowCount; row++)
+            {
+                NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
+                GNEOutlineViewItem *item = [[GNEOutlineViewItem alloc] initWithIndexPath:indexPath
+                                                                              parentItem:parentItem];
+                
+                [rows addObject:item];
+            }
+            
+            [insertedSections addIndex:section];
         }
-        
-        [insertedSections addIndex:section];
     }];
     
+    NSParameterAssert([sections count] == [insertedSections count]);
+    
+    self.outlineViewParentItems = outlineViewParentItemsCopy;
+    self.outlineViewItems = outlineViewItemsCopy;
+    
+    [self p_updateIndexPathsForOutlineViewItemsBeginningAtSection:[insertedSections firstIndex]];
     [self insertItemsAtIndexes:insertedSections inParent:nil withAnimation:animationOptions];
+    [self p_expandParentItemsAtIndexes:insertedSections];
+    
+    [self p_checkDataSourceIntegrity];
 }
 
 
@@ -352,6 +377,28 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Internal - Insert, Delete, Move Outline View Items
 // ------------------------------------------------------------------------------------------
+- (void)p_updateIndexPathsForOutlineViewItemsBeginningAtSection:(NSUInteger)section
+{
+    NSParameterAssert([self.outlineViewParentItems count] == [self.outlineViewItems count]);
+    
+    NSUInteger sectionCount = [self.outlineViewParentItems count];
+    
+    for (; section < sectionCount; section++)
+    {
+        GNEOutlineViewParentItem *parentItem = self.outlineViewParentItems[section];
+        parentItem.indexPath = [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
+        
+        NSMutableArray *rows = self.outlineViewItems[section];
+        NSUInteger rowCount = [rows count];
+        for (NSUInteger row = 0; row < rowCount; row++)
+        {
+            GNEOutlineViewItem *item = rows[row];
+            item.indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
+        }
+    }
+}
+
+
 /**
  Updates the index paths of all of the outline view items currently belonging to the specified section.
  
@@ -564,6 +611,23 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - GNESectionedTableView - Internal - Expand/Collapse Parent Items
+// ------------------------------------------------------------------------------------------
+- (void)p_expandParentItemsAtIndexes:(NSIndexSet *)indexSet
+{
+    NSUInteger count = [self.outlineViewParentItems count];
+    [indexSet enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop __unused)
+    {
+        if (index < count)
+        {
+            GNEOutlineViewParentItem *parentItem = self.outlineViewParentItems[index];
+            [self expandItem:parentItem];
+        }
+    }];
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Internal - Counts
 // ------------------------------------------------------------------------------------------
 - (NSUInteger)p_numberOfSections
@@ -618,6 +682,41 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Internal - Debug Checks
 // ------------------------------------------------------------------------------------------
+#ifdef DEBUG
+- (void)p_checkDataSourceIntegrity
+{
+    id dataSource = (id)self.tableViewDataSource;
+    
+    SEL numberOfSectionsSelector = NSSelectorFromString(@"numberOfSections");
+    SEL numberOfRowsSelector = NSSelectorFromString(@"numberOfRows");
+    
+    NSParameterAssert([dataSource respondsToSelector:numberOfSectionsSelector]);
+    NSParameterAssert([dataSource respondsToSelector:numberOfRowsSelector]);
+    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+    NSUInteger numberOfSectionsInDataSource = (NSUInteger)[dataSource performSelector:numberOfSectionsSelector];
+#pragma clang diagnostic pop
+    NSUInteger numberOfSectionsInOutlineView = (NSUInteger)[self p_numberOfSections];
+    
+    NSParameterAssert(numberOfSectionsInDataSource == numberOfSectionsInOutlineView);
+    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+    NSUInteger numberOfRowsInDataSource = (NSUInteger)[dataSource performSelector:numberOfRowsSelector];
+#pragma clang diagnostic pop
+    NSUInteger numberOfRowsInOutlineView = [self p_numberOfRowsInOutlineView] - [self p_numberOfSections];
+    
+    NSParameterAssert(numberOfRowsInDataSource == numberOfRowsInOutlineView);
+}
+#else
+- (void)p_checkDataSourceIntegrity
+{
+    
+}
+#endif
+
+
 #ifdef DEBUG
 - (void)p_checkIndexPathsArray:(NSArray *)indexPaths
 {

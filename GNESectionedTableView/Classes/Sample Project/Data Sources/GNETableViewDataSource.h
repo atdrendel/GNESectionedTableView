@@ -14,4 +14,10 @@
 - (void)setTableView:(GNESectionedTableView *)tableView;
 
 
+#ifdef DEBUG
+- (NSUInteger)numberOfSections;
+- (NSUInteger)numberOfRows;
+#endif
+
+
 @end

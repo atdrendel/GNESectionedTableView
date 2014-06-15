@@ -32,9 +32,9 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 @property (nonatomic, strong) NSMutableArray *sections;
 @property (nonatomic, strong) NSMutableArray *rows;
 
-@property (nonatomic, strong) NSTimer *insertionTimer;
-@property (nonatomic, strong) NSTimer *deletionTimer;
-@property (nonatomic, strong) NSTimer *moveTimer;
+@property (nonatomic, strong) NSTimer *updateTimer;
+
+@property (nonatomic, strong) NSDateFormatter *dateFormatter;
 
 
 @end
@@ -53,6 +53,9 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 {
     if ((self = [super init]))
     {
+        _dateFormatter = [[NSDateFormatter alloc] init];
+        [_dateFormatter setDateStyle:NSDateFormatterNoStyle];
+        [_dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
         [self p_buildAndConfigureSectionsAndRows];
         [self p_buildAndConfigureTimers];
     }
@@ -71,30 +74,79 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Public - Debugging
+// ------------------------------------------------------------------------------------------
+#ifdef DEBUG
+- (NSUInteger)numberOfSections
+{
+    NSParameterAssert([self.sections count] == [self.rows count]);
+    
+    return [self.sections count];
+}
+
+
+- (NSUInteger)numberOfRows
+{
+    NSParameterAssert([self.sections count] == [self.rows count]);
+    
+    NSUInteger numberOfRows = 0;
+    
+    NSUInteger sectionCount = [self.rows count];
+    for (NSUInteger section = 0; section < sectionCount; section++)
+    {
+        numberOfRows += [self.rows[section] count];
+    }
+    
+    return numberOfRows;
+}
+#endif
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Private - Sections and Rows
 // ------------------------------------------------------------------------------------------
 - (void)p_buildAndConfigureSectionsAndRows
 {
     NSUInteger sectionCount = arc4random_uniform(10);
-    sectionCount = 10;
     
     self.sections = [NSMutableArray arrayWithCapacity:sectionCount];
     self.rows = [NSMutableArray arrayWithCapacity:sectionCount];
     
-    for (NSUInteger section = 0; section < sectionCount; section++)
-    {
-        [self.sections addObject:[NSString stringWithFormat:@"%lu", section]];
-        
+//    for (NSUInteger section = 0; section < sectionCount; section++)
+//    {
+//        [self.sections addObject:[self p_stringForSection:section]];
+//        
 //        NSUInteger rowCount = arc4random_uniform(10);
 //        rowCount = 10;
-        NSMutableArray *rowsArray = [NSMutableArray array];
+//        NSMutableArray *rowsArray = [NSMutableArray array];
 //        for (NSUInteger row = 0; row < rowCount; row++)
 //        {
-//            [rowsArray addObject:[NSString stringWithFormat:@"%lu", row]];
+//            NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
+//            [rowsArray addObject:[self p_stringForRowAtIndexPath:indexPath]];
 //        }
-        
-        [self.rows addObject:rowsArray];
-    }
+//        
+//        [self.rows addObject:rowsArray];
+//    }
+}
+
+
+- (NSString *)p_stringForSection:(NSUInteger)section
+{
+    NSString *dateString = [self.dateFormatter stringFromDate:[NSDate date]];
+    NSString *string = [NSString stringWithFormat:@"Section %lu at %@", section, dateString];
+    
+    return string;
+}
+
+
+- (NSString *)p_stringForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSString *dateString = [self.dateFormatter stringFromDate:[NSDate date]];
+    NSString *string = [NSString stringWithFormat:@"%lu, %lu at %@",
+                        indexPath.gne_section,
+                        indexPath.gne_row, dateString];
+    
+    return string;
 }
 
 
@@ -103,16 +155,44 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 // ------------------------------------------------------------------------------------------
 - (void)p_buildAndConfigureTimers
 {
-    self.insertionTimer = [NSTimer timerWithTimeInterval:3
-                                                  target:self
-                                                selector:@selector(p_insertRandomSectionsOrRows)
-                                                userInfo:nil
-                                                 repeats:YES];
-    [[NSRunLoop currentRunLoop] addTimer:self.insertionTimer forMode:NSDefaultRunLoopMode];
+    self.updateTimer = [NSTimer timerWithTimeInterval:2
+                                               target:self
+                                             selector:@selector(p_performRandomUpdates)
+                                             userInfo:nil
+                                              repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:self.updateTimer forMode:NSDefaultRunLoopMode];
 }
 
 
-- (void)p_insertRandomSectionsOrRows
+- (void)p_performRandomUpdates
+{
+    [self p_performRandomInsertions];
+    return;
+    
+    NSUInteger operation = arc4random_uniform(3);
+    
+    switch (operation)
+    {
+        case 0:
+        {
+            [self p_performRandomInsertions];
+            break;
+        }
+        case 1:
+        {
+            [self p_performRandomDeletions];
+            break;
+        }
+        case 2:
+        {
+            [self p_performRandomMoves];
+            break;
+        }
+    }
+}
+
+
+- (void)p_performRandomInsertions
 {
     BOOL insertRows = (BOOL)arc4random_uniform(2);
     if (insertRows)
@@ -128,15 +208,61 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 
 - (void)p_insertRandomSections
 {
+    NSMutableArray *sectionsCopy = [NSMutableArray arrayWithArray:self.sections];
+    NSMutableArray *rowsCopy = [NSMutableArray arrayWithArray:self.rows];
     
+    NSParameterAssert([sectionsCopy count] == [rowsCopy count]);
+    
+    NSUInteger sectionCount = [sectionsCopy count];
+    
+    NSUInteger sectionInsertionCount = arc4random_uniform(4);
+    sectionInsertionCount = MAX((NSUInteger)1, sectionInsertionCount);
+    
+    NSIndexSet *insertedSections = [self p_indexSetOfRandomIndexesInRange:NSMakeRange(0, sectionCount)
+                                                                           count:sectionInsertionCount];
+    [insertedSections enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stop __unused)
+    {
+        NSUInteger rowInsertionCount = arc4random_uniform(5);
+
+        NSUInteger actualIndex = [sectionsCopy gne_insertObject:[self p_stringForSection:section] atIndex:section];
+
+        NSParameterAssert(actualIndex == section);
+
+        NSMutableArray *rows = [NSMutableArray arrayWithCapacity:rowInsertionCount];
+        actualIndex = [rowsCopy gne_insertObject:rows atIndex:section];
+
+        NSParameterAssert(actualIndex == section);
+
+        for (NSUInteger row = 0; row < rowInsertionCount; row++)
+        {
+            NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
+            [rows addObject:[self p_stringForRowAtIndexPath:indexPath]];
+        }
+    }];
+    
+    NSParameterAssert([insertedSections count] == sectionInsertionCount);
+    
+    self.sections = sectionsCopy;
+    self.rows = rowsCopy;
+    
+    GNESectionedTableView *tableView = self.tableView;
+    [tableView insertSections:insertedSections withAnimation:NSTableViewAnimationEffectFade];
 }
 
 
 - (void)p_insertRandomRows
 {
+    NSMutableArray *sectionsCopy = [NSMutableArray arrayWithArray:self.sections];
+    NSMutableArray *rowsCopy = [NSMutableArray arrayWithArray:self.rows];
+    
     NSMutableArray *indexPaths = [NSMutableArray array];
     
-    NSUInteger sectionCount = [self.sections count];
+    NSUInteger sectionCount = [sectionsCopy count];
+    
+    if (sectionCount == 0)
+    {
+        return;
+    }
     
     NSUInteger iterations = arc4random_uniform(3);
     iterations = MAX((NSUInteger)1, iterations);
@@ -144,7 +270,8 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
     for (NSUInteger i = 0; i < iterations; i++)
     {
         NSUInteger section = arc4random_uniform((uint32_t)sectionCount);
-        NSUInteger rowCount = [self.rows[section] count];
+        NSMutableArray *rows = rowsCopy[section];
+        NSUInteger rowCount = [rows count];
         
         NSUInteger insertionIndex = arc4random_uniform((uint32_t)rowCount);
         NSUInteger insertionCount = arc4random_uniform(5);
@@ -153,11 +280,46 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
         {
             NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:(insertionIndex + insertion) inSection:section];
             [indexPaths addObject:indexPath];
+            
+            [rows gne_insertObject:[self p_stringForRowAtIndexPath:indexPath]
+                           atIndex:indexPath.gne_row];
         }
     }
     
+    self.sections = sectionsCopy;
+    self.rows = rowsCopy;
+    
     GNESectionedTableView *tableView = self.tableView;
     [tableView insertRowsAtIndexPaths:indexPaths withAnimation:NSTableViewAnimationEffectFade];
+}
+
+
+- (void)p_performRandomDeletions
+{
+    
+}
+
+
+- (void)p_performRandomMoves
+{
+    
+}
+
+
+- (NSIndexSet *)p_indexSetOfRandomIndexesInRange:(NSRange)range count:(NSUInteger)count
+{
+    NSMutableIndexSet *mutableIndexSet = [NSMutableIndexSet indexSet];
+    while ([mutableIndexSet count] < count)
+    {
+        NSUInteger index = arc4random_uniform((uint32_t)(range.length - range.location)) + range.location;
+        if ([mutableIndexSet containsIndex:index] == NO)
+        {
+            [mutableIndexSet addIndex:index];
+            range.length += 1;
+        }
+    }
+    
+    return mutableIndexSet;
 }
 
 
@@ -205,7 +367,9 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
         cellView.identifier = kCellViewIdentifier;
     }
     
-    cellView.title = [NSString stringWithFormat:@"%lu, %lu", indexPath.gne_section, indexPath.gne_row];
+    NSArray *rows = [self.rows[indexPath.gne_section] copy];
+    
+    cellView.title = rows[indexPath.gne_row];
     
     return cellView;
 }
@@ -222,13 +386,8 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 
 
 -       (CGFloat)tableView:(GNESectionedTableView * __unused)tableView
-  heightForHeaderInSection:(NSUInteger)section
+  heightForHeaderInSection:(NSUInteger __unused)section
 {
-    if (section == 0)
-    {
-        return 0.0f;
-    }
-    
     return 22.0f;
 }
 
@@ -236,11 +395,6 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 - (NSTableRowView *)tableView:(GNESectionedTableView *)tableView
     rowViewForHeaderInSection:(NSUInteger __unused)section
 {
-    if (section == 0)
-    {
-        return nil;
-    }
-    
     NSTableRowView *rowView = [tableView makeViewWithIdentifier:kHeaderRowViewIdentifier owner:tableView];
     
     if (rowView == nil)
@@ -258,11 +412,6 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 - (NSTableCellView *)tableView:(GNESectionedTableView *)tableView
     cellViewForHeaderInSection:(NSUInteger)section
 {
-    if (section == 0)
-    {
-        return nil;
-    }
-    
     GNEHeaderCellView *cellView = [tableView makeViewWithIdentifier:kHeaderCellViewIdentifier owner:tableView];
     
     if (cellView == nil)
@@ -272,7 +421,7 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
         cellView.identifier = kHeaderCellViewIdentifier;
     }
     
-    cellView.title = [NSString stringWithFormat:@"Section %lu", section];
+    cellView.title = self.sections[section];
     
     return cellView;
 }

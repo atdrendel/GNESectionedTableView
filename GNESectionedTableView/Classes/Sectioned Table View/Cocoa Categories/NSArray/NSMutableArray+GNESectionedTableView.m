@@ -14,7 +14,7 @@
 - (NSUInteger)gne_insertObject:(id)anObject atIndex:(NSUInteger)index
 {
     NSUInteger count = [self count];
-    if (index < count)
+    if (index <= count)
     {
         [self insertObject:anObject atIndex:index];
         
