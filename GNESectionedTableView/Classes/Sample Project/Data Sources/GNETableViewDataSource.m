@@ -219,7 +219,8 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
     sectionInsertionCount = MAX((NSUInteger)1, sectionInsertionCount);
     
     NSIndexSet *insertedSections = [self p_indexSetOfRandomIndexesInRange:NSMakeRange(0, sectionCount)
-                                                                           count:sectionInsertionCount];
+                                                                    count:sectionInsertionCount
+                                                             forInsertion:YES];
     [insertedSections enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stop __unused)
     {
         NSUInteger rowInsertionCount = arc4random_uniform(5);
@@ -306,8 +307,12 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 }
 
 
-- (NSIndexSet *)p_indexSetOfRandomIndexesInRange:(NSRange)range count:(NSUInteger)count
+- (NSIndexSet *)p_indexSetOfRandomIndexesInRange:(NSRange)range
+                                           count:(NSUInteger)count
+                                    forInsertion:(BOOL)insertion
 {
+    NSParameterAssert(insertion || range.length >= count);
+    
     NSMutableIndexSet *mutableIndexSet = [NSMutableIndexSet indexSet];
     while ([mutableIndexSet count] < count)
     {
@@ -315,7 +320,14 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
         if ([mutableIndexSet containsIndex:index] == NO)
         {
             [mutableIndexSet addIndex:index];
-            range.length += 1;
+            if (insertion)
+            {
+                range.length += 1;
+            }
+            else
+            {
+                range.length -= 1;
+            }
         }
     }
     
