@@ -88,6 +88,19 @@
 - (instancetype)initWithFrame:(NSRect)frameRect;
 
 
+#pragma mark - Insertion, Deletion, Move, and Update
+
+- (void)insertRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (void)deleteRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPaths:(NSArray *)toIndexPaths;
+- (void)reloadRowsAtIndexPaths:(NSArray *)indexPaths;
+
+- (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (void)deleteSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (void)moveSection:(NSUInteger)fromSection toSection:(NSUInteger)toSection;
+- (void)reloadSections:(NSIndexSet *)sections;
+
+
 #pragma mark - Frame of Table View Cells
 
 /**

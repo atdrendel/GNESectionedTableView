@@ -25,6 +25,7 @@ static NSString * const kOutlineViewStandardHeaderCellViewIdentifier =
 
 static const CGFloat kDefaultRowHeight = 32.0f;
 
+// By default, unsafe row heights are not allowed. They seem to work in 10.9, but not in 10.8.
 #ifdef UNSAFE_ROW_HEIGHT_ALLOWED
 static const CGFloat kInvisibleRowHeight = 0.00001f;
 #else
@@ -71,7 +72,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 }
 
 
-- (instancetype)initWithFrame:(NSRect)frame
+- (instancetype)initWithFrame:(CGRect)frame
 {
     if ((self = [super initWithFrame:frame]))
     {
@@ -90,13 +91,25 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     [self setDataSource:self];
     [self setDelegate:self];
     
+    [self setWantsLayer:YES];
+    [self setLayerContentsRedrawPolicy:NSViewLayerContentsRedrawOnSetNeedsDisplay];
+    
+    [self setGridStyleMask:NSTableViewGridNone];
+    
+    [self setHeaderView:nil];
+    [self setCornerView:nil];
+    
     _privateOutlineColumn = [[NSTableColumn alloc] initWithIdentifier:kOutlineViewOutlineColumnIdentifier];
     [self setOutlineTableColumn:_privateOutlineColumn];
     NSTableColumn *standardColumn = [[NSTableColumn alloc] initWithIdentifier:kOutlineViewStandardColumnIdentifier];
+    [standardColumn setResizingMask:NSTableColumnAutoresizingMask];
     [self addTableColumn:standardColumn];
-    [standardColumn setWidth:[self bounds].size.width];
+    [self setAllowsColumnResizing:NO];
     
-    [self setHeaderView:nil];
+    [self setColumnAutoresizingStyle:NSTableViewLastColumnOnlyAutoresizingStyle];
+    [self setAutoresizesOutlineColumn:NO];
+    
+    [self setRowSizeStyle:NSTableViewRowSizeStyleCustom];
     
     [self expandItem:nil expandChildren:YES];
 }
@@ -111,6 +124,138 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     _tableViewDelegate = nil;
     
     _privateOutlineColumn = nil;
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - NSView
+// ------------------------------------------------------------------------------------------
+- (void)viewDidMoveToWindow
+{
+    if ([self window])
+    {
+        [self p_sizeStandardTableColumnToFit];
+    }
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - NSOutlineView
+// ------------------------------------------------------------------------------------------
+// Disable responsive scrolling
+- (CGRect)preparedContentRect
+{
+    return [self visibleRect];
+}
+
+
+// Disable responsive scrolling
+- (void)prepareContentInRect:(CGRect __unused)rect
+{
+    
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - GNESectionedTableView - Public - Insertion, Deletion, Move, and Update
+// ------------------------------------------------------------------------------------------
+- (void)insertRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions
+{
+    [self p_checkIndexPathsArray:indexPaths];
+    
+    NSArray *groupedIndexPaths = [self p_sortedIndexPathsGroupedBySectionInIndexPaths:indexPaths];
+    
+    for (NSArray *indexPathsInSection in groupedIndexPaths)
+    {
+        @autoreleasepool
+        {
+            NSMutableIndexSet *insertedIndexes = [NSMutableIndexSet indexSet];
+            NSUInteger section = ((NSIndexPath *)[indexPathsInSection firstObject]).gne_section;
+            
+            GNEOutlineViewParentItem *parentItem = [self p_outlineViewParentItemForSection:section];
+            NSAssert1(parentItem, @"No outline view parent item exists for section %lu", (long unsigned)section);
+            
+            if (parentItem == nil)
+            {
+                return;
+            }
+            
+            NSUInteger parentItemIndex = [self.outlineViewParentItems indexOfObject:parentItem];
+            NSParameterAssert(parentItemIndex < [self.outlineViewItems count]);
+            
+            NSMutableArray *rows = self.outlineViewItems[parentItemIndex];
+            
+            for (NSIndexPath *indexPath in indexPathsInSection)
+            {
+                GNEOutlineViewItem *outlineViewItem = [[GNEOutlineViewItem alloc] initWithIndexPath:indexPath
+                                                                                         parentItem:parentItem];
+                [insertedIndexes addIndex:[rows gne_insertObject:outlineViewItem atIndex:indexPath.gne_row]];
+            }
+            
+            [self insertItemsAtIndexes:insertedIndexes inParent:parentItem withAnimation:animationOptions];
+            [self p_updateIndexPathsForOutlineViewItemsInSection:section];
+        }
+    }
+}
+
+
+- (void)deleteRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions
+{
+    [self p_checkIndexPathsArray:indexPaths];
+}
+
+
+- (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPaths:(NSArray *)toIndexPaths
+{
+    [self p_checkIndexPathsArray:fromIndexPaths];
+    [self p_checkIndexPathsArray:toIndexPaths];
+}
+
+
+- (void)reloadRowsAtIndexPaths:(NSArray *)indexPaths
+{
+    [self p_checkIndexPathsArray:indexPaths];
+}
+
+
+- (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions
+{
+    
+}
+
+
+- (void)deleteSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions
+{
+    
+}
+
+
+- (void)moveSection:(NSUInteger)fromSection toSection:(NSUInteger)toSection
+{
+    
+}
+
+
+- (void)reloadSections:(NSIndexSet *)sections
+{
+    
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - GNESectionedTableView - Public - Cell Frames
+// ------------------------------------------------------------------------------------------
+- (CGRect)frameOfCellAtIndexPath:(NSIndexPath *)indexPath
+{
+    GNEOutlineViewItem *item = [self p_outlineViewItemWithIndexPath:indexPath];
+    if (item)
+    {
+        NSInteger row = [self rowForItem:item];
+        
+        return [super frameOfCellAtColumn:0 row:row];
+    }
+    
+    return CGRectZero;
 }
 
 
@@ -169,6 +314,62 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     }
     
     return NO;
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - GNESectionedTableView - Internal - Insert, Delete, Move Outline View Items
+// ------------------------------------------------------------------------------------------
+/**
+ Updates the index paths of all of the outline view items currently belonging to the specified section.
+ 
+ @param section Section whose outline view items need updating.
+ */
+- (void)p_updateIndexPathsForOutlineViewItemsInSection:(NSUInteger)section
+{
+    NSParameterAssert(section < [self.outlineViewItems count]);
+    
+    NSMutableArray *rows = self.outlineViewItems[section];
+    NSUInteger count = [rows count];
+    
+    for (NSUInteger row = 0; row < count; row++)
+    {
+        GNEOutlineViewItem *item = rows[row];
+        NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
+        item.indexPath = indexPath;
+    }
+}
+
+
+/**
+ Returns an array of arrays. Each inner array contains all of the specified index paths belonging to the same 
+    section. The sections and rows are all sorted in ascending order (from smallest to largest).
+ 
+ @param indexPaths Array of index paths to group and sort.
+ @return Array of arrays of index paths sorted in ascending order by section and row.
+ */
+- (NSArray *)p_sortedIndexPathsGroupedBySectionInIndexPaths:(NSArray *)indexPaths
+{
+    NSMutableArray *groupedIndexPaths = [NSMutableArray array];
+    SEL compareSelector = NSSelectorFromString(@"gne_compare:");
+    NSArray *sortedIndexPaths = [indexPaths sortedArrayUsingSelector:compareSelector];
+    
+    NSUInteger currentSection = NSNotFound;
+    NSMutableArray *indexPathsInCurrentSection = nil;
+    
+    for (NSIndexPath *indexPath in sortedIndexPaths)
+    {
+        if (currentSection != indexPath.gne_section)
+        {
+            currentSection = indexPath.gne_section;
+            indexPathsInCurrentSection = [NSMutableArray array];
+            [groupedIndexPaths addObject:indexPathsInCurrentSection];
+        }
+        
+        [indexPathsInCurrentSection addObject:indexPath];
+    }
+    
+    return groupedIndexPaths;
 }
 
 
@@ -276,6 +477,23 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 
 
 /**
+ Returns the outline view parent item for the specified section.
+ 
+ @discussion This method first tries to match the outline view parent item at the specified index path. If that
+                outline view parent item doesn't match, it iterates through all of the outline view parent
+                items until a match is found.
+ @param section Section to use to find a matching outline view parent item.
+ @return Outline view parent item matching the specified section, otherwise nil.
+ */
+- (GNEOutlineViewParentItem *)p_outlineViewParentItemForSection:(NSUInteger)section
+{
+    NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
+    
+    return [self p_outlineViewParentItemWithIndexPath:indexPath];
+}
+
+
+/**
  Returns the outline view parent item matching the specified index path.
  
  @discussion This method first tries to match the outline view parent item at the specified index path. If that
@@ -366,20 +584,22 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 
 
 // ------------------------------------------------------------------------------------------
-#pragma mark - GNESectionedTableView - Public - Cell Frames
+#pragma mark - GNESectionedTableView - Internal - Debug Checks
 // ------------------------------------------------------------------------------------------
-- (CGRect)frameOfCellAtIndexPath:(NSIndexPath *)indexPath
+#ifdef DEBUG
+- (void)p_checkIndexPathsArray:(NSArray *)indexPaths
 {
-    GNEOutlineViewItem *item = [self p_outlineViewItemWithIndexPath:indexPath];
-    if (item)
+    for (NSIndexPath *indexPath in indexPaths)
     {
-        NSInteger row = [self rowForItem:item];
-        
-        return [super frameOfCellAtColumn:0 row:row];
+        NSParameterAssert([indexPath isKindOfClass:[NSIndexPath class]] && [indexPath length] == 2);
     }
-    
-    return CGRectZero;
 }
+#else
+- (void)p_checkIndexPathsArray:(NSArray * __unused)indexPaths
+{
+    
+}
+#endif
 
 
 // ------------------------------------------------------------------------------------------
@@ -526,6 +746,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 - (NSTableRowView *)outlineView:(NSOutlineView *)outlineView rowViewForItem:(GNEOutlineViewItem *)item
 {
     NSParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    NSParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:rowViewForRowAtIndexPath:)]);
     
     // Section header
     if (item.parentItem == nil)
@@ -552,12 +773,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     }
     
     // Row
-    if ([self.tableViewDataSource respondsToSelector:@selector(tableView:rowViewForRowAtIndexPath:)])
-    {
-        return [self.tableViewDataSource tableView:self rowViewForRowAtIndexPath:item.indexPath];
-    }
-    
-    return nil;
+    return [self.tableViewDataSource tableView:self rowViewForRowAtIndexPath:item.indexPath];
 }
 
 
@@ -566,6 +782,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
                    item:(GNEOutlineViewItem *)item
 {
     NSParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    NSParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:cellViewForRowAtIndexPath:)]);
     
     // Section header
     if (item.parentItem == nil)
@@ -577,12 +794,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     }
     
     // Row
-    if ([self.tableViewDataSource respondsToSelector:@selector(tableView:cellViewForRowAtIndexPath:)])
-    {
-        return [self.tableViewDataSource tableView:self cellViewForRowAtIndexPath:item.indexPath];
-    }
-    
-    return nil;
+    return [self.tableViewDataSource tableView:self cellViewForRowAtIndexPath:item.indexPath];
 }
 
 
@@ -593,7 +805,14 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 {
     NSParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
     
+    // Don't allow the selection of the root object (not that it is even possible).
     if (item == nil)
+    {
+        return NO;
+    }
+    
+    // Don't allow the selection of section headers.
+    if (item.parentItem == nil)
     {
         return NO;
     }
@@ -604,6 +823,19 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     }
     
     return YES;
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - NSOutlineView - Table Columns
+// ------------------------------------------------------------------------------------------
+- (void)p_sizeStandardTableColumnToFit
+{
+    NSTableColumn *standardColumn = nil;
+    if ((standardColumn = [self tableColumnWithIdentifier:kOutlineViewStandardColumnIdentifier]))
+    {
+        [standardColumn setWidth:ceil([self frame].size.width)];
+    }
 }
 
 

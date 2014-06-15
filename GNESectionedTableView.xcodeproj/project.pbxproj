@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		57164A0C194DC2C40083FA03 /* NSMutableArray+GNESectionedTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 57164A0B194DC2C40083FA03 /* NSMutableArray+GNESectionedTableView.m */; };
+		57164A0D194DC2C40083FA03 /* NSMutableArray+GNESectionedTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 57164A0B194DC2C40083FA03 /* NSMutableArray+GNESectionedTableView.m */; };
 		572E26D51945676B000F4656 /* NSIndexPath+GNESectionedTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26C91945676B000F4656 /* NSIndexPath+GNESectionedTableView.m */; };
 		572E26D61945676B000F4656 /* NSIndexPath+GNESectionedTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26C91945676B000F4656 /* NSIndexPath+GNESectionedTableView.m */; };
 		572E26D71945676B000F4656 /* NSOutlineView+GNE_Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26CC1945676B000F4656 /* NSOutlineView+GNE_Additions.m */; };
@@ -51,6 +53,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		57164A0A194DC2C40083FA03 /* NSMutableArray+GNESectionedTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableArray+GNESectionedTableView.h"; sourceTree = "<group>"; };
+		57164A0B194DC2C40083FA03 /* NSMutableArray+GNESectionedTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableArray+GNESectionedTableView.m"; sourceTree = "<group>"; };
 		572E26C81945676B000F4656 /* NSIndexPath+GNESectionedTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSIndexPath+GNESectionedTableView.h"; sourceTree = "<group>"; };
 		572E26C91945676B000F4656 /* NSIndexPath+GNESectionedTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSIndexPath+GNESectionedTableView.m"; sourceTree = "<group>"; };
 		572E26CB1945676B000F4656 /* NSOutlineView+GNE_Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSOutlineView+GNE_Additions.h"; sourceTree = "<group>"; };
@@ -113,6 +117,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		57164A09194DC2970083FA03 /* NSArray */ = {
+			isa = PBXGroup;
+			children = (
+				57164A0A194DC2C40083FA03 /* NSMutableArray+GNESectionedTableView.h */,
+				57164A0B194DC2C40083FA03 /* NSMutableArray+GNESectionedTableView.m */,
+			);
+			path = NSArray;
+			sourceTree = "<group>";
+		};
 		572E26C51945676B000F4656 /* Sectioned Table View */ = {
 			isa = PBXGroup;
 			children = (
@@ -126,6 +139,7 @@
 		572E26C61945676B000F4656 /* Cocoa Categories */ = {
 			isa = PBXGroup;
 			children = (
+				57164A09194DC2970083FA03 /* NSArray */,
 				572E26C71945676B000F4656 /* NSIndexPath */,
 				572E26CA1945676B000F4656 /* NSOutlineView */,
 			);
@@ -408,6 +422,7 @@
 				572E26EE1945684F000F4656 /* GNETableViewDataSource.m in Sources */,
 				57A128B8194574C200B72A49 /* GNETableCellView.m in Sources */,
 				572E26D91945676B000F4656 /* GNEOutlineViewItem.m in Sources */,
+				57164A0C194DC2C40083FA03 /* NSMutableArray+GNESectionedTableView.m in Sources */,
 				572E26D71945676B000F4656 /* NSOutlineView+GNE_Additions.m in Sources */,
 				5742D9EA1946C0ED004D2BE2 /* GNEHeaderCellView.m in Sources */,
 				572E26DB1945676B000F4656 /* GNEOutlineViewParentItem.m in Sources */,
@@ -426,6 +441,7 @@
 				572E26EF1945684F000F4656 /* GNETableViewDataSource.m in Sources */,
 				57A128B9194574C200B72A49 /* GNETableCellView.m in Sources */,
 				572E26DA1945676B000F4656 /* GNEOutlineViewItem.m in Sources */,
+				57164A0D194DC2C40083FA03 /* NSMutableArray+GNESectionedTableView.m in Sources */,
 				572E26D81945676B000F4656 /* NSOutlineView+GNE_Additions.m in Sources */,
 				5742D9EB1946C0ED004D2BE2 /* GNEHeaderCellView.m in Sources */,
 				572E26DC1945676B000F4656 /* GNEOutlineViewParentItem.m in Sources */,
