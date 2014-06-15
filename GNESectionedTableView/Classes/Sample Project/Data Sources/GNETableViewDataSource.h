@@ -10,4 +10,8 @@
 
 @interface GNETableViewDataSource : NSObject <GNESectionedTableViewDataSource, GNESectionedTableViewDelegate>
 
+
+- (void)setTableView:(GNESectionedTableView *)tableView;
+
+
 @end

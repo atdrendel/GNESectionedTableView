@@ -19,6 +19,9 @@
 /// GNESectionedTableView data source and delegate.
 @property (nonatomic, strong) GNETableViewDataSource *dataSource;
 
+@property (nonatomic, strong) NSScrollView *contentScrollView;
+@property (nonatomic, strong) NSView *headerView;
+
 @property (nonatomic, strong) NSScrollView *tableViewContainer;
 @property (nonatomic, strong, readwrite) GNESectionedTableView *tableView;
 
@@ -69,6 +72,7 @@
     [view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
     [view setWantsLayer:YES];
     [view layer].backgroundColor = [[NSColor clearColor] CGColor];
+    [view setLayerContentsRedrawPolicy:NSViewLayerContentsRedrawOnSetNeedsDisplay];
     
     [self setView:view];
 }
@@ -81,6 +85,7 @@
 {
     [self p_buildAndConfigureDataSource];
     [self p_buildAndConfigureTableView];
+    [self.dataSource setTableView:self.tableView];
 }
 
 
@@ -92,17 +97,23 @@
 
 - (void)p_buildAndConfigureTableView
 {
-    CGRect bounds = [[self view] bounds];
+    CGRect frame = [[self view] bounds];
     
-    self.tableViewContainer = [[NSScrollView alloc] initWithFrame:bounds];
+    self.tableViewContainer = [[NSScrollView alloc] initWithFrame:frame];
     [self.tableViewContainer setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
     [self.tableViewContainer setWantsLayer:YES];
+    [self.tableViewContainer setLayerContentsRedrawPolicy:NSViewLayerContentsRedrawOnSetNeedsDisplay];
     [self.tableViewContainer setDrawsBackground:NO];
     [self.tableViewContainer setFocusRingType:NSFocusRingTypeNone];
     [self.tableViewContainer setScrollerStyle:NSScrollerStyleOverlay];
+    [self.tableViewContainer setHasHorizontalScroller:NO];
+    [self.tableViewContainer setHasVerticalScroller:YES];
     
-    self.tableView = [[GNESectionedTableView alloc] initWithFrame:[self.tableViewContainer bounds]];
+    self.tableView = [[GNESectionedTableView alloc] initWithFrame:CGRectZero];
+    [self.tableView setAutoresizingMask:NSViewWidthSizable];
     [self.tableView setBackgroundColor:[NSColor clearColor]];
+    [self.tableView setIntercellSpacing:CGSizeZero];
+    
     self.tableView.tableViewDataSource = self.dataSource;
     self.tableView.tableViewDelegate = self.dataSource;
     
