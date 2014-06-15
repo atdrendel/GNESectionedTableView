@@ -220,7 +220,39 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 
 - (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
+    NSParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:numberOfRowsInSection:)]);
     
+    NSMutableIndexSet *insertedSections = [NSMutableIndexSet indexSet];
+    
+    [sections enumerateIndexesUsingBlock:^(NSUInteger proposedSection, BOOL *stop __unused)
+    {
+        NSUInteger sectionCount = [self.outlineViewParentItems count];
+        NSUInteger section = (proposedSection > sectionCount) ? sectionCount : proposedSection;
+        
+        NSIndexPath *parentItemIndexPath = [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
+        GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc]
+                                                initWithIndexPath:parentItemIndexPath];
+        parentItem.visible = [self p_outlineViewParentItemIsVisibleForSection:section];
+        [self.outlineViewParentItems gne_insertObject:parentItem atIndex:section];
+        
+        NSUInteger rowCount = [self.tableViewDataSource tableView:self numberOfRowsInSection:section];
+        
+        NSMutableArray *rows = [NSMutableArray arrayWithCapacity:rowCount];
+        [self.outlineViewItems gne_insertObject:rows atIndex:section];
+        
+        for (NSUInteger row = 0; row < rowCount; row++)
+        {
+            NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
+            GNEOutlineViewItem *item = [[GNEOutlineViewItem alloc] initWithIndexPath:indexPath
+                                                                          parentItem:parentItem];
+            
+            [rows addObject:item];
+        }
+        
+        [insertedSections addIndex:section];
+    }];
+    
+    [self insertItemsAtIndexes:insertedSections inParent:nil withAnimation:animationOptions];
 }
 
 

@@ -37,6 +37,13 @@ static NSString * const kOutlineViewParentItemVisibleKey = @"visible";
 }
 
 
+- (instancetype)initWithIndexPath:(NSIndexPath *)indexPath
+                       parentItem:(GNEOutlineViewParentItem * __unused)parentItem
+{
+    return [self initWithIndexPath:indexPath];
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - NSCoding
 // ------------------------------------------------------------------------------------------
