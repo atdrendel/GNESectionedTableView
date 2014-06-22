@@ -97,7 +97,7 @@
 
 - (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)deleteSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
-- (void)moveSection:(NSUInteger)fromSection toSection:(NSUInteger)toSection;
+- (void)moveSections:(NSIndexSet *)fromSections toSection:(NSUInteger)toSection;
 - (void)reloadSections:(NSIndexSet *)sections;
 
 
