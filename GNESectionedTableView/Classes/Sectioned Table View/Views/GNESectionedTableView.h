@@ -31,8 +31,17 @@
 @optional
 - (BOOL)tableView:(GNESectionedTableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath;
 @optional
-- (BOOL)tableView:(GNESectionedTableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath
-      toIndexPath:(NSIndexPath *)toIndexPath;
+-       (BOOL)tableView:(GNESectionedTableView *)tableView
+  canMoveRowAtIndexPath:(NSIndexPath *)fromIndexPath
+              toSection:(NSUInteger)toSection;
+@optional
+-   (void)tableView:(GNESectionedTableView *)tableView
+ moveRowAtIndexPath:(NSIndexPath *)fromIndexPath
+        toIndexPath:(NSIndexPath *)toIndexPath;
+@optional
+-   (void)tableView:(GNESectionedTableView *)tableView
+ moveRowAtIndexPath:(NSIndexPath *)fromIndexPath
+          toSection:(NSUInteger)toSection;
 
 
 @end
@@ -92,12 +101,25 @@
 
 - (void)insertRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)deleteRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (void)moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath;
 - (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPaths:(NSArray *)toIndexPaths;
 - (void)reloadRowsAtIndexPaths:(NSArray *)indexPaths;
 
 - (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)deleteSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (void)moveSection:(NSUInteger)fromSection toSection:(NSUInteger)toSection;
+
+/**
+ Moves the specified sections to the specified section index. The order of the from sections is maintained.
+ 
+ @discussion This method can be used to move multiple sections to a different section index. If the sections are
+    intended to be moved to the end of the table view, then the toSection should equal the number of
+    sections in the table view.
+ @param fromSections Indexes of sections to be moved.
+ @param toSection Index of section to move the specified sections to.
+ */
 - (void)moveSections:(NSIndexSet *)fromSections toSection:(NSUInteger)toSection;
+
 - (void)reloadSections:(NSIndexSet *)sections;
 
 
