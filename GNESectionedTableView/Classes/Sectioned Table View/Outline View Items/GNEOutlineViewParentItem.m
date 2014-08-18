@@ -24,11 +24,9 @@ static NSString * const kOutlineViewParentItemVisibleKey = @"visible";
 // ------------------------------------------------------------------------------------------
 #pragma mark - Initialization
 // ------------------------------------------------------------------------------------------
-- (instancetype)initWithIndexPath:(NSIndexPath *)indexPath
+- (instancetype)init
 {
-    NSParameterAssert(indexPath.gne_row == NSNotFound);
-    
-    if (self = [super initWithIndexPath:indexPath parentItem:nil])
+    if (self = [super initWithParentItem:nil])
     {
         
     }
@@ -37,10 +35,11 @@ static NSString * const kOutlineViewParentItemVisibleKey = @"visible";
 }
 
 
-- (instancetype)initWithIndexPath:(NSIndexPath *)indexPath
-                       parentItem:(GNEOutlineViewParentItem * __unused)parentItem
+- (instancetype)initWithParentItem:(GNEOutlineViewParentItem * __unused)parentItem
 {
-    return [self initWithIndexPath:indexPath];
+    NSAssert1(parentItem == nil, @"Instances of GNEOutlineViewParentItem can not have parents: %@", parentItem);
+    
+    return [self init];
 }
 
 
@@ -68,14 +67,6 @@ static NSString * const kOutlineViewParentItemVisibleKey = @"visible";
 // ------------------------------------------------------------------------------------------
 #pragma mark - Accessors
 // ------------------------------------------------------------------------------------------
-- (void)setIndexPath:(NSIndexPath *)indexPath
-{
-    NSParameterAssert(indexPath.gne_row == NSNotFound);
-    
-    [super setIndexPath:indexPath];
-}
-
-
 - (void)setParentItem:(GNEOutlineViewParentItem * __unused)parentItem
 {
     NSAssert(NO, @"Outline view parent items cannot themselves have parent items.");

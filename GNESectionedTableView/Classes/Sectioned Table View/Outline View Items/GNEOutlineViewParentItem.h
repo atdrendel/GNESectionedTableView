@@ -23,14 +23,11 @@
 
 
 /**
- Default initializer. The index path points to an object in the outline view's data source that is used to build
-    the view. If the location of the object pointed to by this object changes, the index path of this object
-    must be updated.
+ Default initializer.
  
- @param indexPath Index path of the object that contains the data for the outline view.
  @return Instance of WLOutlineViewItem or one of its subclasses.
  */
-- (instancetype)initWithIndexPath:(NSIndexPath *)indexPath;
+- (instancetype)init;
 
 
 @end
