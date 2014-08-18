@@ -20,6 +20,18 @@
 
 
 /**
+ Compares two index paths first by their sections and then, if the sections differ, by their rows.
+ 
+ @param indexPath Index path to compare against the receiver.
+ @return The ordering of the receiving index path and indexPath.
+            NSOrderedAscending: The receiving index path comes before indexPath.
+            NSOrderedDescending: The receiving index path comes after indexPath.
+            NSOrderedSame: The receiving index path and indexPath are the same index path.
+ */
+- (NSComparisonResult)gne_compare:(NSIndexPath *)indexPath;
+
+
+/**
  Returns the row of the index path (index at position 0). Throws an exception if the index path
     does not contain exactly two indexes.
  
