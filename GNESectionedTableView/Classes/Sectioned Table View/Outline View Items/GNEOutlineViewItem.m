@@ -13,10 +13,10 @@
 // ------------------------------------------------------------------------------------------
 
 
-NSString * const GNEOutlineViewItemPasteboardType = @"GNEOutlineViewItemPasteboardType";
+NSString * const GNEOutlineViewItemPasteboardType = @"com.goneeast.GNEOutlineViewItemPasteboardType";
 
-NSString * const GNEOutlineViewItemIndexPathKey = @"GNEOutlineViewItemIndexPath";
 NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentItem";
+static NSString * const GNEOutlineViewItemDraggedRowKey = @"GNEOutlineViewItemDraggedRowKey";
 
 
 // ------------------------------------------------------------------------------------------
@@ -28,15 +28,24 @@ NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentIte
 // ------------------------------------------------------------------------------------------
 #pragma mark - Initialization
 // ------------------------------------------------------------------------------------------
-- (instancetype)initWithIndexPath:(NSIndexPath *)indexPath parentItem:(GNEOutlineViewParentItem *)parentItem
+- (instancetype)initWithParentItem:(GNEOutlineViewParentItem *)parentItem
 {
     if ((self = [super init]))
     {
-        _indexPath = indexPath;
         _parentItem = parentItem; // Don't use accessor here because it may be nil (GNEOutlineViewParentItem).
+        _draggedRow = -1;
     }
     
     return self;
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Dealloc
+// ------------------------------------------------------------------------------------------
+- (void)dealloc
+{
+    _pasteboardWritingDelegate = nil;
 }
 
 
@@ -47,8 +56,9 @@ NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentIte
 {
     if ((self = [super init]))
     {
-        _indexPath = [aDecoder decodeObjectForKey:GNEOutlineViewItemIndexPathKey];
         _parentItem = [aDecoder decodeObjectForKey:GNEOutlineViewItemParentItemKey];
+        NSNumber *rowNumber = [aDecoder decodeObjectForKey:GNEOutlineViewItemDraggedRowKey];
+        _draggedRow = (rowNumber) ? [rowNumber integerValue] : -1;
     }
     
     return self;
@@ -57,8 +67,13 @@ NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentIte
 
 - (void)encodeWithCoder:(NSCoder *)aCoder
 {
-    [aCoder encodeObject:self.indexPath forKey:GNEOutlineViewItemIndexPathKey];
     [aCoder encodeObject:self.parentItem forKey:GNEOutlineViewItemParentItemKey];
+    id <GNEOutlineViewItemPasteboardWritingDelegate> delegate = self.pasteboardWritingDelegate;
+    if ([delegate respondsToSelector:@selector(rowForOutlineViewItem:)])
+    {
+        NSInteger row = [delegate rowForOutlineViewItem:self];
+        [aCoder encodeObject:@(row) forKey:GNEOutlineViewItemDraggedRowKey];
+    }
 }
 
 
@@ -109,28 +124,29 @@ NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentIte
 // ------------------------------------------------------------------------------------------
 - (NSString *)description
 {
-    NSInteger row = (self.indexPath) ? (NSInteger)self.indexPath.gne_row : -1;
-    NSInteger section = (self.indexPath) ? (NSInteger)self.indexPath.gne_section : -1;
-    
     return [NSString
-            stringWithFormat:@"<%@: %p, row:%ld section:%ld>", [self className], self, (long)row, (long)section];
+            stringWithFormat:@"<%@: %p> Parent: %@", [self className], self, self.parentItem];
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Equality
+// ------------------------------------------------------------------------------------------
+- (BOOL)isEqual:(id)object
+{
+    return (self == object);
+}
+
+
+- (NSUInteger)hash
+{
+    return (NSUInteger)self;
 }
 
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Accessors
 // ------------------------------------------------------------------------------------------
-- (void)setIndexPath:(NSIndexPath *)indexPath
-{
-    NSParameterAssert(indexPath);
-    
-    if (_indexPath != indexPath)
-    {
-        _indexPath = indexPath;
-    }
-}
-
-
 - (void)setParentItem:(GNEOutlineViewParentItem *)parentItem
 {
     NSParameterAssert(parentItem);

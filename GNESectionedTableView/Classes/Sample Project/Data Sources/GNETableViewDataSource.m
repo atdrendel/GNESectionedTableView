@@ -8,6 +8,7 @@
 
 #import "GNETableViewDataSource.h"
 #import "GNETableCellView.h"
+#import "GNETableRowView.h"
 #import "GNEHeaderCellView.h"
 
 
@@ -108,7 +109,6 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 - (void)p_buildAndConfigureSectionsAndRows
 {
     NSUInteger sectionCount = MAX((NSUInteger)arc4random_uniform(10), (NSUInteger)3);
-    sectionCount = 7;
     
     self.sections = [NSMutableArray arrayWithCapacity:sectionCount];
     self.rows = [NSMutableArray arrayWithCapacity:sectionCount];
@@ -118,7 +118,6 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
         [self.sections addObject:[self p_stringForSection:section]];
         
         NSUInteger rowCount = arc4random_uniform(10);
-        rowCount = 3;
         NSMutableArray *rowsArray = [NSMutableArray array];
         for (NSUInteger row = 0; row < rowCount; row++)
         {
@@ -156,6 +155,8 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 // ------------------------------------------------------------------------------------------
 - (void)p_buildAndConfigureTimers
 {
+    return;
+    
     self.updateTimer = [NSTimer timerWithTimeInterval:15
                                                target:self
                                              selector:@selector(p_performRandomUpdates)
@@ -167,14 +168,6 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 
 - (void)p_performRandomUpdates
 {
-    NSMutableIndexSet *fromSections = [NSMutableIndexSet indexSet];
-    [fromSections addIndex:0];
-    [fromSections addIndex:6];
-    NSUInteger toSection = 4;
-    
-    [self p_moveSections:fromSections toSection:toSection];
-    return;
-    
     if ([self.sections count] == 0)
     {
         [self p_insertRandomSections];
@@ -205,6 +198,9 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 }
 
 
+// ------------------------------------------------------------------------------------------
+#pragma mark - Insertion
+// ------------------------------------------------------------------------------------------
 - (void)p_performRandomInsertions
 {
     BOOL insertRows = (BOOL)arc4random_uniform(2);
@@ -307,6 +303,32 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 }
 
 
+- (NSIndexSet *)p_indexSetOfRandomIndexesForInsertionInRange:(NSRange)range
+                                                       count:(NSUInteger)count
+{
+    if (range.length == 0)
+    {
+        range.length = 1; // Otherwise it would be impossible to add indexes.
+    }
+    
+    NSMutableIndexSet *mutableIndexSet = [NSMutableIndexSet indexSet];
+    while ([mutableIndexSet count] < count)
+    {
+        NSUInteger index = arc4random_uniform((uint32_t)(range.length - range.location)) + range.location;
+        if ([mutableIndexSet containsIndex:index] == NO)
+        {
+            [mutableIndexSet addIndex:index];
+            range.length += 1;
+        }
+    }
+    
+    return mutableIndexSet;
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Deletion
+// ------------------------------------------------------------------------------------------
 - (void)p_performRandomDeletions
 {
     BOOL deleteRows = (BOOL)arc4random_uniform(2);
@@ -337,8 +359,9 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
     NSIndexSet *sectionIndexSet = [self p_indexSetOfRandomIndexesForDeletionInRange:NSMakeRange(0, sectionCount)
                                                                               count:deletionCount];
     
-    [sectionIndexSet enumerateIndexesWithOptions:NSEnumerationReverse usingBlock:^(NSUInteger section,
-                                                                                   BOOL *stop __unused)
+    [sectionIndexSet enumerateIndexesWithOptions:NSEnumerationReverse
+                                      usingBlock:^(NSUInteger section,
+                                                   BOOL *stop __unused)
     {
         [sectionsCopy removeObjectAtIndex:section];
         [rowsCopy removeObjectAtIndex:section];
@@ -368,15 +391,15 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
     
     NSUInteger sourceSectionCount = arc4random_uniform((uint32_t)sectionCount);
     NSIndexSet *sectionIndexSet = [self p_indexSetOfRandomIndexesForDeletionInRange:NSMakeRange(0, sectionCount)
-                                                                       count:sourceSectionCount];
+                                                                              count:sourceSectionCount];
     
     [sectionIndexSet enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stopOuter __unused)
     {
         NSUInteger rowCount = [rowsCopy[section] count];
         NSUInteger deletionCount = arc4random_uniform((uint32_t)rowCount);
-        
+
         NSIndexSet *rowIndexes = [self p_indexSetOfRandomIndexesForDeletionInRange:NSMakeRange(0, rowCount)
-                                                                             count:deletionCount];
+                                                                  count:deletionCount];
         [rowIndexes enumerateIndexesUsingBlock:^(NSUInteger row, BOOL *stopInner __unused)
         {
             [indexPaths addObject:[NSIndexPath gne_indexPathForRow:row inSection:section]];
@@ -403,37 +426,8 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 }
 
 
-- (void)p_performRandomMoves
-{
-    
-}
-
-
-- (NSIndexSet *)p_indexSetOfRandomIndexesForInsertionInRange:(NSRange)range
-                                           count:(NSUInteger)count
-{
-    if (range.length == 0)
-    {
-        range.length = 1; // Otherwise it would be impossible to add indexes.
-    }
-    
-    NSMutableIndexSet *mutableIndexSet = [NSMutableIndexSet indexSet];
-    while ([mutableIndexSet count] < count)
-    {
-        NSUInteger index = arc4random_uniform((uint32_t)(range.length - range.location)) + range.location;
-        if ([mutableIndexSet containsIndex:index] == NO)
-        {
-            [mutableIndexSet addIndex:index];
-            range.length += 1;
-        }
-    }
-    
-    return mutableIndexSet;
-}
-
-
 - (NSIndexSet *)p_indexSetOfRandomIndexesForDeletionInRange:(NSRange)range
-                                                       count:(NSUInteger)count
+                                                      count:(NSUInteger)count
 {
     NSParameterAssert(range.length >= count);
     
@@ -452,18 +446,14 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 
 
 // ------------------------------------------------------------------------------------------
-#pragma mark - Insertion
-// ------------------------------------------------------------------------------------------
-
-
-// ------------------------------------------------------------------------------------------
-#pragma mark - Deletion
-// ------------------------------------------------------------------------------------------
-
-
-// ------------------------------------------------------------------------------------------
 #pragma mark - Moves
 // ------------------------------------------------------------------------------------------
+- (void)p_performRandomMoves
+{
+    
+}
+
+
 - (void)p_moveSections:(NSIndexSet *)fromSections toSection:(NSUInteger)toSection
 {
     NSMutableArray *sections = [NSMutableArray array];
@@ -476,22 +466,70 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
         [sections insertObject:sectionString atIndex:0];
         [self.sections removeObjectAtIndex:section];
 
-        NSString *rowString = self.rows[section];
-        [rows insertObject:rowString atIndex:0];
+        NSArray *rowsArray = self.rows[section];
+        [rows insertObject:rowsArray atIndex:0];
         [self.rows removeObjectAtIndex:section];
     }];
     
     NSUInteger sectionsBelowToSection = [fromSections countOfIndexesInRange:NSMakeRange(0, toSection)];
     
-    NSRange sectionInsertionRange = NSMakeRange(toSection - sectionsBelowToSection, [sections count]);
+    NSRange sectionInsertionRange = NSMakeRange(toSection - sectionsBelowToSection, sections.count);
     NSIndexSet *sectionInsertionIndexes = [NSIndexSet indexSetWithIndexesInRange:sectionInsertionRange];
     [self.sections insertObjects:sections atIndexes:sectionInsertionIndexes];
     
-    NSRange rowInsertionRange = NSMakeRange(toSection - sectionsBelowToSection, [rows count]);
+    NSRange rowInsertionRange = NSMakeRange(toSection - sectionsBelowToSection, rows.count);
     NSIndexSet *rowInsertionIndexes = [NSIndexSet indexSetWithIndexesInRange:rowInsertionRange];
     [self.rows insertObjects:rows atIndexes:rowInsertionIndexes];
     
     [self.tableView moveSections:fromSections toSection:toSection];
+}
+
+
+- (void)p_moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toSection:(NSUInteger)toSection
+{
+    NSIndexPath *toIndexPath = [NSIndexPath gne_indexPathForRow:0 inSection:toSection];
+    [self p_moveRowsAtIndexPaths:fromIndexPaths toIndexPath:toIndexPath];
+}
+
+
+- (void)p_moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPath:(NSIndexPath *)toIndexPath
+{
+    NSLog(@"\nBEFORE:\n\n%@\n\n", self.rows);
+    
+    NSMutableArray *movedRows = [NSMutableArray array];
+    
+    SEL sortingSelector = @selector(gne_compare:);
+    NSArray *sortedFromIndexPaths = [fromIndexPaths sortedArrayUsingSelector:sortingSelector];
+    
+    NSLog(@"\nFrom:\n%@\n\nSorted\n%@", fromIndexPaths, sortedFromIndexPaths);
+    
+    NSUInteger rowsCount = self.rows.count;
+    
+    [sortedFromIndexPaths enumerateObjectsWithOptions:NSEnumerationReverse
+                                           usingBlock:^(NSIndexPath *indexPath,
+                                                        NSUInteger idx __unused,
+                                                        BOOL *stop __unused)
+    {
+        NSParameterAssert(indexPath.gne_section < rowsCount);
+        NSMutableArray *mutableRowsArray = self.rows[indexPath.gne_section];
+        NSParameterAssert(indexPath.gne_row < mutableRowsArray.count);
+        NSString *rowString = mutableRowsArray[indexPath.gne_row];
+        [movedRows gne_insertObject:rowString atIndex:0];
+        [mutableRowsArray removeObjectAtIndex:indexPath.gne_row];
+    }];
+    
+    if (movedRows.count > 0)
+    {
+        NSParameterAssert(self.rows.count > toIndexPath.gne_section);
+        NSMutableArray *toRowsArray = self.rows[toIndexPath.gne_section];
+        NSParameterAssert(toRowsArray.count >= toIndexPath.gne_row);
+        NSRange insertionRange = NSMakeRange(toIndexPath.gne_row, movedRows.count);
+        NSIndexSet *insertionIndexSet = [NSIndexSet indexSetWithIndexesInRange:insertionRange];
+        [toRowsArray insertObjects:movedRows atIndexes:insertionIndexSet];
+        [self.tableView moveRowsAtIndexPaths:fromIndexPaths toIndexPath:toIndexPath];
+    }
+    
+    NSLog(@"\nAFTER\n\n%@\n\n", self.rows);
 }
 
 
@@ -513,12 +551,12 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 - (NSTableRowView *)tableView:(GNESectionedTableView *)tableView
      rowViewForRowAtIndexPath:(NSIndexPath * __unused)indexPath
 {
-    NSTableRowView *rowView = [tableView makeViewWithIdentifier:kRowViewIdentifier owner:tableView];
+    GNETableRowView *rowView = [tableView makeViewWithIdentifier:kRowViewIdentifier owner:tableView];
     
     if (rowView == nil)
     {
-        rowView = [[NSTableRowView alloc] initWithFrame:CGRectZero];
-        [rowView setAutoresizingMask:NSViewWidthSizable];
+        rowView = [[GNETableRowView alloc] initWithFrame:CGRectZero];
+        rowView.autoresizingMask = NSViewWidthSizable;
         rowView.identifier = kRowViewIdentifier;
         rowView.backgroundColor = [NSColor blueColor];
     }
@@ -552,6 +590,78 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 }
 
 
+- (BOOL)tableView:(GNESectionedTableView * __unused)tableView
+   canMoveSection:(NSUInteger __unused)section
+{
+    return YES;
+}
+
+
+-       (BOOL)tableView:(GNESectionedTableView * __unused)tableView
+  canMoveRowAtIndexPath:(NSIndexPath * __unused)indexPath
+{
+    return YES;
+}
+
+
+- (BOOL)tableView:(GNESectionedTableView * __unused)tableView
+   canDragSection:(NSUInteger)fromSection
+        toSection:(NSUInteger)toSection
+{
+    return (fromSection != toSection);
+}
+
+
+-       (BOOL)tableView:(GNESectionedTableView * __unused)tableView
+  canDragRowAtIndexPath:(NSIndexPath *)fromIndexPath
+              toSection:(NSUInteger)toSection
+{
+    NSLog(@"canDragRowAtIndexPath: (%lu, %lu) toSection: %lu", fromIndexPath.gne_section, fromIndexPath.gne_row, toSection);
+    
+    return YES;
+}
+
+
+-       (BOOL)tableView:(GNESectionedTableView * __unused)tableView
+  canDragRowAtIndexPath:(NSIndexPath *)fromIndexPath
+            toIndexPath:(NSIndexPath *)toIndexPath
+{
+    NSLog(@"canDragRowAtIndexPath: (%lu, %lu) toIndexPath: (%lu, %lu)", fromIndexPath.gne_section, fromIndexPath.gne_row, toIndexPath.gne_section, toIndexPath.gne_row);
+    
+    return YES;
+}
+
+
+-       (void)tableView:(GNESectionedTableView * __unused)tableView
+        didDragSections:(NSIndexSet *)fromSections
+              toSection:(NSUInteger)toSection
+{
+    NSLog(@"didDragSections: %@ toSection: %lu", fromSections, toSection);
+    
+    [self p_moveSections:fromSections toSection:toSection];
+}
+
+
+-       (void)tableView:(GNESectionedTableView * __unused)tableView
+didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
+              toSection:(NSUInteger)toSection
+{
+    NSLog(@"didDragRowsatIndexPaths: %@ toSection: %lu", fromIndexPaths, toSection);
+    
+    [self p_moveRowsAtIndexPaths:fromIndexPaths toSection:toSection];
+}
+
+
+-       (void)tableView:(GNESectionedTableView *)tableView
+didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
+            toIndexPath:(NSIndexPath *)toIndexPath
+{
+    NSLog(@"didDragRowsAtIndexPaths: %@ toIndexPath: %@", fromIndexPaths, toIndexPath);
+    
+    [self p_moveRowsAtIndexPaths:fromIndexPaths toIndexPath:toIndexPath];
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableViewDelegate
 // ------------------------------------------------------------------------------------------
@@ -565,19 +675,27 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 -       (CGFloat)tableView:(GNESectionedTableView * __unused)tableView
   heightForHeaderInSection:(NSUInteger __unused)section
 {
-    return 22.0f;
+    NSArray *rowsArray = self.rows[section];
+    
+    return ((rowsArray.count > 1) ? 22.0f : WLSectionedTableViewInvisibleRowHeight);
 }
 
 
 - (NSTableRowView *)tableView:(GNESectionedTableView *)tableView
-    rowViewForHeaderInSection:(NSUInteger __unused)section
+    rowViewForHeaderInSection:(NSUInteger)section
 {
-    NSTableRowView *rowView = [tableView makeViewWithIdentifier:kHeaderRowViewIdentifier owner:tableView];
+    NSArray *rowsArray = self.rows[section];
+    if (rowsArray.count <= 1)
+    {
+        return nil;
+    }
+    
+    GNETableRowView *rowView = [tableView makeViewWithIdentifier:kHeaderRowViewIdentifier owner:tableView];
     
     if (rowView == nil)
     {
-        rowView = [[NSTableRowView alloc] initWithFrame:CGRectZero];
-        [rowView setAutoresizingMask:NSViewWidthSizable];
+        rowView = [[GNETableRowView alloc] initWithFrame:CGRectZero];
+        rowView.autoresizingMask = NSViewWidthSizable;
         rowView.identifier = kHeaderRowViewIdentifier;
         rowView.backgroundColor = [NSColor greenColor];
     }
@@ -589,6 +707,12 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 - (NSTableCellView *)tableView:(GNESectionedTableView *)tableView
     cellViewForHeaderInSection:(NSUInteger)section
 {
+    NSArray *rowsArray = self.rows[section];
+    if (rowsArray.count <= 1)
+    {
+        return nil;
+    }
+    
     GNEHeaderCellView *cellView = [tableView makeViewWithIdentifier:kHeaderCellViewIdentifier owner:tableView];
     
     if (cellView == nil)
@@ -604,7 +728,15 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 }
 
 
-- (BOOL)tableView:(GNESectionedTableView * __unused)tableView shouldSelectRowAtIndexPath:(NSIndexPath * __unused)indexPath
+-           (BOOL)tableView:(GNESectionedTableView * __unused)tableView
+shouldSelectHeaderInSection:(NSUInteger)section
+{
+    return (((NSArray *)self.rows[section]).count > 1);
+}
+
+
+-           (BOOL)tableView:(GNESectionedTableView * __unused)tableView
+ shouldSelectRowAtIndexPath:(NSIndexPath * __unused)indexPath
 {
     return YES;
 }

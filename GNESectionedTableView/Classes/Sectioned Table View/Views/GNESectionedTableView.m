@@ -25,18 +25,11 @@ static NSString * const kOutlineViewStandardHeaderCellViewIdentifier =
 
 static const CGFloat kDefaultRowHeight = 32.0f;
 
-// By default, unsafe row heights are not allowed. They seem to work in 10.9, but not in 10.8.
-#ifdef UNSAFE_ROW_HEIGHT_ALLOWED
-static const CGFloat kInvisibleRowHeight = 0.00001f;
-#else
-static const CGFloat kInvisibleRowHeight = 1.0f;
-#endif
-
 
 // ------------------------------------------------------------------------------------------
 
 
-@interface GNESectionedTableView () <NSOutlineViewDataSource, NSOutlineViewDelegate>
+@interface GNESectionedTableView () <NSOutlineViewDataSource, NSOutlineViewDelegate, GNEOutlineViewItemPasteboardWritingDelegate>
 {
     NSTableColumn *_privateOutlineColumn; // NSOutlineView doesn't retain its outlineColumn property
 }
@@ -88,28 +81,28 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     _outlineViewParentItems = [NSMutableArray array];
     _outlineViewItems = [NSMutableArray array];
     
-    [self setDataSource:self];
-    [self setDelegate:self];
+    self.dataSource = self;
+    self.delegate = self;
     
-    [self setWantsLayer:YES];
-    [self setLayerContentsRedrawPolicy:NSViewLayerContentsRedrawOnSetNeedsDisplay];
+    self.wantsLayer = YES;
+    self.layerContentsRedrawPolicy = NSViewLayerContentsRedrawOnSetNeedsDisplay;
     
-    [self setGridStyleMask:NSTableViewGridNone];
+    self.gridStyleMask = NSTableViewGridNone;
     
-    [self setHeaderView:nil];
-    [self setCornerView:nil];
+    self.headerView = nil;
+    self.cornerView = nil;
     
     _privateOutlineColumn = [[NSTableColumn alloc] initWithIdentifier:kOutlineViewOutlineColumnIdentifier];
-    [self setOutlineTableColumn:_privateOutlineColumn];
+    self.outlineTableColumn = _privateOutlineColumn;
     NSTableColumn *standardColumn = [[NSTableColumn alloc] initWithIdentifier:kOutlineViewStandardColumnIdentifier];
-    [standardColumn setResizingMask:NSTableColumnAutoresizingMask];
+    standardColumn.resizingMask = NSTableColumnAutoresizingMask;
     [self addTableColumn:standardColumn];
-    [self setAllowsColumnResizing:NO];
+    self.allowsColumnResizing = NO;
     
-    [self setColumnAutoresizingStyle:NSTableViewLastColumnOnlyAutoresizingStyle];
-    [self setAutoresizesOutlineColumn:NO];
+    self.columnAutoresizingStyle = NSTableViewSequentialColumnAutoresizingStyle;
+    self.autoresizesOutlineColumn = NO;
     
-    [self setRowSizeStyle:NSTableViewRowSizeStyleCustom];
+    self.rowSizeStyle = NSTableViewRowSizeStyleCustom;
     
     [self expandItem:nil expandChildren:YES];
 }
@@ -135,7 +128,15 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     if ([self window])
     {
         [self p_sizeStandardTableColumnToFit];
+        [self p_registerForDraggedTypes];
     }
+}
+
+
+- (void)setFrameSize:(NSSize)newSize
+{
+    [super setFrameSize:newSize];
+    [self p_sizeStandardTableColumnToFit];
 }
 
 
@@ -175,7 +176,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
         @autoreleasepool
         {
             NSMutableIndexSet *insertedIndexes = [NSMutableIndexSet indexSet];
-            NSUInteger section = ((NSIndexPath *)[indexPathsInSection firstObject]).gne_section;
+            NSUInteger section = ((NSIndexPath *)indexPathsInSection.firstObject).gne_section;
             
             GNEOutlineViewParentItem *parentItem = [self p_outlineViewParentItemForSection:section];
             NSAssert1(parentItem, @"No outline view parent item exists for section %lu", (long unsigned)section);
@@ -186,19 +187,17 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
             }
             
             NSUInteger parentItemIndex = [self.outlineViewParentItems indexOfObject:parentItem];
-            NSParameterAssert(parentItemIndex < [self.outlineViewItems count]);
+            NSParameterAssert(parentItemIndex < self.outlineViewItems.count);
             
             NSMutableArray *rows = self.outlineViewItems[parentItemIndex];
             
             for (NSIndexPath *indexPath in indexPathsInSection)
             {
-                GNEOutlineViewItem *outlineViewItem = [[GNEOutlineViewItem alloc] initWithIndexPath:indexPath
-                                                                                         parentItem:parentItem];
+                GNEOutlineViewItem *outlineViewItem = [[GNEOutlineViewItem alloc] initWithParentItem:parentItem];
                 [insertedIndexes addIndex:[rows gne_insertObject:outlineViewItem atIndex:indexPath.gne_row]];
             }
             
             [self insertItemsAtIndexes:insertedIndexes inParent:parentItem withAnimation:animationOptions];
-            [self p_updateIndexPathsForOutlineViewItemsInSection:section];
         }
     }
     [self endUpdates];
@@ -215,23 +214,21 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     
     [self p_checkIndexPathsArray:indexPaths];
     
-    NSArray *groupedIndexPaths = [self p_sortedIndexPathsGroupedBySectionInIndexPaths:indexPaths];
+    NSArray *groupedIndexPaths = [self p_reverseSortedIndexPathsGroupedBySectionInIndexPaths:indexPaths];
     
-    NSIndexPath *firstIndexPath = [self p_firstIndexPathInSortedAndGroupedIndexPaths:groupedIndexPaths];
-    NSUInteger firstSection = (firstIndexPath) ? firstIndexPath.gne_section : 0;
+    NSIndexPath *firstIndexPath = nil;
     
     [self beginUpdates];
     for (NSArray *indexPathsInSection in groupedIndexPaths)
     {
-        
-        firstIndexPath = [indexPathsInSection firstObject];
+        firstIndexPath = indexPathsInSection.firstObject;
         
         if (firstIndexPath == nil)
         {
             continue;
         }
         
-        GNEOutlineViewItem *firstItem = [self p_outlineViewItemWithIndexPath:firstIndexPath];
+        GNEOutlineViewItem *firstItem = [self p_outlineViewItemAtIndexPath:firstIndexPath];
         
         if (firstItem == nil)
         {
@@ -245,35 +242,31 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
         NSMutableIndexSet *deletedIndexes = [NSMutableIndexSet indexSet];
         for (NSIndexPath *indexPath in indexPathsInSection)
         {
-            GNEOutlineViewItem *item = [self p_outlineViewItemWithIndexPath:indexPath];
+            GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
             
             if (item == nil)
             {
                 continue;
             }
-            
+         
             NSParameterAssert([item.parentItem isEqual:parentItem]);
             
-            NSIndexPath *actualIndexPath = [self p_indexPathInOutlineViewItemsArrayOfOutlineViewItem:item];
-            
-            NSParameterAssert(actualIndexPath);
+#if DEBUG
+            NSIndexPath *actualIndexPath = [self p_indexPathOfOutlineViewItem:item];
+            NSParameterAssert([actualIndexPath compare:indexPath] == NSOrderedSame);
+#endif
             
             // Add the item's index path row to the index set that will be passed to the NSOutlineView.
-            [deletedIndexes addIndex:item.indexPath.gne_row];
-            
-            NSParameterAssert(actualIndexPath.gne_section < [self.outlineViewItems count]);
-            NSParameterAssert(actualIndexPath.gne_row < [self.outlineViewItems[actualIndexPath.gne_section] count]);
+            [deletedIndexes addIndex:indexPath.gne_row];
             
             // Delete the actual item from the outline view items array.
-            [self.outlineViewItems[actualIndexPath.gne_section] removeObjectAtIndex:actualIndexPath.gne_row];
+            [self.outlineViewItems[indexPath.gne_section] removeObjectAtIndex:indexPath.gne_row];
         }
         
         // Delete the outline view rows with the supplied animation.
         [self removeItemsAtIndexes:deletedIndexes inParent:parentItem withAnimation:animationOptions];
     }
     [self endUpdates];
-    
-    [self p_updateIndexPathsForOutlineViewItemsBeginningAtSection:firstSection];
     
     [self p_checkDataSourceIntegrity];
 }
@@ -294,7 +287,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
         return;
     }
     
-    GNEOutlineViewItem *fromItem = [self p_outlineViewItemWithIndexPath:fromIndexPath];
+    GNEOutlineViewItem *fromItem = [self p_outlineViewItemAtIndexPath:fromIndexPath];
     
     NSParameterAssert(fromItem);
     if (fromItem == nil)
@@ -310,12 +303,12 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 
 - (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPaths:(NSArray *)toIndexPaths
 {
-    NSParameterAssert([fromIndexPaths count] == [toIndexPaths count]);
+    NSParameterAssert(fromIndexPaths.count == toIndexPaths.count);
     
     [self p_checkIndexPathsArray:fromIndexPaths];
     [self p_checkIndexPathsArray:toIndexPaths];
     
-    NSUInteger moveCount = [fromIndexPaths count];
+    NSUInteger moveCount = fromIndexPaths.count;
     
     [self beginUpdates];
     for (NSUInteger i = 0; i < moveCount; i++)
@@ -336,6 +329,68 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 }
 
 
+// TODO: Correct off-by-one error when moving "up"
+- (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPath:(NSIndexPath *)toIndexPath
+{
+#ifdef DEBUG
+    NSLog(@"%@\nFrom %@ to %@", NSStringFromSelector(_cmd), fromIndexPaths, toIndexPath);
+#endif
+    
+    [self p_checkIndexPathsArray:fromIndexPaths];
+    
+    GNEOutlineViewParentItem *toParentItem = [self p_outlineViewParentItemForSection:toIndexPath.gne_section];
+    
+    NSArray *groupedIndexPaths = [self p_reverseSortedIndexPathsGroupedBySectionInIndexPaths:fromIndexPaths];
+    
+    [self beginUpdates];
+    for (NSArray *indexPathsInSection in groupedIndexPaths)
+    {
+        NSIndexPath *firstIndexPath = indexPathsInSection.firstObject;
+        
+        if (firstIndexPath == nil)
+        {
+            continue;
+        }
+        
+        GNEOutlineViewItem *firstItem = [self p_outlineViewItemAtIndexPath:firstIndexPath];
+        
+        if (firstItem == nil)
+        {
+            continue;
+        }
+        
+        GNEOutlineViewParentItem *parentItem = firstItem.parentItem;
+        
+        NSParameterAssert(parentItem);
+        
+        [self beginUpdates];
+        for (NSIndexPath *indexPath in indexPathsInSection)
+        {
+            GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
+            
+            if (item == nil)
+            {
+                continue;
+            }
+            
+            NSParameterAssert([item.parentItem isEqual:parentItem]);
+            
+            // Move the item to the correct position in the outline view items array.
+            [self.outlineViewItems[indexPath.gne_section] removeObjectAtIndex:indexPath.gne_row];
+            [self.outlineViewItems[toIndexPath.gne_section] gne_insertObject:item
+                                                                     atIndex:toIndexPath.gne_row];
+            
+            [self moveItemAtIndex:(NSInteger)indexPath.gne_row
+                         inParent:parentItem
+                          toIndex:(NSInteger)toIndexPath.gne_row
+                         inParent:toParentItem];
+        }
+        [self endUpdates];
+    }
+    [self endUpdates];
+}
+
+
 - (void)reloadRowsAtIndexPaths:(NSArray *)indexPaths
 {
 #ifdef DEBUG
@@ -351,7 +406,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     {
         for (NSIndexPath *indexPath in indexPathsInSection)
         {
-            GNEOutlineViewItem *item = [self p_outlineViewItemWithIndexPath:indexPath];
+            GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
             
             if (item == nil)
             {
@@ -384,12 +439,10 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     {
         @autoreleasepool
         {
-            NSUInteger sectionCount = [outlineViewParentItemsCopy count];
+            NSUInteger sectionCount = outlineViewParentItemsCopy.count;
             NSUInteger section = (proposedSection > sectionCount) ? sectionCount : proposedSection;
             
-            NSIndexPath *parentItemIndexPath = [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
-            GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc]
-                                                    initWithIndexPath:parentItemIndexPath];
+            GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc] init];
             parentItem.visible = [self p_outlineViewParentItemIsVisibleForSection:section];
             [outlineViewParentItemsCopy gne_insertObject:parentItem atIndex:section];
             
@@ -400,9 +453,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
             
             for (NSUInteger row = 0; row < rowCount; row++)
             {
-                NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
-                GNEOutlineViewItem *item = [[GNEOutlineViewItem alloc] initWithIndexPath:indexPath
-                                                                              parentItem:parentItem];
+                GNEOutlineViewItem *item = [[GNEOutlineViewItem alloc] initWithParentItem:parentItem];
                 
                 [rows addObject:item];
             }
@@ -411,12 +462,11 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
         }
     }];
     
-    NSParameterAssert([sections count] == [insertedSections count]);
+    NSParameterAssert(sections.count == insertedSections.count);
     
     self.outlineViewParentItems = outlineViewParentItemsCopy;
     self.outlineViewItems = outlineViewItemsCopy;
     
-    [self p_updateIndexPathsForOutlineViewItemsBeginningAtSection:[insertedSections firstIndex]];
     [self insertItemsAtIndexes:insertedSections inParent:nil withAnimation:animationOptions];
     [self p_expandParentItemsAtIndexes:insertedSections];
     
@@ -440,7 +490,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
         
         if (parentItem)
         {
-            NSUInteger index = [self p_indexInOutlineViewParentItemsArrayOfOutlineViewParentItem:parentItem];
+            NSUInteger index = [self p_sectionForOutlineViewParentItem:parentItem];
             
             if (index != NSNotFound)
             {
@@ -448,8 +498,8 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
                 
                 [deletedSections addIndex:index];
                 
-                NSParameterAssert(index < [outlineViewParentItemsCopy count]);
-                NSParameterAssert(index < [outlineViewItemsCopy count]);
+                NSParameterAssert(index < outlineViewParentItemsCopy.count);
+                NSParameterAssert(index < outlineViewItemsCopy.count);
                 
                 [outlineViewParentItemsCopy removeObjectAtIndex:index];
                 [outlineViewItemsCopy removeObjectAtIndex:index];
@@ -457,12 +507,11 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
         }
     }];
     
-    NSParameterAssert([sections count] == [deletedSections count]);
+    NSParameterAssert(sections.count == deletedSections.count);
     
     self.outlineViewParentItems = outlineViewParentItemsCopy;
     self.outlineViewItems = outlineViewItemsCopy;
     
-    [self p_updateIndexPathsForOutlineViewItemsBeginningAtSection:[deletedSections firstIndex]];
     [self removeItemsAtIndexes:deletedSections inParent:nil withAnimation:animationOptions];
     
     [self p_checkDataSourceIntegrity];
@@ -481,16 +530,16 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     NSLog(@"%@\nFrom: %@ To: %lu", NSStringFromSelector(_cmd), fromSections, toSection);
 #endif
     
-    NSParameterAssert([self.outlineViewParentItems count] == [self.outlineViewItems count]);
+    NSParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
     
     NSMutableIndexSet *validSections = [[self p_indexSetByRemovingInvalidSectionsFromIndexSet:fromSections]
                                         mutableCopy];
     
     /**
      If the target section is the first section in the fromSections parameter, remove it and insert all of the
-        other sections above it.
+     other sections above it.
      */
-    while ([validSections firstIndex] == toSection)
+    while (validSections.firstIndex == toSection)
     {
         [validSections removeIndex:toSection];
         toSection += 1;
@@ -501,7 +550,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     
     /**
      If the target section is contained in the fromSections parameter, remove it, insert the sections greater than
-        it above it, and insert all of the sections less than it below it. 
+     it above it, and insert all of the sections less than it below it.
      */
     if ([validSections containsIndex:toSection])
     {
@@ -530,13 +579,11 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
         }
         
         GNEOutlineViewParentItem *parentItem = [self p_outlineViewParentItemForSection:convertedFromSection];
-        NSUInteger parentItemIndex = [self p_indexInOutlineViewParentItemsArrayOfOutlineViewParentItem:parentItem];
+        NSUInteger parentItemIndex = [self p_sectionForOutlineViewParentItem:parentItem];
         
-        NSUInteger smallestSection = (parentItemIndex < convertedToSection) ? parentItemIndex : convertedToSection;
+        NSParameterAssert(parentItemIndex != NSNotFound && parentItemIndex < self.outlineViewItems.count);
         
-        NSParameterAssert(parentItemIndex != NSNotFound && parentItemIndex < [self.outlineViewItems count]);
-        
-        if (parentItemIndex == NSNotFound || parentItemIndex >= [self.outlineViewItems count])
+        if (parentItemIndex == NSNotFound || parentItemIndex >= self.outlineViewItems.count)
         {
             return;
         }
@@ -548,13 +595,6 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
         
         [self.outlineViewParentItems gne_insertObject:parentItem atIndex:convertedToSection];
         [self.outlineViewItems gne_insertObject:rows atIndex:convertedToSection];
-        
-        /**
-         The index paths must be updated before the animation happens because the views for sections that aren't
-            already visible will need to be created, which means the data source (which has already changed) will
-            need to be queried.
-         */
-        [self p_updateIndexPathsForOutlineViewItemsBeginningAtSection:smallestSection];
         
         [self moveItemAtIndex:(NSInteger)parentItemIndex
                      inParent:nil
@@ -573,9 +613,9 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), sections);
 #endif
     
-    NSParameterAssert([self.outlineViewParentItems count] == [self.outlineViewItems count]);
+    NSParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
     
-    NSUInteger sectionCount = [self.outlineViewParentItems count];
+    NSUInteger sectionCount = self.outlineViewParentItems.count;
     
     [self beginUpdates];
     [sections enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stop __unused)
@@ -597,7 +637,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 // ------------------------------------------------------------------------------------------
 - (CGRect)frameOfCellAtIndexPath:(NSIndexPath *)indexPath
 {
-    GNEOutlineViewItem *item = [self p_outlineViewItemWithIndexPath:indexPath];
+    GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
     if (item)
     {
         NSInteger row = [self rowForItem:item];
@@ -617,9 +657,8 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     NSUInteger sectionCount = [self p_numberOfSections];
     for (NSUInteger section = 0; section < sectionCount; section++)
     {
-        NSIndexPath *parentItemIndexPath = [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
-        GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc]
-                                                initWithIndexPath:parentItemIndexPath];
+        GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc] init];
+        parentItem.pasteboardWritingDelegate = self;
         BOOL isVisible = [self p_outlineViewParentItemIsVisibleForSection:section];
         parentItem.visible = isVisible;
         
@@ -630,9 +669,8 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
         NSUInteger rowCount = [self p_numberOfRowsInSection:section];
         for (NSUInteger row = 0; row < rowCount; row++)
         {
-            NSIndexPath *itemIndexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
-            GNEOutlineViewItem *item = [[GNEOutlineViewItem alloc] initWithIndexPath:itemIndexPath
-                                                                          parentItem:parentItem];
+            GNEOutlineViewItem *item = [[GNEOutlineViewItem alloc] initWithParentItem:parentItem];
+            item.pasteboardWritingDelegate = self;
             [rowArray addObject:item];
         }
     }
@@ -640,12 +678,11 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 
 
 /**
- Determines if the outline view parent item for the specified item is visible to the user based on the height
-    and row view of the section header returned by the table view delegate.
+ Determines if the outline view parent item for the specified item is visible to the user based on the 
+ height and row view of the section header returned by the table view delegate.
  
  @discussion This method should only be called when originally building the outline view item arrays. After the
-                outline view parent items' visible property is initially set, it's up to the user to reload
-                the cell.
+ outline view parent items' visible property is initially set, it's up to the user to reload the cell.
  @param section Section of the outline view parent item.
  @return YES if the outline view parent item is visible, otherwise NO.
  */
@@ -657,7 +694,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
         CGFloat height = [self.tableViewDelegate tableView:self heightForHeaderInSection:section];
         NSTableRowView *rowView = [self.tableViewDelegate tableView:self rowViewForHeaderInSection:section];
         
-        if (height > 0.0f && rowView)
+        if (height >= 1.0f && rowView)
         {
             return YES;
         }
@@ -682,7 +719,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     
     GNEOutlineViewParentItem *parentItem = item.parentItem;
     
-    NSUInteger section = [self p_indexInOutlineViewParentItemsArrayOfOutlineViewParentItem:parentItem];
+    NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
 
     NSParameterAssert(section != NSNotFound);
     if (section == NSNotFound)
@@ -690,7 +727,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
         return;
     }
     
-    NSIndexPath *fromIndexPath = [self p_indexPathInOutlineViewItemsArrayOfOutlineViewItem:item];
+    NSIndexPath *fromIndexPath = [self p_indexPathOfOutlineViewItem:item];
     
     NSParameterAssert(fromIndexPath);
     if (fromIndexPath == nil)
@@ -705,8 +742,6 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     
     [self.outlineViewItems[fromSection] removeObjectAtIndex:fromRow];
     [self.outlineViewItems[fromSection] gne_insertObject:item atIndex:toRow];
-    
-    [self p_updateIndexPathsForOutlineViewItemsInSection:fromSection];
     
     [self moveItemAtIndex:(NSInteger)fromRow
                  inParent:parentItem
@@ -734,10 +769,11 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     if ([fromParentItem isEqual:toParentItem])
     {
         [self p_animateMoveOfOutlineViewItem:item toRow:toRow];
+        return;
     }
     
-    NSIndexPath *actualIndexPath = [self p_indexPathInOutlineViewItemsArrayOfOutlineViewItem:item];
-    NSUInteger toSection = [self p_indexInOutlineViewParentItemsArrayOfOutlineViewParentItem:toParentItem];
+    NSIndexPath *actualIndexPath = [self p_indexPathOfOutlineViewItem:item];
+    NSUInteger toSection = [self p_sectionForOutlineViewParentItem:toParentItem];
     
     NSParameterAssert(actualIndexPath);
     NSParameterAssert(toSection != NSNotFound);
@@ -755,10 +791,6 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     
     [(NSMutableArray *)self.outlineViewItems[toSection] gne_insertObject:item atIndex:toRow];
     
-    NSUInteger smallestSection = (fromSection < toSection) ? fromSection : toSection;
-    
-    [self p_updateIndexPathsForOutlineViewItemsBeginningAtSection:smallestSection];
-    
     [self moveItemAtIndex:(NSInteger)fromRow
                  inParent:fromParentItem
                   toIndex:(NSInteger)toRow
@@ -766,66 +798,40 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 }
 
 
-- (void)p_updateIndexPathsForOutlineViewItemsBeginningAtSection:(NSUInteger)section
-{
-    NSParameterAssert([self.outlineViewParentItems count] == [self.outlineViewItems count]);
-    
-    if (section >= [self.outlineViewItems count])
-    {
-        return;
-    }
-    
-    NSUInteger sectionCount = [self.outlineViewParentItems count];
-    
-    for (; section < sectionCount; section++)
-    {
-        GNEOutlineViewParentItem *parentItem = self.outlineViewParentItems[section];
-        parentItem.indexPath = [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
-        
-        NSMutableArray *rows = self.outlineViewItems[section];
-        NSUInteger rowCount = [rows count];
-        for (NSUInteger row = 0; row < rowCount; row++)
-        {
-            GNEOutlineViewItem *item = rows[row];
-            item.indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
-        }
-    }
-}
-
-
-/**
- Updates the index paths of all of the outline view items currently belonging to the specified section.
- 
- @param section Section whose outline view items need updating.
- */
-- (void)p_updateIndexPathsForOutlineViewItemsInSection:(NSUInteger)section
-{
-    NSParameterAssert(section < [self.outlineViewItems count]);
-    
-    NSMutableArray *rows = self.outlineViewItems[section];
-    NSUInteger count = [rows count];
-    
-    for (NSUInteger row = 0; row < count; row++)
-    {
-        GNEOutlineViewItem *item = rows[row];
-        NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
-        item.indexPath = indexPath;
-    }
-}
-
-
 /**
  Returns an array of arrays. Each inner array contains all of the specified index paths belonging to the same 
-    section. The sections and rows are all sorted in ascending order (from smallest to largest).
+ section. The sections and rows are all sorted in ascending order (from smallest to largest).
  
  @param indexPaths Array of index paths to group and sort.
  @return Array of arrays of index paths sorted in ascending order by section and row.
  */
 - (NSArray *)p_sortedIndexPathsGroupedBySectionInIndexPaths:(NSArray *)indexPaths
 {
+    SEL comparator = NSSelectorFromString(@"gne_compare:");
+    
+    return [self p_sortedIndexPathsGroupedBySectionInIndexPaths:indexPaths usingSelector:comparator];
+}
+
+
+/**
+ Returns an array of arrays. Each inner array contains all of the specified index paths belonging to the same
+ section. The sections and rows are all sorted in descending order (from largest to smallest).
+ 
+ @param indexPaths Array of index paths to group and sort.
+ @return Array of arrays of index paths sorted in descending order by section and row.
+ */
+- (NSArray *)p_reverseSortedIndexPathsGroupedBySectionInIndexPaths:(NSArray *)indexPaths
+{
+    SEL comparator = NSSelectorFromString(@"gne_reverseCompare:");
+    
+    return [self p_sortedIndexPathsGroupedBySectionInIndexPaths:indexPaths usingSelector:comparator];
+}
+
+
+- (NSArray *)p_sortedIndexPathsGroupedBySectionInIndexPaths:(NSArray *)indexPaths usingSelector:(SEL)comparator
+{
     NSMutableArray *groupedIndexPaths = [NSMutableArray array];
-    SEL compareSelector = NSSelectorFromString(@"gne_compare:");
-    NSArray *sortedIndexPaths = [indexPaths sortedArrayUsingSelector:compareSelector];
+    NSArray *sortedIndexPaths = [indexPaths sortedArrayUsingSelector:comparator];
     
     NSUInteger currentSection = NSNotFound;
     NSMutableArray *indexPathsInCurrentSection = nil;
@@ -847,39 +853,17 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 
 
 /**
- Returns the first index path contained in a sorted and grouped array of arrays of index paths.
- 
- @discussion This method should be used on the array returned by p_sortedIndexPathsGroupedBySectionInIndexPaths:.
- @param groupedIndexPaths Array of arrays of index paths that have already been sorted.
- @return First index path in the specified sorted and grouped array of arrays of index paths.
- */
-- (NSIndexPath *)p_firstIndexPathInSortedAndGroupedIndexPaths:(NSArray *)groupedIndexPaths
-{
-    NSParameterAssert(groupedIndexPaths == nil ||
-                      [groupedIndexPaths count] == 0 ||
-                      [[groupedIndexPaths firstObject] isKindOfClass:[NSArray class]]);
-    
-    if (groupedIndexPaths == nil || [groupedIndexPaths count] == 0)
-    {
-        return nil;
-    }
-    
-    return [[groupedIndexPaths firstObject] firstObject];
-}
-
-
-/**
  Returns an index set that contains all of the valid section indexes in the specified index set.
  
  @param sections Index set containing indexes corresponding to outline view parent items in the outline view parent
-                    items array.
+ items array.
  @return Index set containing all of the valid section indexes in the specified index set.
  */
 - (NSIndexSet *)p_indexSetByRemovingInvalidSectionsFromIndexSet:(NSIndexSet *)sections
 {
-    NSParameterAssert([self.outlineViewParentItems count] == [self.outlineViewItems count]);
+    NSParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
     
-    if ([sections count] == 0)
+    if (sections.count == 0)
     {
         return sections;
     }
@@ -887,7 +871,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     NSMutableIndexSet *validSections = [NSMutableIndexSet indexSet];
     [validSections addIndexes:sections];
     
-    NSUInteger sectionCount = [self.outlineViewParentItems count];
+    NSUInteger sectionCount = self.outlineViewParentItems.count;
     
     [sections enumerateIndexesWithOptions:NSEnumerationReverse usingBlock:^(NSUInteger section, BOOL *stop)
     {
@@ -909,76 +893,48 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 #pragma mark - GNESectionedTableView - Internal - Retrieving Outline View Items
 // ------------------------------------------------------------------------------------------
 /**
- Returns the index pointing to the specified outline view parent item in the outline view parent items array,
-    even if that index does not match the section of the index path property of the specified outline view
-    item itself. If the outline view parent item could not be found, returns NSNotFound.
+ Returns the index pointing to the specified outline view parent item in the outline view parent items array.
  
- @discussion Because of insertions and deletions, for brief moments the section of the index path property of an
-                outline view parent item may not match its current location within the GNESectionedTableView's
-                outline view parent items array. This method returns the actual index of the specified outline
-                view parent item. If the outline view parent item could not be found, this method
-                returns NSNotFound.
  @param parentItem Outline view parent item to locate.
  @return Index matching the current location of the specified outline view parent item in table view's outline
-            view parent items array, or NSNotFound if the outline view parent item could not be found.
+ view parent items array, or NSNotFound if the outline view parent item could not be found.
  */
-- (NSUInteger)p_indexInOutlineViewParentItemsArrayOfOutlineViewParentItem:(GNEOutlineViewParentItem *)parentItem
+- (NSUInteger)p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)parentItem
 {
-    NSUInteger count = [self.outlineViewParentItems count];
+    NSParameterAssert([parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
     
-    if (parentItem.indexPath.gne_section < count)
-    {
-        NSUInteger section = parentItem.indexPath.gne_section;
-        GNEOutlineViewParentItem *aParentItem = [self.outlineViewParentItems objectAtIndex:section];
-        
-        if ([aParentItem isEqual:parentItem])
-        {
-            return section;
-        }
-    }
+    NSUInteger index = [self.outlineViewParentItems indexOfObject:parentItem];
     
-    for (NSUInteger i = 0; i < count; i++)
-    {
-        GNEOutlineViewParentItem *aParentItem = [self.outlineViewParentItems objectAtIndex:i];
-        
-        if ([aParentItem isEqual:parentItem])
-        {
-            return i;
-        }
-    }
-    
-    return NSNotFound;
+    return index;
 }
 
 
 /**
- Returns the index path pointing to the specified outline view item in the outline view items array, even if that
-    index path does not match the index path property of the specified outline view item itself.
+ Returns the index path pointing to the specified outline view item in the outline view items array.
  
- @discussion Because of insertions and deletions, for brief moments the index path property of an outline view
-                item may not match its current location within the GNESectionedTableView's outline view items
-                array. This method returns the actual location of the specified outline view item.
  @param item Outline view item to locate.
  @return Index path matching the current location of the specified outline view item in table view's outline view
             items array, or nil if it couldn't be found.
  */
-- (NSIndexPath *)p_indexPathInOutlineViewItemsArrayOfOutlineViewItem:(GNEOutlineViewItem *)item
+- (NSIndexPath *)p_indexPathOfOutlineViewItem:(GNEOutlineViewItem *)item
 {
-    NSUInteger sectionCount = [self.outlineViewItems count];
+    NSUInteger sectionCount = self.outlineViewItems.count;
     
-    NSUInteger section = item.indexPath.gne_section;
-    
-    if (section < sectionCount)
+    // If it's a outline view parent item, find its section and then make an appropriate index path for it.
+    GNEOutlineViewParentItem *parentItem = item.parentItem;
+    if (parentItem == nil)
+    {
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+        
+        return [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
+    }
+
+    // Find the outline view item in its parent's section.
+    NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
+    if (section != NSNotFound && section < sectionCount)
     {
         NSArray *sectionArray = self.outlineViewItems[section];
         
-        // First check the outline view item's index path.
-        if (item.indexPath.gne_row < [sectionArray count] && [item isEqual:sectionArray[item.indexPath.gne_row]])
-        {
-            return [NSIndexPath gne_indexPathForRow:item.indexPath.gne_row inSection:section];
-        }
-        
-        // If it wasn't found, iterate through the section to find the item.
         NSUInteger row = [sectionArray indexOfObject:item];
         if (row != NSNotFound)
         {
@@ -986,7 +942,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
         }
     }
     
-    // If it still wasn't found, iterate through all of the sections.
+    // If the item wasn't found, iterate through all of the sections to find it.
     for (section = 0; section < sectionCount; section++)
     {
         NSArray *sectionArray = self.outlineViewItems[section];
@@ -1017,20 +973,17 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     
     if (parentItem)
     {
-        NSUInteger parentItemIndex = parentItem.indexPath.gne_section;
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
         
-        NSParameterAssert(parentItemIndex < [self.outlineViewItems count]);
-        
-        NSArray *itemArray = self.outlineViewItems[parentItemIndex];
-        
-        NSParameterAssert(index < [itemArray count]);
-        
-        return [itemArray objectAtIndex:index];
+        if (section < self.outlineViewItems.count && index < ((NSArray *)self.outlineViewItems[section]).count)
+        {
+            NSArray *sectionArray = self.outlineViewItems[section];
+            
+            return sectionArray[index];
+        }
     }
-    else
+    else if (index < self.outlineViewParentItems.count)
     {
-        NSParameterAssert(index < [self.outlineViewParentItems count]);
-        
         return self.outlineViewParentItems[index];
     }
     
@@ -1041,83 +994,10 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 
 
 /**
- Returns the outline view item or parent item whose index path property matches the specified index path.
+ Returns the outline view parent item for the specified section.
  
- @discussion This method first tries to match the outline view parent item at the specified index path. If that
-                outline view parent item doesn't match, it iterates through all of the outline view items
-                in the specified section until a match is found. If a match still can't be found, it iterates
-                through all of the outline view items until it finds a match.
- @param indexPath Index path to use to find a matching outline view item.
- @return Outline view item whose index path property matches the specified index path, otherwise nil.
- */
-- (GNEOutlineViewItem *)p_outlineViewItemWithIndexPath:(NSIndexPath *)indexPath
-{
-    NSParameterAssert(indexPath);
-    
-    BOOL isParentItem = (indexPath.gne_row == NSNotFound);
-    
-    if (isParentItem)
-    {
-        return [self p_outlineViewParentItemWithIndexPath:indexPath];
-    }
-    else
-    {
-        NSUInteger sectionCount = [self.outlineViewItems count];
-        if (indexPath.gne_section < sectionCount)
-        {
-            NSArray *rowArray = self.outlineViewItems[indexPath.gne_section];
-            NSUInteger rowCount = [rowArray count];
-            
-            // First, try the outline view item at the specified index path.
-            if (indexPath.gne_row < rowCount)
-            {
-                GNEOutlineViewItem *item = rowArray[indexPath.gne_row];
-                if ([item.indexPath compare:indexPath] == NSOrderedSame)
-                {
-                    return item;
-                }
-            }
-            
-            // Then, try the other items in the same section.
-            for (NSUInteger i = 0; i < rowCount; i++)
-            {
-                GNEOutlineViewItem *item = rowArray[i];
-                if ([item.indexPath compare:indexPath] == NSOrderedSame)
-                {
-                    return item;
-                }
-            }
-        }
-        
-        // Lastly, iterate through all of the outline view items until a match is found.
-        for (NSUInteger section = 0; section < sectionCount; section++)
-        {
-            NSArray *rowArray = self.outlineViewItems[section];
-            NSUInteger rowCount = [rowArray count];
-            
-            for (NSUInteger row = 0; row < rowCount; row++)
-            {
-                GNEOutlineViewItem *item = rowArray[row];
-                if ([item.indexPath compare:indexPath] == NSOrderedSame)
-                {
-                    return item;
-                }
-            }
-        }
-    }
-    
-    return nil;
-}
-
-
-/**
- Returns the outline view parent item whose index path property's section matches the specified section.
- 
- @discussion This method first tries to match the outline view parent item at the specified index path. If that
-                outline view parent item doesn't match, it iterates through all of the outline view parent
-                items until a match is found.
  @param section Section to use to find a matching outline view parent item.
- @return Outline view parent item whose index path property's section matches the specified section, otherwise nil.
+ @return Outline view parent item for the specified section, otherwise nil.
  */
 - (GNEOutlineViewParentItem *)p_outlineViewParentItemForSection:(NSUInteger)section
 {
@@ -1128,36 +1008,59 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 
 
 /**
- Returns the outline view parent item whose index path property matches the specified index path.
+ Returns the outline view parent item at the specified index path.
  
- @discussion This method first tries to match the outline view parent item at the specified index path. If that
-                outline view parent item doesn't match, it iterates through all of the outline view parent
-                items until a match is found.
  @param indexPath Index path to use to find a matching outline view parent item.
- @return Outline view parent item whose index path property matches the specified index path, otherwise nil.
+ @return Outline view parent item at the specified index path, otherwise nil.
  */
 - (GNEOutlineViewParentItem *)p_outlineViewParentItemWithIndexPath:(NSIndexPath *)indexPath
 {
     NSParameterAssert(indexPath);
     NSParameterAssert(indexPath.gne_row == NSNotFound);
     
-    NSUInteger parentItemsCount = [self.outlineViewParentItems count];
+    NSUInteger parentItemsCount = self.outlineViewParentItems.count;
+    
+    NSParameterAssert(indexPath.gne_section < parentItemsCount);
     
     if (indexPath.gne_section < parentItemsCount)
     {
-        GNEOutlineViewParentItem *parentItem = self.outlineViewParentItems[indexPath.gne_section];
-        if ([parentItem.indexPath compare:indexPath] == NSOrderedSame)
-        {
-            return parentItem;
-        }
+        return self.outlineViewParentItems[indexPath.gne_section];
     }
     
-    for (NSUInteger i = 0; i < parentItemsCount; i++)
+    return nil;
+}
+
+
+/**
+ Returns the outline view item at the specified index path.
+ 
+ @param indexPath Index path to use to find a matching outline view item.
+ @return Outline view item at the specified index path, otherwise nil.
+ */
+- (GNEOutlineViewItem *)p_outlineViewItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSParameterAssert(indexPath);
+    
+    // If it's an outline view parent item, call the appropriate method.
+    if (indexPath.gne_row == NSNotFound)
     {
-        GNEOutlineViewParentItem *parentItem = self.outlineViewParentItems[i];
-        if ([parentItem.indexPath compare:indexPath] == NSOrderedSame)
+        return [self p_outlineViewParentItemForSection:indexPath.gne_section];
+    }
+    
+    NSUInteger sectionCount = self.outlineViewItems.count;
+    
+    NSParameterAssert(indexPath.gne_section < sectionCount);
+    
+    if (indexPath.gne_section < sectionCount)
+    {
+        NSArray *sectionArray = self.outlineViewItems[indexPath.gne_section];
+        NSUInteger rowCount = sectionArray.count;
+        
+        NSParameterAssert(indexPath.gne_row < rowCount);
+        
+        if (indexPath.gne_row < rowCount)
         {
-            return parentItem;
+            return sectionArray[indexPath.gne_row];
         }
     }
     
@@ -1209,12 +1112,12 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 
 - (NSUInteger)p_numberOfRowsInOutlineView
 {
-    NSUInteger sectionCount = [self.outlineViewItems count];
+    NSUInteger sectionCount = self.outlineViewItems.count;
     NSUInteger rowCount = 0;
     
     for (NSUInteger section = 0; section < sectionCount; section++)
     {
-        rowCount += [self.outlineViewItems[section] count];
+        rowCount += ((NSArray *)self.outlineViewItems[section]).count;
     }
     
     return (sectionCount + rowCount); // Section headers count as rows even if they are not "visible"
@@ -1225,12 +1128,191 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 {
     NSParameterAssert([parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
     
-    NSUInteger parentItemIndex = parentItem.indexPath.gne_section;
+    NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
+    if (section < self.outlineViewItems.count)
+    {
+        return ((NSArray *)self.outlineViewItems[section]).count;
+    }
     
-    NSParameterAssert(parentItemIndex != NSNotFound);
-    NSParameterAssert(parentItemIndex < [self.outlineViewItems count]);
+    return 0;
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - GNESectionedTableView - Internal - Drag-and-drop
+// ------------------------------------------------------------------------------------------
+- (void)p_registerForDraggedTypes
+{
+    [self unregisterDraggedTypes];
     
-    return [self.outlineViewItems[parentItemIndex] count];
+    NSArray *draggedTypes = @[GNEOutlineViewItemPasteboardType];
+    
+    if ([self.tableViewDataSource respondsToSelector:@selector(draggedTypesForTableView:)])
+    {
+        NSArray *additionalTypes = [self.tableViewDataSource draggedTypesForTableView:self];
+        
+        if (additionalTypes.count > 0)
+        {
+            draggedTypes = [draggedTypes arrayByAddingObjectsFromArray:additionalTypes];
+        }
+    }
+    
+    [self registerForDraggedTypes:draggedTypes];
+}
+
+
+- (NSDragOperation)p_dragOperationForDrop:(id<NSDraggingInfo>)info
+                        toProposedSection:(NSUInteger)toSection
+{
+    __block BOOL canDrag = YES;
+    
+    __weak typeof(self) weakSelf = self;
+    [info enumerateDraggingItemsWithOptions:0
+                                    forView:self
+                                    classes:@[[GNEOutlineViewItem class]]
+                              searchOptions:nil
+                                 usingBlock:^(NSDraggingItem *draggingItem,
+                                              NSInteger idx __unused,
+                                              BOOL *stop)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        
+        GNEOutlineViewItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
+        
+        if (draggedItem)
+        {
+            GNEOutlineViewParentItem *parentItem = draggedItem.parentItem;
+            
+            SEL sectionSelector = @selector(tableView:canDragSection:toSection:);
+            SEL rowSelector = @selector(tableView:canDragRowAtIndexPath:toSection:);
+            if (parentItem == nil &&
+                [strongSelf.tableViewDataSource respondsToSelector:sectionSelector])
+            {
+                NSParameterAssert([draggedItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+                
+                NSUInteger fromSection = [strongSelf p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)draggedItem];
+                canDrag = [strongSelf.tableViewDataSource tableView:strongSelf
+                                                     canDragSection:fromSection
+                                                          toSection:toSection];
+            }
+            else if (parentItem && [strongSelf.tableViewDataSource respondsToSelector:rowSelector])
+            {
+                NSIndexPath *fromIndexPath = [strongSelf p_indexPathOfOutlineViewItem:draggedItem];
+                canDrag = [strongSelf.tableViewDataSource tableView:strongSelf
+                                              canDragRowAtIndexPath:fromIndexPath
+                                                          toSection:toSection];
+            }
+            
+            if (canDrag == NO && stop)
+            {
+                *stop = YES;
+            }
+        }
+    }];
+    
+    // TODO: Add ability to retarget drop here.
+    // - (NSIndexPath *)tableView:(GNESectionedTableView *)tableView targetIndexPathForMoveFromSection:(NSUInteger *)fromSection toProposedSection:(NSUInteger)proposedToSection
+    // - (NSIndexPath *)tableView:(GNESectionedTableView *)tableView targetIndexPathForMoveFromRowAtIndexPath:(NSIndexPath *)fromIndexPath toProposedIndexPath:(NSIndexPath *)proposedToIndexPath
+    
+    return ((canDrag) ? NSDragOperationMove : NSDragOperationNone);
+}
+
+
+- (NSDragOperation)p_dragOperationForDrop:(id<NSDraggingInfo>)info
+                      toProposedIndexPath:(NSIndexPath *)toIndexPath
+{
+    __block BOOL canDrag = YES;
+    
+    __weak typeof(self) weakSelf = self;
+    [info enumerateDraggingItemsWithOptions:0
+                                    forView:self
+                                    classes:@[[GNEOutlineViewItem class]]
+                              searchOptions:nil
+                                 usingBlock:^(NSDraggingItem *draggingItem,
+                                              NSInteger idx __unused,
+                                              BOOL *stop)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+
+        GNEOutlineViewItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
+
+        if (draggedItem)
+        {
+            GNEOutlineViewParentItem *parentItem = draggedItem.parentItem;
+            
+            SEL rowSelector = @selector(tableView:canDragRowAtIndexPath:toIndexPath:);
+            if (parentItem && [strongSelf.tableViewDataSource respondsToSelector:rowSelector])
+            {
+                NSIndexPath *fromIndexPath = [strongSelf p_indexPathOfOutlineViewItem:draggedItem];
+                canDrag = [strongSelf.tableViewDataSource tableView:strongSelf
+                                              canDragRowAtIndexPath:fromIndexPath
+                                                        toIndexPath:toIndexPath];
+            }
+
+            if (canDrag == NO && stop)
+            {
+                *stop = YES;
+            }
+        }
+    }];
+    
+    // TODO: Add ability to retarget drop here.
+    // - (NSIndexPath *)tableView:(GNESectionedTableView *)tableView targetIndexPathForMoveFromRowAtIndexPath:(NSIndexPath *)fromIndexPath toProposedIndexPath:(NSIndexPath *)proposedToIndexPath
+    
+    return ((canDrag) ? NSDragOperationMove : NSDragOperationNone);
+}
+
+
+- (BOOL)p_isDraggingSectionsAndRows:(id<NSDraggingInfo>)info
+{
+    __block BOOL hasSections = NO;
+    __block BOOL hasRows = NO;
+    
+    __weak typeof(self) weakSelf = self;
+    [info enumerateDraggingItemsWithOptions:0
+                                    forView:self
+                                    classes:@[[GNEOutlineViewItem class]]
+                              searchOptions:0
+                                 usingBlock:^(NSDraggingItem *draggingItem,
+                                              NSInteger idx __unused,
+                                              BOOL *stop)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        
+        GNEOutlineViewItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
+        
+        if (draggedItem.parentItem == nil)
+        {
+            hasSections = YES;
+        }
+        else
+        {
+            hasRows = YES;
+        }
+        
+        if (hasSections && hasRows && stop)
+        {
+            *stop = YES;
+        }
+    }];
+    
+    return (hasSections && hasRows);
+}
+
+
+- (GNEOutlineViewItem *)p_draggedItemForDraggingItem:(NSDraggingItem *)draggingItem
+{
+    GNEOutlineViewItem *draggedItem = nil;
+    
+    GNEOutlineViewItem *item = draggingItem.item;
+    NSInteger row = item.draggedRow;
+    
+    if (row >= 0)
+    {
+        draggedItem = [self itemAtRow:row];
+    }
+    
+    return draggedItem;
 }
 
 
@@ -1277,7 +1359,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 {
     for (NSIndexPath *indexPath in indexPaths)
     {
-        NSParameterAssert([indexPath isKindOfClass:[NSIndexPath class]] && [indexPath length] == 2);
+        NSParameterAssert([indexPath isKindOfClass:[NSIndexPath class]] && indexPath.length == 2);
     }
 }
 #else
@@ -1294,7 +1376,6 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
 // TODO: Perhaps nil out outline view item arrays, -[super reloadData], rebuild arrays, -[super reloadData]
 - (void)reloadData
 {
-    
     __weak typeof(self) weakSelf = self;
     [self performAfterAnimations:^(NSOutlineView *__weak ov __unused)
     {
@@ -1349,7 +1430,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     
     if (item)
     {
-        if ([item isKindOfClass:[GNEOutlineViewParentItem class]])
+        if (item.parentItem == nil)
         {
             return YES; // Parent items should always be expandable.
         }
@@ -1369,7 +1450,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     
     if (item)
     {
-        if ([item isKindOfClass:[GNEOutlineViewParentItem class]])
+        if (item.parentItem == nil)
         {
             return (NSInteger)[self p_numberOfOutlineViewItemsForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
         }
@@ -1403,18 +1484,20 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     // Section header
     if (item.parentItem == nil)
     {
-        if ([self p_outlineViewParentItemIsVisibleForSection:item.indexPath.gne_section])
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+        if (section != NSNotFound && [self p_outlineViewParentItemIsVisibleForSection:section])
         {
-            return [self.tableViewDelegate tableView:self heightForHeaderInSection:item.indexPath.gne_section];
+            return [self.tableViewDelegate tableView:self heightForHeaderInSection:section];
         }
         
-        return kInvisibleRowHeight;
+        return WLSectionedTableViewInvisibleRowHeight;
     }
     
     // Row
-    if ([self.tableViewDelegate respondsToSelector:@selector(tableView:heightForRowAtIndexPath:)])
+    NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
+    if (indexPath && [self.tableViewDelegate respondsToSelector:@selector(tableView:heightForRowAtIndexPath:)])
     {
-        return [self.tableViewDelegate tableView:self heightForRowAtIndexPath:item.indexPath];
+        return [self.tableViewDelegate tableView:self heightForRowAtIndexPath:indexPath];
     }
     
     return kDefaultRowHeight;
@@ -1437,9 +1520,11 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     // Section header
     if (item.parentItem == nil)
     {
-        if ([self.tableViewDelegate respondsToSelector:@selector(tableView:rowViewForHeaderInSection:)])
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+        if (section != NSNotFound &&
+            [self.tableViewDelegate respondsToSelector:@selector(tableView:rowViewForHeaderInSection:)])
         {
-            return [self.tableViewDelegate tableView:self rowViewForHeaderInSection:item.indexPath.gne_section];
+            return [self.tableViewDelegate tableView:self rowViewForHeaderInSection:section];
         }
         else
         {
@@ -1459,7 +1544,13 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     }
     
     // Row
-    return [self.tableViewDataSource tableView:self rowViewForRowAtIndexPath:item.indexPath];
+    NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
+    if (indexPath)
+    {
+        return [self.tableViewDataSource tableView:self rowViewForRowAtIndexPath:indexPath];
+    }
+    
+    return nil;
 }
 
 
@@ -1473,14 +1564,60 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     // Section header
     if (item.parentItem == nil)
     {
-        if ([self.tableViewDelegate respondsToSelector:@selector(tableView:cellViewForHeaderInSection:)])
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+        if (section != NSNotFound &&
+            [self.tableViewDelegate respondsToSelector:@selector(tableView:cellViewForHeaderInSection:)])
         {
-            return [self.tableViewDelegate tableView:self cellViewForHeaderInSection:item.indexPath.gne_section];
+            return [self.tableViewDelegate tableView:self cellViewForHeaderInSection:section];
         }
+        
+        return nil;
     }
     
     // Row
-    return [self.tableViewDataSource tableView:self cellViewForRowAtIndexPath:item.indexPath];
+    NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
+    if (indexPath)
+    {
+        return [self.tableViewDataSource tableView:self cellViewForRowAtIndexPath:indexPath];
+    }
+    
+    return nil;
+}
+
+
+- (void)outlineView:(NSOutlineView * __unused)outlineView
+      didAddRowView:(NSTableRowView *)rowView
+             forRow:(NSInteger)row
+{
+    if ([self.tableViewDelegate respondsToSelector:@selector(tableView:didDisplayRowView:forRow:)])
+    {
+        [self.tableViewDelegate tableView:self didDisplayRowView:rowView forRow:(NSUInteger)row];
+    }
+    
+    NSTableCellView *cellView = (rowView.numberOfColumns > 0) ? [rowView viewAtColumn:0] : nil;
+    if (cellView &&
+        [self.tableViewDelegate respondsToSelector:@selector(tableView:didDisplayCellView:forRow:)])
+    {
+        [self.tableViewDelegate tableView:self didDisplayCellView:cellView forRow:(NSUInteger)row];
+    }
+}
+
+
+- (void)outlineView:(NSOutlineView * __unused)outlineView
+   didRemoveRowView:(NSTableRowView *)rowView
+             forRow:(NSInteger)row
+{
+    if ([self.tableViewDelegate respondsToSelector:@selector(tableView:didEndDisplayingRowView:forRow:)])
+    {
+        [self.tableViewDelegate tableView:self didEndDisplayingRowView:rowView forRow:(NSUInteger)row];
+    }
+    
+    NSTableCellView *cellView = (rowView.numberOfColumns > 0) ? [rowView viewAtColumn:0] : nil;
+    if (cellView &&
+        [self.tableViewDelegate respondsToSelector:@selector(tableView:didEndDisplayingCellView:forRow:)])
+    {
+        [self.tableViewDelegate tableView:self didEndDisplayingCellView:cellView forRow:(NSUInteger)row];
+    }
 }
 
 
@@ -1497,18 +1634,258 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
         return NO;
     }
     
-    // Don't allow the selection of section headers.
-    if (item.parentItem == nil)
+    NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
+    
+    if (indexPath == nil)
     {
         return NO;
     }
+
+    SEL sectionSelector = @selector(tableView:shouldSelectHeaderInSection:);
+    SEL rowSelector = @selector(tableView:shouldSelectRowAtIndexPath:);
     
-    if ([self.tableViewDelegate respondsToSelector:@selector(tableView:shouldSelectRowAtIndexPath:)])
+    if (item.parentItem == nil)
     {
-        return [self.tableViewDelegate tableView:self shouldSelectRowAtIndexPath:item.indexPath];
+        if ([self.tableViewDelegate respondsToSelector:sectionSelector])
+        {
+            return [self.tableViewDelegate tableView:self
+                         shouldSelectHeaderInSection:indexPath.gne_section];
+        }
+        
+        return NO; // By default, don't allow the section headers to be selected.
+    }
+    else
+    {
+        if ([self.tableViewDelegate respondsToSelector:rowSelector])
+        {
+            return [self.tableViewDelegate tableView:self shouldSelectRowAtIndexPath:indexPath];
+        }
+        
+        return YES; // Allow selection of normal rows by default.
     }
     
+    return NO;
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - NSOutlineViewDataSource - Drag-and-drop
+// ------------------------------------------------------------------------------------------
+- (id<NSPasteboardWriting>)outlineView:(NSOutlineView * __unused)outlineView
+               pasteboardWriterForItem:(GNEOutlineViewItem *)item
+{
+    NSParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
+    
+    BOOL canDrag = YES;
+    
+    GNEOutlineViewParentItem *parentItem = item.parentItem;
+    if (parentItem == nil &&
+        [self.tableViewDataSource respondsToSelector:@selector(tableView:canDragSection:)])
+    {
+        NSParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
+        
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+        canDrag = [self.tableViewDataSource tableView:self canDragSection:section];
+    }
+    else if (parentItem &&
+             [self.tableViewDataSource respondsToSelector:@selector(tableView:canDragRowAtIndexPath:)])
+    {
+        NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
+        canDrag = [self.tableViewDataSource tableView:self canDragRowAtIndexPath:indexPath];
+    }
+    
+    return ((canDrag) ? item : nil);
+}
+
+
+- (void)outlineView:(NSOutlineView *)outlineView
+    draggingSession:(NSDraggingSession *)session
+   willBeginAtPoint:(NSPoint __unused)screenPoint
+           forItems:(NSArray * __unused)draggedItems
+{
+    session.draggingFormation = NSDraggingFormationNone;
+    CGPoint draggingLocation = session.draggingLocation;
+    CGRect screenDraggingLocation = CGRectMake(draggingLocation.x, draggingLocation.y, 0.0f, 0.0f);
+    CGRect windowDraggingLocation = [outlineView.window convertRectFromScreen:screenDraggingLocation];
+    CGPoint convertedDraggingLocation = [outlineView.superview convertPoint:windowDraggingLocation.origin
+                                                                   fromView:nil];
+    [session enumerateDraggingItemsWithOptions:0
+                                       forView:outlineView
+                                       classes:@[[GNEOutlineViewItem class]]
+                                 searchOptions:nil
+                                    usingBlock:^(NSDraggingItem *draggingItem,
+                                                 NSInteger idx,
+                                                 BOOL *stop __unused)
+    {
+        GNEOutlineViewItem *item = draggingItem.item;
+        NSInteger column = [outlineView columnWithIdentifier:kOutlineViewStandardColumnIdentifier];
+        NSInteger row = item.draggedRow;
+        
+        if ([item isKindOfClass:[GNEOutlineViewItem class]] && column >= 0 && row >= 0)
+        {
+            NSTableCellView *cellView = [outlineView viewAtColumn:column row:row makeIfNecessary:NO];
+            draggingItem.imageComponentsProvider = ^ NSArray * ()
+            {
+                return cellView.draggingImageComponents;
+            };
+            CGRect draggingFrame = draggingItem.draggingFrame;
+            // Center the cell over the cursor.
+            CGFloat originY = ceil(convertedDraggingLocation.y + (cellView.bounds.size.height / 2.0));
+            // Stack the dragging items on top of each other.
+            originY += ceil(idx * cellView.bounds.size.height);
+            draggingFrame.origin.y = originY;
+            
+            draggingItem.draggingFrame = draggingFrame;
+        }
+    }];
+}
+
+
+- (NSDragOperation)outlineView:(NSOutlineView * __unused)outlineView
+                  validateDrop:(id<NSDraggingInfo>)info
+                  proposedItem:(GNEOutlineViewItem *)proposedParentItem
+            proposedChildIndex:(NSInteger)proposedChildIndex
+{
+    // If both sections and rows are selected, the drop is invalid.
+    if ([self p_isDraggingSectionsAndRows:info])
+    {
+        return NSDragOperationNone;
+    }
+    
+    // Don't allow items to be dragged "on" rows.
+    if (proposedParentItem &&
+        ([proposedParentItem isKindOfClass:[GNEOutlineViewParentItem class]] == NO))
+    {
+        return NSDragOperationNone;
+    }
+    
+    NSDragOperation dragOperation = NSDragOperationNone;
+    
+    if (proposedParentItem == nil)
+    {
+        dragOperation = [self p_dragOperationForDrop:info
+                                   toProposedSection:(NSUInteger)proposedChildIndex];
+    }
+    else
+    {
+        NSUInteger toSection = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)proposedParentItem];
+        NSIndexPath *toIndexPath = [NSIndexPath gne_indexPathForRow:(NSUInteger)proposedChildIndex
+                                                          inSection:toSection];
+        dragOperation = [self p_dragOperationForDrop:info toProposedIndexPath:toIndexPath];
+    }
+    
+    return dragOperation;
+}
+
+
+- (BOOL)outlineView:(NSOutlineView * __unused)outlineView
+         acceptDrop:(id<NSDraggingInfo>)info
+               item:(GNEOutlineViewItem * __unused)proposedParentItem
+         childIndex:(NSInteger)proposedChildIndex
+{
+    NSMutableIndexSet *fromSections = [NSMutableIndexSet indexSet];
+    NSMutableArray *fromIndexPaths = [NSMutableArray array];
+    
+    __weak typeof(self) weakSelf = self;
+    [info enumerateDraggingItemsWithOptions:0
+                                    forView:self
+                                    classes:@[[GNEOutlineViewItem class]]
+                              searchOptions:0
+                                 usingBlock:^(NSDraggingItem *draggingItem,
+                                              NSInteger idx __unused,
+                                              BOOL *stop __unused)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        
+        GNEOutlineViewItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
+        
+        if (draggedItem)
+        {
+            GNEOutlineViewParentItem *parentItem = draggedItem.parentItem;
+            if (parentItem == nil)
+            {
+                NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)draggedItem];
+                [fromSections addIndex:section];
+            }
+            else
+            {
+                NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:draggedItem];
+                [fromIndexPaths addObject:indexPath];
+            }
+        }
+    }];
+    
+    [self beginUpdates];
+    if (proposedParentItem == nil) // Move items to the specified section.
+    {
+        SEL sectionSelector = @selector(tableView:didDragSections:toSection:);
+        if ([self.tableViewDataSource respondsToSelector:sectionSelector])
+        {
+            [self.tableViewDataSource tableView:self
+                                didDragSections:fromSections
+                                      toSection:(NSUInteger)proposedChildIndex];
+        }
+        
+        SEL rowSelector = @selector(tableView:didDragRowsAtIndexPaths:toSection:);
+        if ([self.tableViewDataSource respondsToSelector:rowSelector])
+        {
+            [self.tableViewDataSource tableView:self
+                        didDragRowsAtIndexPaths:fromIndexPaths
+                                      toSection:(NSUInteger)proposedChildIndex];
+        }
+    }
+    else // Calculate the destination index path and move the items there.
+    {
+        NSParameterAssert([proposedParentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+        
+        NSUInteger toSection = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)proposedParentItem];
+        NSIndexPath *toIndexPath = [NSIndexPath gne_indexPathForRow:(NSUInteger)proposedChildIndex
+                                                          inSection:toSection];
+        
+        SEL rowSelector = @selector(tableView:didDragRowsAtIndexPaths:toIndexPath:);
+        if ([self.tableViewDataSource respondsToSelector:rowSelector])
+        {
+            [self.tableViewDataSource tableView:self
+                        didDragRowsAtIndexPaths:fromIndexPaths
+                                    toIndexPath:toIndexPath];
+        }
+    }
+    [self endUpdates];
+    
     return YES;
+}
+
+
+- (void)outlineView:(NSOutlineView * __unused)outlineView
+    draggingSession:(NSDraggingSession * __unused)session
+       endedAtPoint:(NSPoint __unused)screenPoint
+          operation:(NSDragOperation __unused)operation
+{
+    
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - NSDraggingSource
+// ------------------------------------------------------------------------------------------
+- (void)draggingSession:(NSDraggingSession * __unused)session
+           movedToPoint:(NSPoint __unused)screenPoint
+{
+    
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - GNEOutlineViewItemPasteboardWritingDelegate
+// ------------------------------------------------------------------------------------------
+- (NSInteger)rowForOutlineViewItem:(GNEOutlineViewItem *)item
+{
+    if (item)
+    {
+        return [self rowForItem:item];
+    }
+    
+    return -1;
 }
 
 
@@ -1520,7 +1897,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     NSTableColumn *standardColumn = nil;
     if ((standardColumn = [self tableColumnWithIdentifier:kOutlineViewStandardColumnIdentifier]))
     {
-        [standardColumn setWidth:ceil([self frame].size.width)];
+        [standardColumn setWidth:self.bounds.size.width];
     }
 }
 
@@ -1551,6 +1928,7 @@ static const CGFloat kInvisibleRowHeight = 1.0f;
     {
         _tableViewDelegate = tableViewDelegate;
         
+        [self p_registerForDraggedTypes];
         [self reloadData];
     }
 }

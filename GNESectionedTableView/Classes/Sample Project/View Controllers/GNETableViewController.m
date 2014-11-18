@@ -42,7 +42,7 @@
 {
     if ((self = [super initWithNibName:nil bundle:nil]))
     {
-        [[self view] setFrame:frameRect];
+        self.view.frame = frameRect;
         
         [self p_buildAndConfigure];
     }
@@ -69,12 +69,12 @@
 - (void)loadView
 {
     NSView *view = [[NSView alloc] initWithFrame:CGRectZero];
-    [view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-    [view setWantsLayer:YES];
-    [view layer].backgroundColor = [[NSColor clearColor] CGColor];
-    [view setLayerContentsRedrawPolicy:NSViewLayerContentsRedrawOnSetNeedsDisplay];
+    view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    view.wantsLayer = YES;
+    view.layer.backgroundColor = [NSColor clearColor].CGColor;
+    view.layerContentsRedrawPolicy = NSViewLayerContentsRedrawOnSetNeedsDisplay;
     
-    [self setView:view];
+    self.view = view;
 }
 
 
@@ -97,29 +97,28 @@
 
 - (void)p_buildAndConfigureTableView
 {
-    CGRect frame = [[self view] bounds];
+    self.tableViewContainer = [[NSScrollView alloc] initWithFrame:self.view.bounds];
+    self.tableViewContainer.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    self.tableViewContainer.wantsLayer = YES;
+    self.tableViewContainer.layerContentsRedrawPolicy = NSViewLayerContentsRedrawOnSetNeedsDisplay;
+    self.tableViewContainer.drawsBackground = NO;
+    self.tableViewContainer.focusRingType = NSFocusRingTypeNone;
+    self.tableViewContainer.scrollerStyle = NSScrollerStyleOverlay;
+    self.tableViewContainer.hasHorizontalScroller = NO;
+    self.tableViewContainer.hasVerticalScroller = YES;
     
-    self.tableViewContainer = [[NSScrollView alloc] initWithFrame:frame];
-    [self.tableViewContainer setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-    [self.tableViewContainer setWantsLayer:YES];
-    [self.tableViewContainer setLayerContentsRedrawPolicy:NSViewLayerContentsRedrawOnSetNeedsDisplay];
-    [self.tableViewContainer setDrawsBackground:NO];
-    [self.tableViewContainer setFocusRingType:NSFocusRingTypeNone];
-    [self.tableViewContainer setScrollerStyle:NSScrollerStyleOverlay];
-    [self.tableViewContainer setHasHorizontalScroller:NO];
-    [self.tableViewContainer setHasVerticalScroller:YES];
-    
-    self.tableView = [[GNESectionedTableView alloc] initWithFrame:CGRectZero];
-    [self.tableView setAutoresizingMask:NSViewWidthSizable];
-    [self.tableView setBackgroundColor:[NSColor clearColor]];
-    [self.tableView setIntercellSpacing:CGSizeZero];
+    self.tableView = [[GNESectionedTableView alloc] initWithFrame:self.tableViewContainer.bounds];
+    self.tableView.autoresizingMask = NSViewNotSizable;
+    self.tableView.backgroundColor = [NSColor clearColor];
+    self.tableView.intercellSpacing = CGSizeZero;
+    self.tableView.allowsMultipleSelection = YES;
     
     self.tableView.tableViewDataSource = self.dataSource;
     self.tableView.tableViewDelegate = self.dataSource;
     
-    [self.tableViewContainer setDocumentView:self.tableView];
+    self.tableViewContainer.documentView = self.tableView;
     
-    [[self view] addSubview:self.tableViewContainer];
+    [self.view addSubview:self.tableViewContainer];
 }
 
 

@@ -26,6 +26,8 @@
 		5742D9EA1946C0ED004D2BE2 /* GNEHeaderCellView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5742D9E91946C0ED004D2BE2 /* GNEHeaderCellView.m */; };
 		5742D9EB1946C0ED004D2BE2 /* GNEHeaderCellView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5742D9E91946C0ED004D2BE2 /* GNEHeaderCellView.m */; };
 		574F693819462CCA00825F43 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 574F693719462CCA00825F43 /* QuartzCore.framework */; };
+		57676F421A0DDFD400901BAD /* GNETableRowView.m in Sources */ = {isa = PBXBuildFile; fileRef = 57676F411A0DDFD400901BAD /* GNETableRowView.m */; };
+		57676F431A0DDFD400901BAD /* GNETableRowView.m in Sources */ = {isa = PBXBuildFile; fileRef = 57676F411A0DDFD400901BAD /* GNETableRowView.m */; };
 		578E75791934B69E00333D86 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 578E75781934B69E00333D86 /* Cocoa.framework */; };
 		578E75831934B69E00333D86 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 578E75811934B69E00333D86 /* InfoPlist.strings */; };
 		578E75851934B69E00333D86 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 578E75841934B69E00333D86 /* main.m */; };
@@ -72,6 +74,8 @@
 		5742D9E81946C0ED004D2BE2 /* GNEHeaderCellView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEHeaderCellView.h; sourceTree = "<group>"; };
 		5742D9E91946C0ED004D2BE2 /* GNEHeaderCellView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEHeaderCellView.m; sourceTree = "<group>"; };
 		574F693719462CCA00825F43 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		57676F401A0DDFD400901BAD /* GNETableRowView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNETableRowView.h; sourceTree = "<group>"; };
+		57676F411A0DDFD400901BAD /* GNETableRowView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNETableRowView.m; sourceTree = "<group>"; };
 		578E75751934B69E00333D86 /* GNESectionedTableView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GNESectionedTableView.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		578E75781934B69E00333D86 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		578E757B1934B69E00333D86 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -215,10 +219,12 @@
 		572E26E719456822000F4656 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				57A128B6194574C200B72A49 /* GNETableCellView.h */,
-				57A128B7194574C200B72A49 /* GNETableCellView.m */,
 				5742D9E81946C0ED004D2BE2 /* GNEHeaderCellView.h */,
 				5742D9E91946C0ED004D2BE2 /* GNEHeaderCellView.m */,
+				57A128B6194574C200B72A49 /* GNETableCellView.h */,
+				57A128B7194574C200B72A49 /* GNETableCellView.m */,
+				57676F401A0DDFD400901BAD /* GNETableRowView.h */,
+				57676F411A0DDFD400901BAD /* GNETableRowView.m */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -417,6 +423,7 @@
 				578E75851934B69E00333D86 /* main.m in Sources */,
 				572E26D51945676B000F4656 /* NSIndexPath+GNESectionedTableView.m in Sources */,
 				578E75B61934BC1D00333D86 /* GNEAppDelegate.m in Sources */,
+				57676F421A0DDFD400901BAD /* GNETableRowView.m in Sources */,
 				572E26DD1945676B000F4656 /* GNESectionedTableView.m in Sources */,
 				572E26EA1945683A000F4656 /* GNETableViewController.m in Sources */,
 				572E26EE1945684F000F4656 /* GNETableViewDataSource.m in Sources */,
@@ -436,6 +443,7 @@
 				578E75A31934B69E00333D86 /* GNESectionedTableViewTests.m in Sources */,
 				572E26D61945676B000F4656 /* NSIndexPath+GNESectionedTableView.m in Sources */,
 				578E75B71934BC1D00333D86 /* GNEAppDelegate.m in Sources */,
+				57676F431A0DDFD400901BAD /* GNETableRowView.m in Sources */,
 				572E26DE1945676B000F4656 /* GNESectionedTableView.m in Sources */,
 				572E26EB1945683A000F4656 /* GNETableViewController.m in Sources */,
 				572E26EF1945684F000F4656 /* GNETableViewDataSource.m in Sources */,
@@ -589,6 +597,7 @@
 				GCC_WARN_UNKNOWN_PRAGMAS = YES;
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				INFOPLIST_FILE = "GNESectionedTableView/GNESectionedTableView-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -619,6 +628,7 @@
 				GCC_WARN_UNKNOWN_PRAGMAS = YES;
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				INFOPLIST_FILE = "GNESectionedTableView/GNESectionedTableView-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
