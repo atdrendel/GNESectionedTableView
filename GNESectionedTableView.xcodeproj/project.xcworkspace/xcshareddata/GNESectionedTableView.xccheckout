@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>AFB8C551-F9DF-4B12-AC41-FD90222F8887</string>
+	<key>IDESourceControlProjectName</key>
+	<string>GNESectionedTableView</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>AE127E459CB7762F8F9B34A0CF2D37195777D095</key>
+		<string>github.com:atdrendel/GNESectionedTableView.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>GNESectionedTableView.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>AE127E459CB7762F8F9B34A0CF2D37195777D095</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>github.com:atdrendel/GNESectionedTableView.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>AE127E459CB7762F8F9B34A0CF2D37195777D095</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>AE127E459CB7762F8F9B34A0CF2D37195777D095</string>
+			<key>IDESourceControlWCCName</key>
+			<string>GNESectionedTableView</string>
+		</dict>
+	</array>
+</dict>
+</plist>

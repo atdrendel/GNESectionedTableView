@@ -12,6 +12,21 @@
 // ------------------------------------------------------------------------------------------
 
 
+// By default, unsafe row heights are allowed. They work in 10.9 and above, but not 10.8.
+#ifndef UNSAFE_ROW_HEIGHT_ALLOWED
+    #define UNSAFE_ROW_HEIGHT_ALLOWED 1
+#endif
+
+#if UNSAFE_ROW_HEIGHT_ALLOWED
+static const CGFloat WLSectionedTableViewInvisibleRowHeight = 0.00001f;
+#else
+static const CGFloat WLSectionedTableViewInvisibleRowHeight = 1.0f;
+#endif
+
+
+// ------------------------------------------------------------------------------------------
+
+
 @protocol GNESectionedTableViewDataSource <NSObject>
 
 
@@ -27,21 +42,37 @@
 @required
 - (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForRowAtIndexPath:(NSIndexPath *)indexPath;
 
-/* Reordering */
+/* Drag-and-drop */
 @optional
-- (BOOL)tableView:(GNESectionedTableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath;
+- (NSArray *)draggedTypesForTableView:(GNESectionedTableView *)tableView;
+@optional
+- (BOOL)tableView:(GNESectionedTableView *)tableView canDragSection:(NSUInteger)section;
+@optional
+- (BOOL)tableView:(GNESectionedTableView *)tableView
+   canDragSection:(NSUInteger)fromSection
+        toSection:(NSUInteger)toSection;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView
+  didDragSections:(NSIndexSet *)fromSections
+        toSection:(NSUInteger)toSection;
+@optional
+- (BOOL)tableView:(GNESectionedTableView *)tableView canDragRowAtIndexPath:(NSIndexPath *)indexPath;
 @optional
 -       (BOOL)tableView:(GNESectionedTableView *)tableView
-  canMoveRowAtIndexPath:(NSIndexPath *)fromIndexPath
+  canDragRowAtIndexPath:(NSIndexPath *)fromIndexPath
               toSection:(NSUInteger)toSection;
 @optional
--   (void)tableView:(GNESectionedTableView *)tableView
- moveRowAtIndexPath:(NSIndexPath *)fromIndexPath
-        toIndexPath:(NSIndexPath *)toIndexPath;
+-       (BOOL)tableView:(GNESectionedTableView *)tableView
+  canDragRowAtIndexPath:(NSIndexPath *)fromIndexPath
+            toIndexPath:(NSIndexPath *)toIndexPath;
 @optional
--   (void)tableView:(GNESectionedTableView *)tableView
- moveRowAtIndexPath:(NSIndexPath *)fromIndexPath
-          toSection:(NSUInteger)toSection;
+-       (void)tableView:(GNESectionedTableView *)tableView
+didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
+            toIndexPath:(NSIndexPath *)toIndexPath;
+@optional
+-       (void)tableView:(GNESectionedTableView *)tableView
+didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
+              toSection:(NSUInteger)toSection;
 
 
 @end
@@ -64,8 +95,22 @@
 - (NSTableRowView *)tableView:(GNESectionedTableView *)tableView rowViewForHeaderInSection:(NSUInteger)section;
 @optional
 - (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForHeaderInSection:(NSUInteger)section;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didDisplayRowView:(NSTableRowView *)rowView forRow:(NSUInteger)row;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didDisplayCellView:(NSTableCellView *)cellView forRow:(NSUInteger)row;
+@optional
+        - (void)tableView:(GNESectionedTableView *)tableView
+  didEndDisplayingRowView:(NSTableRowView *)rowView
+                   forRow:(NSUInteger)row;
+@optional
+        - (void)tableView:(GNESectionedTableView *)tableView
+ didEndDisplayingCellView:(NSTableCellView *)cellView
+                   forRow:(NSUInteger)row;
 
 /* Selection */
+@optional
+- (BOOL)tableView:(GNESectionedTableView *)tableView shouldSelectHeaderInSection:(NSUInteger)section;
 @optional
 - (BOOL)tableView:(GNESectionedTableView *)tableView shouldSelectRowAtIndexPath:(NSIndexPath *)indexPath;
 
@@ -103,6 +148,11 @@
 - (void)deleteRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath;
 - (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPaths:(NSArray *)toIndexPaths;
+/**
+ Moves the rows at the specified from index paths to the specified to index path and maintains the
+ order of the rows.
+ */
+- (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPath:(NSIndexPath *)toIndexPath;
 - (void)reloadRowsAtIndexPaths:(NSArray *)indexPaths;
 
 - (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
@@ -112,9 +162,9 @@
 /**
  Moves the specified sections to the specified section index. The order of the from sections is maintained.
  
- @discussion This method can be used to move multiple sections to a different section index. If the sections are
-    intended to be moved to the end of the table view, then the toSection should equal the number of
-    sections in the table view.
+ @discussion This method can be used to move multiple sections to a different section index. If the sections
+ are intended to be moved to the end of the table view, then the toSection should equal the number of sections
+ in the table view.
  @param fromSections Indexes of sections to be moved.
  @param toSection Index of section to move the specified sections to.
  */

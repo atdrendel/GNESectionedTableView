@@ -13,9 +13,10 @@
 // ------------------------------------------------------------------------------------------
 
 
-NSString * const GNEOutlineViewItemPasteboardType = @"GNEOutlineViewItemPasteboardType";
+NSString * const GNEOutlineViewItemPasteboardType = @"com.goneeast.GNEOutlineViewItemPasteboardType";
 
 NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentItem";
+static NSString * const GNEOutlineViewItemDraggedRowKey = @"GNEOutlineViewItemDraggedRowKey";
 
 
 // ------------------------------------------------------------------------------------------
@@ -32,9 +33,19 @@ NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentIte
     if ((self = [super init]))
     {
         _parentItem = parentItem; // Don't use accessor here because it may be nil (GNEOutlineViewParentItem).
+        _draggedRow = -1;
     }
     
     return self;
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Dealloc
+// ------------------------------------------------------------------------------------------
+- (void)dealloc
+{
+    _pasteboardWritingDelegate = nil;
 }
 
 
@@ -46,6 +57,8 @@ NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentIte
     if ((self = [super init]))
     {
         _parentItem = [aDecoder decodeObjectForKey:GNEOutlineViewItemParentItemKey];
+        NSNumber *rowNumber = [aDecoder decodeObjectForKey:GNEOutlineViewItemDraggedRowKey];
+        _draggedRow = (rowNumber) ? [rowNumber integerValue] : -1;
     }
     
     return self;
@@ -55,6 +68,12 @@ NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentIte
 - (void)encodeWithCoder:(NSCoder *)aCoder
 {
     [aCoder encodeObject:self.parentItem forKey:GNEOutlineViewItemParentItemKey];
+    id <GNEOutlineViewItemPasteboardWritingDelegate> delegate = self.pasteboardWritingDelegate;
+    if ([delegate respondsToSelector:@selector(rowForOutlineViewItem:)])
+    {
+        NSInteger row = [delegate rowForOutlineViewItem:self];
+        [aCoder encodeObject:@(row) forKey:GNEOutlineViewItemDraggedRowKey];
+    }
 }
 
 
