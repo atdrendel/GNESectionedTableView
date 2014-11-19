@@ -137,6 +137,14 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 @optional
 - (BOOL)tableView:(GNESectionedTableView *)tableView shouldSelectRowAtIndexPath:(NSIndexPath *)indexPath;
 @optional
+- (void)tableView:(GNESectionedTableView *)tableView didClickHeaderInSection:(NSUInteger)section;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didDoubleClickHeaderInSection:(NSUInteger)section;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didClickRowAtIndexPath:(NSIndexPath *)indexPath;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didDoubleClickRowAtIndexPath:(NSIndexPath *)indexPath;
+@optional
 - (void)tableViewDidDeselectAllHeadersAndRows:(GNESectionedTableView *)tableView;
 @optional
 - (void)tableView:(GNESectionedTableView *)tableView didSelectHeaderInSection:(NSUInteger)section;

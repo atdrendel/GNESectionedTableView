@@ -38,7 +38,6 @@
 // ------------------------------------------------------------------------------------------
 
 
-static NSString * const kOutlineViewOutlineColumnIdentifier = @"com.goneeast.OutlineViewOutlineColumn";
 static NSString * const kOutlineViewStandardColumnIdentifier = @"com.goneeast.OutlineViewStandardColumn";
 
 static NSString * const kOutlineViewStandardHeaderRowViewIdentifier =
@@ -53,9 +52,6 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 
 @interface GNESectionedTableView () <NSOutlineViewDataSource, NSOutlineViewDelegate, GNEOutlineViewItemPasteboardWritingDelegate>
-{
-    NSTableColumn *_privateOutlineColumn; // NSOutlineView doesn't retain its outlineColumn property
-}
 
 
 /// Array of outline view parent items that map to the table view's sections.
@@ -115,8 +111,9 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     self.headerView = nil;
     self.cornerView = nil;
     
-    _privateOutlineColumn = [[NSTableColumn alloc] initWithIdentifier:kOutlineViewOutlineColumnIdentifier];
-    self.outlineTableColumn = _privateOutlineColumn;
+    self.outlineTableColumn = nil;
+    self.autoresizesOutlineColumn = NO;
+    
     NSTableColumn *standardColumn = [[NSTableColumn alloc] initWithIdentifier:kOutlineViewStandardColumnIdentifier];
     standardColumn.resizingMask = NSTableColumnAutoresizingMask;
     [self addTableColumn:standardColumn];
@@ -126,6 +123,9 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     self.autoresizesOutlineColumn = NO;
     
     self.rowSizeStyle = NSTableViewRowSizeStyleCustom;
+    
+    self.action = @selector(p_didClickRow:);
+    self.doubleAction = @selector(p_didDoubleClickRow:);
     
     [self expandItem:nil expandChildren:YES];
 }
@@ -138,8 +138,6 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 {
     _tableViewDataSource = nil;
     _tableViewDelegate = nil;
-    
-    _privateOutlineColumn = nil;
 }
 
 
@@ -1368,6 +1366,71 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - GNESectionedTableView - Internal - Selection
+// ------------------------------------------------------------------------------------------
+- (void)p_didClickRow:(id)sender
+{
+    if ([self isEqual:sender] == NO)
+    {
+        return;
+    }
+    
+    NSInteger clickedRow = self.clickedRow;
+    
+    GNEOutlineViewItem *item = nil;
+    if (clickedRow >= 0 && (item = [self itemAtRow:clickedRow]))
+    {
+        GNEOutlineViewParentItem *parentItem = item.parentItem;
+        
+        SEL headerSelector = @selector(tableView:didClickHeaderInSection:);
+        if (parentItem == nil && [self.tableViewDelegate respondsToSelector:headerSelector])
+        {
+            NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+            [self.tableViewDelegate tableView:self didClickHeaderInSection:section];
+        }
+        
+        SEL rowSelector = @selector(tableView:didClickRowAtIndexPath:);
+        if (parentItem && [self.tableViewDelegate respondsToSelector:rowSelector])
+        {
+            NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
+            [self.tableViewDelegate tableView:self didClickRowAtIndexPath:indexPath];
+        }
+    }
+}
+
+
+- (void)p_didDoubleClickRow:(id)sender
+{
+    if ([self isEqual:sender] == NO)
+    {
+        return;
+    }
+    
+    NSInteger clickedRow = self.clickedRow;
+    
+    GNEOutlineViewItem *item = nil;
+    if (clickedRow >= 0 && (item = [self itemAtRow:clickedRow]))
+    {
+        GNEOutlineViewParentItem *parentItem = item.parentItem;
+        
+        SEL headerSelector = @selector(tableView:didDoubleClickHeaderInSection:);
+        if (parentItem == nil && [self.tableViewDelegate respondsToSelector:headerSelector])
+        {
+            NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+            [self.tableViewDelegate tableView:self didDoubleClickHeaderInSection:section];
+        }
+        
+        SEL rowSelector = @selector(tableView:didDoubleClickRowAtIndexPath:);
+        if (parentItem && [self.tableViewDelegate respondsToSelector:rowSelector])
+        {
+            NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
+            [self.tableViewDelegate tableView:self didDoubleClickRowAtIndexPath:indexPath];
+        }
+    }
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Internal - Drag-and-drop
 // ------------------------------------------------------------------------------------------
 - (void)p_registerForDraggedTypes
@@ -1622,15 +1685,6 @@ static const CGFloat kDefaultRowHeight = 32.0f;
         [super reloadData];
         [strongSelf expandItem:nil expandChildren:YES];
     }];
-}
-
-
-// ------------------------------------------------------------------------------------------
-#pragma mark - NSOutlineView - Cell Frames
-// ------------------------------------------------------------------------------------------
-- (NSRect)frameOfOutlineCellAtRow:(NSInteger __unused)row
-{
-    return CGRectZero;
 }
 
 
@@ -2012,7 +2066,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
             };
             CGRect draggingFrame = draggingItem.draggingFrame;
             // Center the cell over the cursor.
-            CGFloat originY = ceil(convertedDraggingLocation.y + (cellView.bounds.size.height / 2.0));
+             CGFloat originY = ceil(convertedDraggingLocation.y - (cellView.bounds.size.height / 2.0));
             // Stack the dragging items on top of each other.
             originY += ceil(idx * cellView.bounds.size.height);
             draggingFrame.origin.y = originY;

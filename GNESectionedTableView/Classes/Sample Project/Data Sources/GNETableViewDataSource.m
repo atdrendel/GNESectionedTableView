@@ -769,15 +769,9 @@ shouldSelectHeaderInSection:(NSUInteger)section
 }
 
 
-- (void)tableViewDidDeselectAllHeadersAndRows:(GNESectionedTableView * __unused)tableView
+- (void)tableView:(GNESectionedTableView *)tableView didClickHeaderInSection:(NSUInteger)section
 {
-    NSLog(@"didDeselectAllHeadersAndRows:");
-}
-
-
-- (void)tableView:(GNESectionedTableView *)tableView didSelectHeaderInSection:(NSUInteger)section
-{
-    NSLog(@"didSelectHeaderInSection: %lu", section);
+    NSLog(@"didClickHeaderInSection: %lu", section);
     
     BOOL isExpanded = [tableView isSectionExpanded:section];
     if (isExpanded)
@@ -788,6 +782,36 @@ shouldSelectHeaderInSection:(NSUInteger)section
     {
         [tableView expandSection:section animated:YES];
     }
+}
+
+
+- (void)tableView:(GNESectionedTableView * __unused)tableView didClickRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSLog(@"didClickRowAtIndexPath: %@", indexPath);
+}
+
+
+- (void)tableView:(GNESectionedTableView * __unused)tableView didDoubleClickHeaderInSection:(NSUInteger)section
+{
+    NSLog(@"didDoubleClickHeaderInSection: %lu", section);
+}
+
+
+- (void)tableView:(GNESectionedTableView * __unused)tableView didDoubleClickRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSLog(@"didDoubleClickRowAtIndexPath: %@", indexPath);
+}
+
+
+- (void)tableViewDidDeselectAllHeadersAndRows:(GNESectionedTableView * __unused)tableView
+{
+    NSLog(@"didDeselectAllHeadersAndRows:");
+}
+
+
+- (void)tableView:(GNESectionedTableView * __unused)tableView didSelectHeaderInSection:(NSUInteger)section
+{
+    NSLog(@"didSelectHeaderInSection: %lu", section);
 }
 
 
