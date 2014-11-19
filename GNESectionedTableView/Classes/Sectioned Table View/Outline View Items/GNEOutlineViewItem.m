@@ -39,7 +39,7 @@
 NSString * const GNEOutlineViewItemPasteboardType = @"com.goneeast.GNEOutlineViewItemPasteboardType";
 
 NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentItem";
-static NSString * const GNEOutlineViewItemDraggedRowKey = @"GNEOutlineViewItemDraggedRowKey";
+static NSString * const GNEOutlineViewItemDraggedIndexPathKey = @"GNEOutlineViewItemDraggedIndexPathKey";
 
 
 // ------------------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ static NSString * const GNEOutlineViewItemDraggedRowKey = @"GNEOutlineViewItemDr
     if ((self = [super init]))
     {
         _parentItem = parentItem; // Don't use accessor here because it may be nil (GNEOutlineViewParentItem).
-        _draggedRow = -1;
+        _draggedIndexPath = nil;
     }
     
     return self;
@@ -69,6 +69,7 @@ static NSString * const GNEOutlineViewItemDraggedRowKey = @"GNEOutlineViewItemDr
 - (void)dealloc
 {
     _pasteboardWritingDelegate = nil;
+    _draggedIndexPath = nil;
 }
 
 
@@ -80,8 +81,7 @@ static NSString * const GNEOutlineViewItemDraggedRowKey = @"GNEOutlineViewItemDr
     if ((self = [super init]))
     {
         _parentItem = [aDecoder decodeObjectForKey:GNEOutlineViewItemParentItemKey];
-        NSNumber *rowNumber = [aDecoder decodeObjectForKey:GNEOutlineViewItemDraggedRowKey];
-        _draggedRow = (rowNumber) ? [rowNumber integerValue] : -1;
+        _draggedIndexPath = [aDecoder decodeObjectForKey:GNEOutlineViewItemDraggedIndexPathKey];
     }
     
     return self;
@@ -92,10 +92,10 @@ static NSString * const GNEOutlineViewItemDraggedRowKey = @"GNEOutlineViewItemDr
 {
     [aCoder encodeObject:self.parentItem forKey:GNEOutlineViewItemParentItemKey];
     id <GNEOutlineViewItemPasteboardWritingDelegate> delegate = self.pasteboardWritingDelegate;
-    if ([delegate respondsToSelector:@selector(rowForOutlineViewItem:)])
+    if ([delegate respondsToSelector:@selector(draggedIndexPathForOutlineViewItem:)])
     {
-        NSInteger row = [delegate rowForOutlineViewItem:self];
-        [aCoder encodeObject:@(row) forKey:GNEOutlineViewItemDraggedRowKey];
+        NSIndexPath *indexPath = [delegate draggedIndexPathForOutlineViewItem:self];
+        [aCoder encodeObject:indexPath forKey:GNEOutlineViewItemDraggedIndexPathKey];
     }
 }
 

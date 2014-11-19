@@ -1597,11 +1597,11 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     GNEOutlineViewItem *draggedItem = nil;
     
     GNEOutlineViewItem *item = draggingItem.item;
-    NSInteger row = item.draggedRow;
+    NSIndexPath *indexPath = item.draggedIndexPath;
     
-    if (row >= 0)
+    if (indexPath)
     {
-        draggedItem = [self itemAtRow:row];
+        draggedItem = [self p_outlineViewItemAtIndexPath:indexPath];
     }
     
     return draggedItem;
@@ -2055,7 +2055,9 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     {
         GNEOutlineViewItem *item = draggingItem.item;
         NSInteger column = [outlineView columnWithIdentifier:kOutlineViewStandardColumnIdentifier];
-        NSInteger row = item.draggedRow;
+        NSIndexPath *indexPath = item.draggedIndexPath;
+        GNEOutlineViewItem *draggedItem = [self p_outlineViewItemAtIndexPath:indexPath];
+        NSInteger row = [self rowForItem:draggedItem];
         
         if ([item isKindOfClass:[GNEOutlineViewItem class]] && column >= 0 && row >= 0)
         {
@@ -2214,14 +2216,14 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNEOutlineViewItemPasteboardWritingDelegate
 // ------------------------------------------------------------------------------------------
-- (NSInteger)rowForOutlineViewItem:(GNEOutlineViewItem *)item
+- (NSIndexPath *)draggedIndexPathForOutlineViewItem:(GNEOutlineViewItem *)item
 {
     if (item)
     {
-        return [self rowForItem:item];
+        return [self p_indexPathOfOutlineViewItem:item];
     }
     
-    return -1;
+    return nil;
 }
 
 

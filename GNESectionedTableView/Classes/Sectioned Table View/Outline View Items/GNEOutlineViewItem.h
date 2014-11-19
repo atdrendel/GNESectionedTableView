@@ -47,7 +47,7 @@ extern NSString * const GNEOutlineViewItemParentItemKey;
 @protocol GNEOutlineViewItemPasteboardWritingDelegate <NSObject>
 
 
-- (NSInteger)rowForOutlineViewItem:(GNEOutlineViewItem *)item;
+- (NSIndexPath *)draggedIndexPathForOutlineViewItem:(GNEOutlineViewItem *)item;
 
 
 @end
@@ -69,9 +69,9 @@ extern NSString * const GNEOutlineViewItemParentItemKey;
 
 
 /**
- Returns the outline view row of the receiver if it is being dragged, otherwise -1.
+ Index path of the receiver if it is being dragged, otherwise nil.
  */
-@property (nonatomic, assign, readonly) NSInteger draggedRow;
+@property (nonatomic, strong, readonly) NSIndexPath *draggedIndexPath;
 
 
 /**

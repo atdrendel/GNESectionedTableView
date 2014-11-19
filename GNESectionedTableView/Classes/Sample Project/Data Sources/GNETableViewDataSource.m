@@ -525,14 +525,14 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
     SEL sortingSelector = NSSelectorFromString(@"gne_compare:");
     NSArray *sortedFromIndexPaths = [fromIndexPaths sortedArrayUsingSelector:sortingSelector];
     
-    NSUInteger rowsCount = self.rows.count;
+    NSUInteger sectionCount = self.rows.count;
     
     [sortedFromIndexPaths enumerateObjectsWithOptions:NSEnumerationReverse
                                            usingBlock:^(NSIndexPath *indexPath,
                                                         NSUInteger idx __unused,
                                                         BOOL *stop __unused)
     {
-        NSParameterAssert(indexPath.gne_section < rowsCount);
+        NSParameterAssert(indexPath.gne_section < sectionCount);
         NSMutableArray *mutableRowsArray = self.rows[indexPath.gne_section];
         NSParameterAssert(indexPath.gne_row < mutableRowsArray.count);
         NSString *rowString = mutableRowsArray[indexPath.gne_row];
