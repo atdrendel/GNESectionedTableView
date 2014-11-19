@@ -522,7 +522,7 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
     NSMutableArray *movedRows = [NSMutableArray array];
     __block NSUInteger toRow = toIndexPath.gne_row;
     
-    SEL sortingSelector = @selector(gne_compare:);
+    SEL sortingSelector = NSSelectorFromString(@"gne_compare:");
     NSArray *sortedFromIndexPaths = [fromIndexPaths sortedArrayUsingSelector:sortingSelector];
     
     NSUInteger rowsCount = self.rows.count;
@@ -769,6 +769,12 @@ shouldSelectHeaderInSection:(NSUInteger)section
 }
 
 
+- (void)tableViewDidDeselectAllHeadersAndRows:(GNESectionedTableView * __unused)tableView
+{
+    NSLog(@"didDeselectAllHeadersAndRows:");
+}
+
+
 - (void)tableView:(GNESectionedTableView *)tableView didSelectHeaderInSection:(NSUInteger)section
 {
     NSLog(@"didSelectHeaderInSection: %lu", section);
@@ -785,19 +791,19 @@ shouldSelectHeaderInSection:(NSUInteger)section
 }
 
 
-- (void)tableView:(GNESectionedTableView *)tableView didSelectHeadersInSections:(NSIndexSet *)sections
+- (void)tableView:(GNESectionedTableView * __unused)tableView didSelectHeadersInSections:(NSIndexSet *)sections
 {
     NSLog(@"didSelectHeadersInSetions: %@", sections);
 }
 
 
-- (void)tableView:(GNESectionedTableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+- (void)tableView:(GNESectionedTableView * __unused)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSLog(@"didSelectRowAtIndexPath: %@", indexPath);
 }
 
 
-- (void)tableView:(GNESectionedTableView *)tableView didSelectRowsAtIndexPaths:(NSArray *)indexPaths
+- (void)tableView:(GNESectionedTableView * __unused)tableView didSelectRowsAtIndexPaths:(NSArray *)indexPaths
 {
     NSLog(@"didSelectRowsAtIndexPaths: %@", indexPaths);
 }

@@ -374,6 +374,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
             continue;
         }
         
+        BOOL fromSectionEqualsToSection = (firstIndexPath.gne_section == toIndexPath.gne_section);
         GNEOutlineViewItem *firstItem = [self p_outlineViewItemAtIndexPath:firstIndexPath];
         
         if (firstItem == nil)
@@ -385,15 +386,30 @@ static const CGFloat kDefaultRowHeight = 32.0f;
         
         NSParameterAssert(parentItem);
         
-        [self beginUpdates];
-        for (NSIndexPath *indexPath in indexPathsInSection)
+        // TODO: Remove this ugliness or, at least, factor it away.
+        if (fromSectionEqualsToSection)
         {
-            GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
-            [self p_animateMoveOfOutlineViewItem:item
-                                           toRow:toIndexPath.gne_row
-                         inOutlineViewParentItem:toParentItem];
+            NSMutableIndexSet *mutableFromRows = [NSMutableIndexSet indexSet];
+            for (NSIndexPath *indexPath in indexPathsInSection)
+            {
+                [mutableFromRows addIndex:indexPath.gne_row];
+            }
+            [self p_animateMoveOfOutlineViewItemsAtRows:mutableFromRows
+                                              inSection:toIndexPath.gne_section
+                                                  toRow:toIndexPath.gne_row];
         }
-        [self endUpdates];
+        else
+        {
+            [self beginUpdates];
+            for (NSIndexPath *indexPath in indexPathsInSection)
+            {
+                GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
+                [self p_animateMoveOfOutlineViewItem:item
+                                               toRow:toIndexPath.gne_row
+                             inOutlineViewParentItem:toParentItem];
+            }
+            [self endUpdates];
+        }
     }
     [self endUpdates];
 }
@@ -847,6 +863,84 @@ static const CGFloat kDefaultRowHeight = 32.0f;
                  inParent:fromParentItem
                   toIndex:(NSInteger)toRow
                  inParent:toParentItem];
+}
+
+
+/**
+ Animates the move of the outline view items at the specified rows to the specified row in the same section.
+ 
+ @param fromRows Index set containing the rows of the items to be moved.
+ @param section Section to which the outline view items belong.
+ @param toRow Target row to move the specified rows to.
+ */
+- (void)p_animateMoveOfOutlineViewItemsAtRows:(NSIndexSet *)fromRows
+                                    inSection:(NSUInteger)section
+                                        toRow:(NSUInteger)toRow
+{
+    NSParameterAssert(section < self.outlineViewParentItems.count &&
+                      section < self.outlineViewItems.count);
+    
+    NSMutableIndexSet *mutableFromRows = [fromRows mutableCopy];
+    
+    __block NSUInteger rowsAbove = 0;
+    __block NSUInteger rowsBelow = 0;
+    
+    if (mutableFromRows.firstIndex == toRow)
+    {
+        [mutableFromRows removeIndex:toRow];
+        toRow += 1;
+    }
+    
+    if ([mutableFromRows containsIndex:toRow])
+    {
+        [mutableFromRows removeIndex:toRow];
+        toRow += 1;
+        rowsBelow += 1;
+    }
+    
+    [self beginUpdates];
+    __weak typeof(self) weakSelf = self;
+    [mutableFromRows enumerateIndexesWithOptions:NSEnumerationReverse
+                                      usingBlock:^(NSUInteger fromRow, BOOL *stop __unused)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        
+        NSUInteger convertedFromRow = fromRow;
+        NSUInteger convertedToRow = toRow;
+        
+        if (fromRow > toRow)
+        {
+            rowsAbove += 1;
+            convertedFromRow = fromRow + (rowsAbove - 1);
+        }
+        else if (fromRow < toRow)
+        {
+            rowsBelow += 1;
+            convertedToRow = toRow - rowsBelow;
+        }
+        
+        GNEOutlineViewParentItem *parentItem = [strongSelf p_outlineViewParentItemForSection:section];
+        NSParameterAssert([strongSelf p_sectionForOutlineViewParentItem:parentItem] == section);
+        
+        if (parentItem == nil)
+        {
+            return;
+        }
+        
+        NSMutableArray *rows = self.outlineViewItems[section];
+        
+        GNEOutlineViewItem *item = rows[convertedFromRow];
+        [rows removeObjectAtIndex:convertedFromRow];
+        [rows gne_insertObject:item atIndex:convertedToRow];
+        
+        [self moveItemAtIndex:(NSInteger)convertedFromRow
+                     inParent:parentItem
+                      toIndex:(NSInteger)convertedToRow
+                     inParent:parentItem];
+    }];
+    [self endUpdates];
+    
+    [self p_checkDataSourceIntegrity];
 }
 
 
