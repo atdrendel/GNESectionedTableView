@@ -206,6 +206,12 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 - (void)reloadSections:(NSIndexSet *)sections;
 
 
+#pragma mark - Expand/Collapse Sections
+- (BOOL)isSectionExpanded:(NSUInteger)section;
+- (void)expandSection:(NSUInteger)section animated:(BOOL)animated;
+- (void)collapseSection:(NSUInteger)section animated:(BOOL)animated;
+
+
 #pragma mark - Frame of Table View Cells
 
 /**

@@ -641,6 +641,50 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Expand/Collapse Sections
+// ------------------------------------------------------------------------------------------
+- (BOOL)isSectionExpanded:(NSUInteger)section
+{
+    NSParameterAssert(section < self.outlineViewParentItems.count);
+    
+    if (section < self.outlineViewParentItems.count)
+    {
+        GNEOutlineViewParentItem *parentItem = self.outlineViewParentItems[section];
+        
+        return [self isItemExpanded:parentItem];
+    }
+    
+    return NO;
+}
+
+
+- (void)expandSection:(NSUInteger)section animated:(BOOL)animated
+{
+    NSParameterAssert(section < self.outlineViewParentItems.count);
+    
+    if (section < self.outlineViewParentItems.count)
+    {
+        GNEOutlineViewParentItem *parentItem = self.outlineViewParentItems[section];
+        NSOutlineView *outlineView = (animated) ? self.animator : self;
+        [outlineView expandItem:parentItem];
+    }
+}
+
+
+- (void)collapseSection:(NSUInteger)section animated:(BOOL)animated
+{
+    NSParameterAssert(section < self.outlineViewParentItems.count);
+    
+    if (section < self.outlineViewParentItems.count)
+    {
+        GNEOutlineViewParentItem *parentItem = self.outlineViewParentItems[section];
+        NSOutlineView *outlineView = (animated) ? self.animator : self;
+        [outlineView collapseItem:parentItem];
+    }
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Public - Cell Frames
 // ------------------------------------------------------------------------------------------
 - (CGRect)frameOfCellAtIndexPath:(NSIndexPath *)indexPath

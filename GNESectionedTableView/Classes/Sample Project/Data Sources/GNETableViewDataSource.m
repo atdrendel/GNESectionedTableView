@@ -679,7 +679,7 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 }
 
 
--       (void)tableView:(GNESectionedTableView *)tableView
+-       (void)tableView:(GNESectionedTableView * __unused)tableView
 didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
             toIndexPath:(NSIndexPath *)toIndexPath
 {
@@ -766,6 +766,40 @@ shouldSelectHeaderInSection:(NSUInteger)section
  shouldSelectRowAtIndexPath:(NSIndexPath * __unused)indexPath
 {
     return YES;
+}
+
+
+- (void)tableView:(GNESectionedTableView *)tableView didSelectHeaderInSection:(NSUInteger)section
+{
+    NSLog(@"didSelectHeaderInSection: %lu", section);
+    
+    BOOL isExpanded = [tableView isSectionExpanded:section];
+    if (isExpanded)
+    {
+        [tableView collapseSection:section animated:YES];
+    }
+    else
+    {
+        [tableView expandSection:section animated:YES];
+    }
+}
+
+
+- (void)tableView:(GNESectionedTableView *)tableView didSelectHeadersInSections:(NSIndexSet *)sections
+{
+    NSLog(@"didSelectHeadersInSetions: %@", sections);
+}
+
+
+- (void)tableView:(GNESectionedTableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSLog(@"didSelectRowAtIndexPath: %@", indexPath);
+}
+
+
+- (void)tableView:(GNESectionedTableView *)tableView didSelectRowsAtIndexPaths:(NSArray *)indexPaths
+{
+    NSLog(@"didSelectRowsAtIndexPaths: %@", indexPaths);
 }
 
 
