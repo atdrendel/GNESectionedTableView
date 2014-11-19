@@ -497,11 +497,10 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
     NSLog(@"\nBEFORE:\n\n%@\n\n", self.rows);
     
     NSMutableArray *movedRows = [NSMutableArray array];
+    __block NSUInteger toRow = toIndexPath.gne_row;
     
     SEL sortingSelector = @selector(gne_compare:);
     NSArray *sortedFromIndexPaths = [fromIndexPaths sortedArrayUsingSelector:sortingSelector];
-    
-    NSLog(@"\nFrom:\n%@\n\nSorted\n%@", fromIndexPaths, sortedFromIndexPaths);
     
     NSUInteger rowsCount = self.rows.count;
     
@@ -516,14 +515,19 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
         NSString *rowString = mutableRowsArray[indexPath.gne_row];
         [movedRows gne_insertObject:rowString atIndex:0];
         [mutableRowsArray removeObjectAtIndex:indexPath.gne_row];
+        if (indexPath.gne_section == toIndexPath.gne_section
+            && indexPath.gne_row < toIndexPath.gne_row)
+        {
+            toRow -= 1; // Account for the row that was just removed.
+        }
     }];
     
     if (movedRows.count > 0)
     {
         NSParameterAssert(self.rows.count > toIndexPath.gne_section);
         NSMutableArray *toRowsArray = self.rows[toIndexPath.gne_section];
-        NSParameterAssert(toRowsArray.count >= toIndexPath.gne_row);
-        NSRange insertionRange = NSMakeRange(toIndexPath.gne_row, movedRows.count);
+        NSParameterAssert(toRowsArray.count >= toRow);
+        NSRange insertionRange = NSMakeRange(toRow, movedRows.count);
         NSIndexSet *insertionIndexSet = [NSIndexSet indexSetWithIndexesInRange:insertionRange];
         [toRowsArray insertObjects:movedRows atIndexes:insertionIndexSet];
         [self.tableView moveRowsAtIndexPaths:fromIndexPaths toIndexPath:toIndexPath];

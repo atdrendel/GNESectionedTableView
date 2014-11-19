@@ -113,6 +113,16 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 - (BOOL)tableView:(GNESectionedTableView *)tableView shouldSelectHeaderInSection:(NSUInteger)section;
 @optional
 - (BOOL)tableView:(GNESectionedTableView *)tableView shouldSelectRowAtIndexPath:(NSIndexPath *)indexPath;
+@optional
+- (void)tableViewDidDeselectAllHeadersAndRows:(GNESectionedTableView *)tableView;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didSelectHeaderInSection:(NSUInteger)section;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didSelectHeadersInSections:(NSIndexSet *)sections;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didSelectRowsAtIndexPaths:(NSArray *)indexPaths;
 
 
 @end

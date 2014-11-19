@@ -329,7 +329,6 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 }
 
 
-// TODO: Correct off-by-one error when moving "up"
 - (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPath:(NSIndexPath *)toIndexPath
 {
 #ifdef DEBUG
@@ -367,23 +366,9 @@ static const CGFloat kDefaultRowHeight = 32.0f;
         for (NSIndexPath *indexPath in indexPathsInSection)
         {
             GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
-            
-            if (item == nil)
-            {
-                continue;
-            }
-            
-            NSParameterAssert([item.parentItem isEqual:parentItem]);
-            
-            // Move the item to the correct position in the outline view items array.
-            [self.outlineViewItems[indexPath.gne_section] removeObjectAtIndex:indexPath.gne_row];
-            [self.outlineViewItems[toIndexPath.gne_section] gne_insertObject:item
-                                                                     atIndex:toIndexPath.gne_row];
-            
-            [self moveItemAtIndex:(NSInteger)indexPath.gne_row
-                         inParent:parentItem
-                          toIndex:(NSInteger)toIndexPath.gne_row
-                         inParent:toParentItem];
+            [self p_animateMoveOfOutlineViewItem:item
+                                           toRow:toIndexPath.gne_row
+                         inOutlineViewParentItem:toParentItem];
         }
         [self endUpdates];
     }
@@ -910,6 +895,39 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 
 /**
+ Returns an index set of all of the sections headers contained in the specified row indexes, or nil if the
+ row indexes do not correspond to any section headers.
+ 
+ @param rowIndexes Table view indexes.
+ @return Index set of the section headers or nil if the specified row indexes don't correspond to any
+ section headers.
+ */
+- (NSIndexSet *)p_indexSetOfSectionHeadersAtTableViewRows:(NSIndexSet *)rowIndexes
+{
+    NSMutableIndexSet *sectionIndexes = [NSMutableIndexSet indexSet];
+    
+    __weak typeof(self) weakSelf = self;
+    [rowIndexes enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop __unused)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+
+        GNEOutlineViewItem *item = [strongSelf itemAtRow:(NSInteger)idx];
+        if (item.parentItem == nil)
+        {
+            NSParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
+            NSUInteger section = [strongSelf p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+            if (section != NSNotFound)
+            {
+                [sectionIndexes addIndex:section];
+            }
+        }
+    }];
+    
+    return ((sectionIndexes.count > 0) ? [sectionIndexes copy] : nil);
+}
+
+
+/**
  Returns the index path pointing to the specified outline view item in the outline view items array.
  
  @param item Outline view item to locate.
@@ -954,6 +972,38 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     }
     
     return nil;
+}
+
+
+/**
+ Returns an array of the index paths of the rows contained in the specified table view row indexes, or nil if
+ the table view row indexes do not correspond to any rows.
+ 
+ @param rowIndexes Table view indexes.
+ @return Array of the index paths for the rows or nil if the specified table view row indexes don't
+ correspond to any rows.
+ */
+- (NSArray *)p_indexPathsOfRowsAtTableViewRows:(NSIndexSet *)rowIndexes
+{
+    NSMutableArray *indexPaths = [NSMutableArray array];
+    
+    __weak typeof(self) weakSelf = self;
+    [rowIndexes enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop __unused)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+
+        GNEOutlineViewItem *item = [strongSelf itemAtRow:(NSInteger)idx];
+        if (item.parentItem)
+        {
+            NSIndexPath *indexPath = [strongSelf p_indexPathOfOutlineViewItem:item];
+            if (indexPath)
+            {
+                [indexPaths addObject:indexPath];
+            }
+        }
+    }];
+    
+    return ((indexPaths.count > 0) ? [NSArray arrayWithArray:indexPaths] : nil);
 }
 
 
@@ -1073,13 +1123,31 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 // ------------------------------------------------------------------------------------------
 - (void)p_expandParentItemsAtIndexes:(NSIndexSet *)indexSet
 {
-    NSUInteger count = [self.outlineViewParentItems count];
+    NSUInteger count = self.outlineViewParentItems.count;
+    __weak typeof(self) weakSelf = self;
     [indexSet enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop __unused)
     {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
         if (index < count)
         {
-            GNEOutlineViewParentItem *parentItem = self.outlineViewParentItems[index];
-            [self expandItem:parentItem];
+            GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[index];
+            [strongSelf expandItem:parentItem];
+        }
+    }];
+}
+
+
+- (void)p_collapseParentItemsAtIndexes:(NSIndexSet *)indexSet
+{
+    NSUInteger count = self.outlineViewParentItems.count;
+    __weak typeof(self) weakSelf = self;
+    [indexSet enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop __unused)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (index < count)
+        {
+            GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[index];
+            [strongSelf collapseItem:parentItem];
         }
     }];
 }
@@ -1665,6 +1733,59 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     }
     
     return NO;
+}
+
+
+- (void)outlineViewSelectionDidChange:(NSNotification *)notification
+{
+    if ([self isEqual:notification.object] == NO)
+    {
+        return;
+    }
+    
+    NSIndexSet *selectedRows = self.selectedRowIndexes;
+    
+    SEL deselectSelector = @selector(tableViewDidDeselectAllHeadersAndRows:);
+    SEL selectHeaderSelector = @selector(tableView:didSelectHeaderInSection:);
+    SEL selectRowSelector = @selector(tableView:didSelectRowAtIndexPath:);
+    SEL selectHeadersSelector = @selector(tableView:didSelectHeadersInSections:);
+    SEL selectRowsSelector = @selector(tableView:didSelectRowsAtIndexPaths:);
+    
+    if (selectedRows.count == 0 &&
+        [self.tableViewDelegate respondsToSelector:deselectSelector])
+    {
+        [self.tableViewDelegate tableViewDidDeselectAllHeadersAndRows:self];
+    }
+    else if (selectedRows.count == 1)
+    {
+        GNEOutlineViewItem *item = [self itemAtRow:(NSInteger)selectedRows.firstIndex];
+        GNEOutlineViewParentItem *parentItem = item.parentItem;
+        if (parentItem == nil && [self.tableViewDelegate respondsToSelector:selectHeaderSelector])
+        {
+            NSParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
+            NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+            [self.tableViewDelegate tableView:self didSelectHeaderInSection:section];
+        }
+        else if (parentItem && [self.tableViewDelegate respondsToSelector:selectRowSelector])
+        {
+            NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
+            [self.tableViewDelegate tableView:self didSelectRowAtIndexPath:indexPath];
+        }
+    }
+    else
+    {
+        NSIndexSet *sectionHeaders = [self p_indexSetOfSectionHeadersAtTableViewRows:selectedRows];
+        if (sectionHeaders.count > 0 && [self.tableViewDelegate respondsToSelector:selectHeadersSelector])
+        {
+            [self.tableViewDelegate tableView:self didSelectHeadersInSections:sectionHeaders];
+        }
+        
+        NSArray *rowIndexPaths = [self p_indexPathsOfRowsAtTableViewRows:selectedRows];
+        if (rowIndexPaths.count > 0 && [self.tableViewDelegate respondsToSelector:selectRowsSelector])
+        {
+            [self.tableViewDelegate tableView:self didSelectRowsAtIndexPaths:rowIndexPaths];
+        }
+    }
 }
 
 
