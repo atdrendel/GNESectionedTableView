@@ -257,8 +257,12 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 
 #pragma mark - Expand/Collapse Sections
 - (BOOL)isSectionExpanded:(NSUInteger)section;
+- (void)expandAllSections:(BOOL)animated;
 - (void)expandSection:(NSUInteger)section animated:(BOOL)animated;
+- (void)expandSections:(NSIndexSet *)sections animated:(BOOL)animated;
+- (void)collapseAllSections:(BOOL)animated;
 - (void)collapseSection:(NSUInteger)section animated:(BOOL)animated;
+- (void)collapseSections:(NSIndexSet *)sections animated:(BOOL)animated;
 
 
 #pragma mark - Selection

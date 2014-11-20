@@ -552,7 +552,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     self.outlineViewItems = outlineViewItemsCopy;
     
     [self insertItemsAtIndexes:insertedSections inParent:nil withAnimation:animationOptions];
-    [self p_expandParentItemsAtIndexes:insertedSections animated:NO];
+    [self expandSections:insertedSections animated:NO];
     
     [self p_checkDataSourceIntegrity];
 }
@@ -734,15 +734,58 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 }
 
 
+- (void)expandAllSections:(BOOL)animated
+{
+    NSOutlineView *outlineView = (animated) ? self.animator : self;
+    [outlineView expandItem:nil expandChildren:YES];
+}
+
+
 - (void)expandSection:(NSUInteger)section animated:(BOOL)animated
 {
     NSParameterAssert(section < self.outlineViewParentItems.count);
     
     if (section < self.outlineViewParentItems.count)
     {
-        [self p_expandParentItemsAtIndexes:[NSIndexSet indexSetWithIndex:section]
-                                  animated:animated];
+        [self expandSections:[NSIndexSet indexSetWithIndex:section]
+                    animated:animated];
     }
+}
+
+
+- (void)expandSections:(NSIndexSet *)sections animated:(BOOL)animated
+{
+    NSUInteger count = self.outlineViewParentItems.count;
+    __weak typeof(self) weakSelf = self;
+    [sections enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop __unused)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+
+        BOOL canExpandSection = YES;
+        SEL selector = @selector(tableView:shouldExpandSection:);
+        if ([strongSelf.tableViewDelegate respondsToSelector:selector])
+        {
+            canExpandSection = [strongSelf.tableViewDelegate tableView:strongSelf
+                                                   shouldExpandSection:index];
+        }
+
+        if (canExpandSection)
+        {
+            id outlineView = (animated) ? strongSelf.animator : strongSelf;
+            if (index < count)
+            {
+                GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[index];
+                [outlineView expandItem:parentItem];
+            }
+        }
+    }];
+}
+
+
+- (void)collapseAllSections:(BOOL)animated
+{
+    NSOutlineView *outlineView = (animated) ? self.animator : self;
+    [outlineView collapseItem:nil collapseChildren:YES];
 }
 
 
@@ -752,9 +795,38 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     
     if (section < self.outlineViewParentItems.count)
     {
-        [self p_collapseParentItemsAtIndexes:[NSIndexSet indexSetWithIndex:section]
-                                    animated:animated];
+        [self collapseSections:[NSIndexSet indexSetWithIndex:section]
+                      animated:animated];
     }
+}
+
+
+- (void)collapseSections:(NSIndexSet *)sections animated:(BOOL)animated
+{
+    NSUInteger count = self.outlineViewParentItems.count;
+    __weak typeof(self) weakSelf = self;
+    [sections enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop __unused)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+
+        BOOL canCollapseSection = YES;
+        SEL selector = @selector(tableView:shouldCollapseSection:);
+        if ([strongSelf.tableViewDelegate respondsToSelector:selector])
+        {
+            canCollapseSection = [strongSelf.tableViewDelegate tableView:strongSelf
+                                                   shouldCollapseSection:index];
+        }
+
+        if (canCollapseSection)
+        {
+            id outlineView = (animated) ? strongSelf.animator : strongSelf;
+            if (index < count)
+            {
+                GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[index];
+                [outlineView collapseItem:parentItem];
+            }
+        }
+    }];
 }
 
 
@@ -798,7 +870,8 @@ static const CGFloat kDefaultRowHeight = 32.0f;
         
         if (indexPaths.count > 0)
         {
-            return [indexPaths sortedArrayUsingSelector:@selector(gne_compare:)];
+            SEL selector = NSSelectorFromString(@"gne_compare:");
+            return [indexPaths sortedArrayUsingSelector:selector];
         }
     }
     
@@ -1412,67 +1485,6 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     }
     
     return nil;
-}
-
-
-// ------------------------------------------------------------------------------------------
-#pragma mark - GNESectionedTableView - Internal - Expand/Collapse Parent Items
-// ------------------------------------------------------------------------------------------
-- (void)p_expandParentItemsAtIndexes:(NSIndexSet *)indexSet animated:(BOOL)animated
-{
-    NSUInteger count = self.outlineViewParentItems.count;
-    __weak typeof(self) weakSelf = self;
-    [indexSet enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop __unused)
-    {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        
-        BOOL canExpandSection = YES;
-        SEL selector = @selector(tableView:shouldExpandSection:);
-        if ([strongSelf.tableViewDelegate respondsToSelector:selector])
-        {
-            canExpandSection = [strongSelf.tableViewDelegate tableView:strongSelf
-                                                   shouldExpandSection:index];
-        }
-        
-        if (canExpandSection)
-        {
-            id outlineView = (animated) ? strongSelf.animator : strongSelf;
-            if (index < count)
-            {
-                GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[index];
-                [outlineView expandItem:parentItem];
-            }
-        }
-    }];
-}
-
-
-- (void)p_collapseParentItemsAtIndexes:(NSIndexSet *)indexSet animated:(BOOL)animated
-{
-    NSUInteger count = self.outlineViewParentItems.count;
-    __weak typeof(self) weakSelf = self;
-    [indexSet enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop __unused)
-    {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        
-        BOOL canCollapseSection = YES;
-        SEL selector = @selector(tableView:shouldCollapseSection:);
-        if ([strongSelf.tableViewDelegate respondsToSelector:selector])
-        {
-            canCollapseSection = [strongSelf.tableViewDelegate tableView:strongSelf
-                                                   shouldCollapseSection:index];
-        }
-        
-        if (canCollapseSection)
-        {
-            id outlineView = (animated) ? strongSelf.animator : strongSelf;
-            if (index < count)
-            {
-                GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[index];
-                [outlineView collapseItem:parentItem];
-            }
-        }
-    }];
 }
 
 
