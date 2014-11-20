@@ -137,6 +137,12 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
  didEndDisplayingCellView:(NSTableCellView *)cellView
                    forRow:(NSUInteger)row;
 
+/* Expand/Collapse */
+@optional
+- (BOOL)tableView:(GNESectionedTableView *)tableView shouldExpandSection:(NSUInteger)section;
+@optional
+- (BOOL)tableView:(GNESectionedTableView *)tableView shouldCollapseSection:(NSUInteger)section;
+
 /* Selection */
 @optional
 - (BOOL)tableView:(GNESectionedTableView *)tableView shouldSelectHeaderInSection:(NSUInteger)section;
@@ -179,7 +185,6 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 
 
 #pragma mark - Initialization
-
 /**
  Designated initializer.
  
@@ -190,7 +195,6 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 
 
 #pragma mark - Insertion, Deletion, Move, and Update
-
 - (void)insertRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)deleteRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath;
@@ -226,8 +230,11 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 - (void)collapseSection:(NSUInteger)section animated:(BOOL)animated;
 
 
-#pragma mark - Frame of Table View Cells
+#pragma mark - Selection
+- (void)selectRowAtIndexPath:(NSIndexPath *)indexPath byExtendingSelection:(BOOL)extend;
 
+
+#pragma mark - Frame of Table View Cells
 /**
  Returns the frame of the table view cell at the specified index.
  
