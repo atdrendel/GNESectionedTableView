@@ -34,7 +34,7 @@
 @implementation NSOutlineView (GNE_Additions)
 
 
-- (void)performAfterAnimations:(NSOutlineViewBlock)block
+- (void)gne_performAfterAnimations:(NSOutlineViewBlock)block
 {
     __weak typeof(self) weakSelf = self;
     

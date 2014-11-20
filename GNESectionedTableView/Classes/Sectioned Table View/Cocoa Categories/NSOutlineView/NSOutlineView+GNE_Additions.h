@@ -41,7 +41,7 @@ typedef void (^NSOutlineViewBlock)(NSOutlineView *ov);
 @interface NSOutlineView (GNE_Additions)
 
 
-- (void)performAfterAnimations:(NSOutlineViewBlock)block;
+- (void)gne_performAfterAnimations:(NSOutlineViewBlock)block;
 
 
 @end

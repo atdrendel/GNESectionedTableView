@@ -1669,7 +1669,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 - (void)reloadData
 {
     __weak typeof(self) weakSelf = self;
-    [self performAfterAnimations:^(NSOutlineView *__weak ov __unused)
+    [self gne_performAfterAnimations:^(NSOutlineView *__weak ov __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         if (strongSelf == nil)
