@@ -199,11 +199,24 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 
 #pragma mark - Counts
 - (NSUInteger)numberOfRowsInSection:(NSUInteger)section;
+
+
+#pragma mark - Index Paths / NSTableView Rows
 /**
  Returns YES if the specified index path's section is less than the total number of sections in the table
  view and the row is less than the total number of rows in the section, otherwise NO.
  */
 - (BOOL)isValidIndexPath:(NSIndexPath *)indexPath;
+
+/**
+ Returns the index path mapped to the underlying NSTableView row, or nil if the row isn't valid.
+ 
+ @discussion If the specified row maps to a section header, the index path will have the correct
+ section, but the row will equal NSNotFound.
+ @param row NSTableView row corresponding to a section header or row in the table view.
+ @return Index path corresponding to the specified table view row or nil.
+ */
+- (NSIndexPath *)indexPathForTableViewRow:(NSInteger)row;
 
 
 #pragma mark - Insertion, Deletion, Move, and Update
