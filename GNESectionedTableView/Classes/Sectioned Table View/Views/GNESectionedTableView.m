@@ -71,6 +71,13 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 
 // ------------------------------------------------------------------------------------------
+
+
+@dynamic selectedIndexPath;
+@dynamic selectedIndexPaths;
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Initialization
 // ------------------------------------------------------------------------------------------
 - (instancetype)init
@@ -754,6 +761,51 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Public - Selection
 // ------------------------------------------------------------------------------------------
+- (NSIndexPath *)selectedIndexPath
+{
+    NSInteger selectedRow = self.selectedRow;
+    
+    if (selectedRow >= 0)
+    {
+        GNEOutlineViewItem *item = [self itemAtRow:selectedRow];
+        
+        return [self p_indexPathOfOutlineViewItem:item];
+    }
+    
+    return nil;
+}
+
+
+- (NSArray *)selectedIndexPaths
+{
+    NSIndexSet *selectedRows = self.selectedRowIndexes;
+    if (selectedRows.count > 0)
+    {
+        NSMutableArray *indexPaths = [NSMutableArray array];
+        
+        __weak typeof(self) weakSelf = self;
+        [selectedRows enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop __unused)
+        {
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            
+            GNEOutlineViewItem *item = [strongSelf itemAtRow:(NSInteger)idx];
+            NSIndexPath *indexPath = [strongSelf p_indexPathOfOutlineViewItem:item];
+            if (indexPath)
+            {
+                [indexPaths addObject:indexPath];
+            }
+        }];
+        
+        if (indexPaths.count > 0)
+        {
+            return [indexPaths sortedArrayUsingSelector:@selector(gne_compare:)];
+        }
+    }
+    
+    return nil;
+}
+
+
 - (void)selectRowAtIndexPath:(NSIndexPath *)indexPath byExtendingSelection:(BOOL)extend
 {
     NSUInteger section = indexPath.gne_section;
@@ -1176,6 +1228,11 @@ static const CGFloat kDefaultRowHeight = 32.0f;
  */
 - (NSIndexPath *)p_indexPathOfOutlineViewItem:(GNEOutlineViewItem *)item
 {
+    if (item == nil)
+    {
+        return nil;
+    }
+    
     NSUInteger sectionCount = self.outlineViewItems.count;
     
     // If it's a outline view parent item, find its section and then make an appropriate index path for it.

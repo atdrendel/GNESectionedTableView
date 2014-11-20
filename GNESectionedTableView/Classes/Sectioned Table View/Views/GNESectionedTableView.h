@@ -186,6 +186,12 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 /// Returns the number of sections in the table view.
 @property (nonatomic, assign, readonly) NSUInteger numberOfSections;
 
+/// Returns the index path for the currently-selected row or nil if nothing is selected.
+@property (nonatomic, strong, readonly) NSIndexPath *selectedIndexPath;
+
+/// Returns an array of index paths for the currently-selected rows or nil if nothing is selected.
+@property (nonatomic, strong, readonly) NSArray *selectedIndexPaths;
+
 
 #pragma mark - Initialization
 /**
