@@ -183,6 +183,9 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 /// Table view's current delegate, which must conform to GNESectionedTableViewDelegate.
 @property (nonatomic, strong) id <GNESectionedTableViewDelegate> tableViewDelegate;
 
+/// Returns the number of sections in the table view.
+@property (nonatomic, assign, readonly) NSUInteger numberOfSections;
+
 
 #pragma mark - Initialization
 /**
@@ -192,6 +195,15 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
  @return Instance of GNESectionedTableView or one of its subclasses.
  */
 - (instancetype)initWithFrame:(NSRect)frameRect;
+
+
+#pragma mark - Counts
+- (NSUInteger)numberOfRowsInSection:(NSUInteger)section;
+/**
+ Returns YES if the specified index path's section is less than the total number of sections in the table
+ view and the row is less than the total number of rows in the section, otherwise NO.
+ */
+- (BOOL)isValidIndexPath:(NSIndexPath *)indexPath;
 
 
 #pragma mark - Insertion, Deletion, Move, and Update

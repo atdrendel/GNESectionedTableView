@@ -179,6 +179,44 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - GNESectionedTableView - Public - Counts
+// ------------------------------------------------------------------------------------------
+- (NSUInteger)numberOfSections
+{
+    NSParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
+    
+    return self.outlineViewParentItems.count;
+}
+
+
+- (NSUInteger)numberOfRowsInSection:(NSUInteger)section
+{
+    NSParameterAssert(section < self.outlineViewItems.count);
+    
+    if (section < self.outlineViewItems.count)
+    {
+        return ((NSArray *)self.outlineViewItems[section]).count;
+    }
+    
+    return 0;
+}
+
+
+- (BOOL)isValidIndexPath:(NSIndexPath *)indexPath
+{
+    NSUInteger sectionCount = self.outlineViewItems.count;
+    if (indexPath.gne_section < sectionCount)
+    {
+        NSUInteger rowCount = ((NSArray *)self.outlineViewItems[indexPath.gne_section]).count;
+        
+        return (indexPath.gne_row < rowCount);
+    }
+    
+    return NO;
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Public - Insertion, Deletion, Move, and Update
 // ------------------------------------------------------------------------------------------
 - (void)insertRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions
