@@ -214,6 +214,11 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 // ------------------------------------------------------------------------------------------
 - (BOOL)isValidIndexPath:(NSIndexPath *)indexPath
 {
+    if (indexPath == nil)
+    {
+        return NO;
+    }
+    
     NSUInteger sectionCount = self.outlineViewItems.count;
     if (indexPath.gne_section < sectionCount)
     {
