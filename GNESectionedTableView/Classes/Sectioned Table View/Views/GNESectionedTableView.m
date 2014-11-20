@@ -240,6 +240,19 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 }
 
 
+- (NSInteger)tableViewRowForIndexPath:(NSIndexPath *)indexPath
+{
+    if ([self isValidIndexPath:indexPath] == NO)
+    {
+        return -1;
+    }
+    
+    GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
+    
+    return [self rowForItem:item];
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Public - Insertion, Deletion, Move, and Update
 // ------------------------------------------------------------------------------------------

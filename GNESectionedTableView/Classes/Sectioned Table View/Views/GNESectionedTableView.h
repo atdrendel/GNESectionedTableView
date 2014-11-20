@@ -224,6 +224,15 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
  */
 - (NSIndexPath *)indexPathForTableViewRow:(NSInteger)row;
 
+/**
+ Returns the NSTableView row for the specified index path, if the index path maps to a valid
+ row, otherwise -1.
+ 
+ @param indexPath Index path to match to a table view row.
+ @return The NSTableView row mapped to the specified index path or -1.
+ */
+- (NSInteger)tableViewRowForIndexPath:(NSIndexPath *)indexPath;
+
 
 #pragma mark - Insertion, Deletion, Move, and Update
 - (void)insertRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions;
