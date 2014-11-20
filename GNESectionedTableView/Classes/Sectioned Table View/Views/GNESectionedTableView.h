@@ -29,6 +29,12 @@
 //  SOFTWARE.
 //
 
+#import "GNEOutlineViewItem.h"
+#import "GNEOutlineViewParentItem.h"
+#import "NSMutableArray+GNESectionedTableView.h"
+#import "NSIndexPath+GNESectionedTableView.h"
+#import "NSOutlineView+GNE_Additions.h"
+
 @class GNESectionedTableView;
 
 
