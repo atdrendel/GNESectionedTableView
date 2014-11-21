@@ -704,7 +704,7 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 {
     NSArray *rowsArray = self.rows[section];
     
-    return ((rowsArray.count > 1) ? 22.0f : WLSectionedTableViewInvisibleRowHeight);
+    return ((rowsArray.count > 1) ? 22.0f : GNESectionedTableViewInvisibleRowHeight);
 }
 
 
