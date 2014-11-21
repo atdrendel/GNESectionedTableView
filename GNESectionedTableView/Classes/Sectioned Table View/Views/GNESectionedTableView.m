@@ -245,8 +245,6 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (NSIndexPath *)indexPathForTableViewRow:(NSInteger)row
 {
-    NSParameterAssert(row >= 0 && row < self.numberOfRows);
-    
     GNEOutlineViewItem *item = [self itemAtRow:row];
     if (item)
     {
