@@ -189,7 +189,11 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 /// Returns the index path for the currently-selected row or nil if nothing is selected.
 @property (nonatomic, strong, readonly) NSIndexPath *selectedIndexPath;
 
-/// Returns an array of index paths for the currently-selected rows or nil if nothing is selected.
+/**
+ Returns an array of index paths for the currently-selected rows or nil if nothing is selected.
+ 
+ @discussion The index paths are returned sorted in ascending (section-first) order.
+ */
 @property (nonatomic, strong, readonly) NSArray *selectedIndexPaths;
 
 
@@ -275,6 +279,7 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 
 
 #pragma mark - Selection
+- (BOOL)isIndexPathSelected:(NSIndexPath *)indexPath;
 - (void)selectRowAtIndexPath:(NSIndexPath *)indexPath byExtendingSelection:(BOOL)extend;
 
 

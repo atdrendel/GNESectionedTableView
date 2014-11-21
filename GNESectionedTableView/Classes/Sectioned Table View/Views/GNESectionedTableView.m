@@ -897,6 +897,31 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 }
 
 
+- (BOOL)isIndexPathSelected:(NSIndexPath *)indexPath
+{
+    NSParameterAssert(indexPath);
+    
+    NSArray *selectedIndexPaths = self.selectedIndexPaths;
+    
+    if (indexPath && selectedIndexPaths.count > 0)
+    {
+        NSRange range = NSMakeRange(0, selectedIndexPaths.count);
+        NSUInteger index = [selectedIndexPaths indexOfObject:indexPath
+                                               inSortedRange:range
+                                                     options:NSBinarySearchingFirstEqual
+                                             usingComparator:^NSComparisonResult(NSIndexPath *first,
+                                                                                 NSIndexPath *second)
+        {
+            return [first gne_compare:second];
+        }];
+        
+        return ((index == NSNotFound) ? NO : YES);
+    }
+    
+    return NO;
+}
+
+
 - (void)selectRowAtIndexPath:(NSIndexPath *)indexPath byExtendingSelection:(BOOL)extend
 {
     NSUInteger section = indexPath.gne_section;
