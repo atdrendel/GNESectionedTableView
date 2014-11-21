@@ -1967,7 +1967,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
             return [self.tableViewDelegate tableView:self heightForHeaderInSection:section];
         }
         
-        return WLSectionedTableViewInvisibleRowHeight;
+        return GNESectionedTableViewInvisibleRowHeight;
     }
     
     // Row

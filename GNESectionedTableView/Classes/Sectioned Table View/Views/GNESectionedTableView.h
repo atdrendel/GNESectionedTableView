@@ -47,9 +47,9 @@
 #endif
 
 #if UNSAFE_ROW_HEIGHT_ALLOWED
-static const CGFloat WLSectionedTableViewInvisibleRowHeight = 0.00001f;
+static const CGFloat GNESectionedTableViewInvisibleRowHeight = 0.00001f;
 #else
-static const CGFloat WLSectionedTableViewInvisibleRowHeight = 1.0f;
+static const CGFloat GNESectionedTableViewInvisibleRowHeight = 1.0f;
 #endif
 
 
