@@ -1681,6 +1681,8 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     }
     
     [self registerForDraggedTypes:draggedTypes];
+    [self setDraggingSourceOperationMask:(NSDragOperationGeneric | NSDragOperationMove)
+                                forLocal:YES];
 }
 
 
