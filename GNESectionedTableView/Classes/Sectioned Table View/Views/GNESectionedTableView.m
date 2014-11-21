@@ -231,6 +231,18 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 }
 
 
+- (NSIndexPath *)indexPathForSection:(NSUInteger)section
+{
+    NSUInteger sectionCount = self.numberOfSections;
+    if (section < sectionCount)
+    {
+        return [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
+    }
+    
+    return nil;
+}
+
+
 - (NSIndexPath *)indexPathForTableViewRow:(NSInteger)row
 {
     NSParameterAssert(row >= 0 && row < self.numberOfRows);

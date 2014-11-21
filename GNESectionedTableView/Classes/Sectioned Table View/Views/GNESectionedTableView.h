@@ -219,6 +219,15 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 - (BOOL)isValidIndexPath:(NSIndexPath *)indexPath;
 
 /**
+ Returns the index path for the specified section, or nil if the section isn't valid.
+ 
+ @discussion Section index paths have a value of section = section and row = NSNotFound.
+ @param section Section index to generate an index path for.
+ @return Index path corresponding to the specified section, or nil if the section is invalid.
+ */
+- (NSIndexPath *)indexPathForSection:(NSUInteger)section;
+
+/**
  Returns the index path mapped to the underlying NSTableView row, or nil if the row isn't valid.
  
  @discussion If the specified row maps to a section header, the index path will have the correct
