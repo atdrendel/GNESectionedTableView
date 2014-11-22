@@ -975,6 +975,19 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - GNESectionedTableView - Public - Scrolling
+// ------------------------------------------------------------------------------------------
+- (void)scrollRowAtIndexPathToVisible:(NSIndexPath *)indexPath
+{
+    NSInteger tableViewRow = [self tableViewRowForIndexPath:indexPath];
+    if (tableViewRow >= 0)
+    {
+        [self scrollRowToVisible:tableViewRow];
+    }
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Internal - Build Data Source Arrays
 // ------------------------------------------------------------------------------------------
 - (void)p_buildOutlineViewItemArrays

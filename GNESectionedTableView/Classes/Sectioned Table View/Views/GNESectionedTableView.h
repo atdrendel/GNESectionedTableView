@@ -301,4 +301,8 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
  */
 - (CGRect)frameOfCellAtIndexPath:(NSIndexPath *)indexPath;
 
+
+#pragma mark - Scrolling
+- (void)scrollRowAtIndexPathToVisible:(NSIndexPath *)indexPath;
+
 @end
