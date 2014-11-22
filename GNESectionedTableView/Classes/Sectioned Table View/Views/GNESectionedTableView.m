@@ -238,7 +238,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
         return ((NSArray *)self.outlineViewItems[section]).count;
     }
     
-    return 0;
+    return NSNotFound;
 }
 
 

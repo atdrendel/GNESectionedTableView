@@ -224,7 +224,7 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
  Returns the number of rows in the specified section.
  
  @discussion When exceptions are enabled, if the specified section is greater than or equal to the
- number of sections in the table view, an exception is thrown. Otherwise, 0 is returned.
+ number of sections in the table view, an exception is thrown. Otherwise, NSNotFound is returned.
  @param section Section index to find the number of rows of.
  @return Number of rows in the specified section.
  */
