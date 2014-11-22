@@ -207,6 +207,10 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 - (instancetype)initWithFrame:(NSRect)frameRect;
 
 
+#pragma mark - Views
+- (NSIndexPath *)indexPathForView:(NSView *)view;
+
+
 #pragma mark - Counts
 - (NSUInteger)numberOfRowsInSection:(NSUInteger)section;
 

@@ -186,6 +186,17 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - GNESectionedTableView - Public - Views
+// ------------------------------------------------------------------------------------------
+- (NSIndexPath *)indexPathForView:(NSView *)view
+{
+    NSInteger tableViewRow = [self rowForView:view];
+    
+    return [self indexPathForTableViewRow:tableViewRow];
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Public - Counts
 // ------------------------------------------------------------------------------------------
 - (NSUInteger)numberOfSections
@@ -245,9 +256,10 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (NSIndexPath *)indexPathForTableViewRow:(NSInteger)row
 {
-    GNEOutlineViewItem *item = [self itemAtRow:row];
-    if (item)
+    if (row >= 0)
     {
+        GNEOutlineViewItem *item = [self itemAtRow:row];
+
         return [self p_indexPathOfOutlineViewItem:item];
     }
     
