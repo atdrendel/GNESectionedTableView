@@ -185,6 +185,28 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 }
 
 
+/*
+ -[NSOutlineView reloadItem:] is buggy and doesn't actually reload items that are more than
+ one step away from root. This corresponds to our "rows" level.
+ */
+- (void)reloadItem:(id)item
+{
+    NSInteger tableViewRow = [self rowForItem:item];
+    
+    if (tableViewRow >= 0)
+    {
+        NSIndexSet *rowIndexes = [NSIndexSet indexSetWithIndex:(NSUInteger)tableViewRow];
+        
+        NSInteger columnCount = self.numberOfColumns;
+        NSRange columnRange = NSMakeRange(0, columnCount);
+        NSIndexSet *columnIndexes = [NSIndexSet indexSetWithIndexesInRange:columnRange];
+        
+        [self reloadDataForRowIndexes:rowIndexes
+                        columnIndexes:columnIndexes];
+    }
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Public - Views
 // ------------------------------------------------------------------------------------------
