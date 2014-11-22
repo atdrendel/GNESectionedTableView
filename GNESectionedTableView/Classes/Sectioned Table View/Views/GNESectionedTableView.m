@@ -1391,8 +1391,9 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     if (parentItem == nil)
     {
         NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+        NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
         
-        return [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
+        return ((section == NSNotFound) ? nil : indexPath);
     }
 
     // Find the outline view item in its parent's section.
