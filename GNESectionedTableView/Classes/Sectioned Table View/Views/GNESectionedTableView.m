@@ -185,6 +185,16 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 }
 
 
+- (void)reloadData
+{
+    [self.outlineViewParentItems removeAllObjects];
+    [self.outlineViewItems removeAllObjects];
+    
+    [self p_buildOutlineViewItemArrays];
+    [super reloadData];
+}
+
+
 /*
  -[NSOutlineView reloadItem:] is buggy and doesn't actually reload items that are more than
  one step away from root. This corresponds to our "rows" level.
@@ -1942,32 +1952,6 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     
 }
 #endif
-
-
-// ------------------------------------------------------------------------------------------
-#pragma mark - NSOutlineView - Reloading Data
-// ------------------------------------------------------------------------------------------
-// TODO: Perhaps nil out outline view item arrays, -[super reloadData], rebuild arrays, -[super reloadData]
-- (void)reloadData
-{
-    __weak typeof(self) weakSelf = self;
-    [self gne_performAfterAnimations:^(NSOutlineView *__weak ov __unused)
-    {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        if (strongSelf == nil)
-        {
-            return;
-        }
-        
-        [strongSelf.outlineViewParentItems removeAllObjects];
-        [strongSelf.outlineViewItems removeAllObjects];
-        
-        [strongSelf p_buildOutlineViewItemArrays];
-        
-        [super reloadData];
-        [strongSelf expandItem:nil expandChildren:YES];
-    }];
-}
 
 
 // ------------------------------------------------------------------------------------------
