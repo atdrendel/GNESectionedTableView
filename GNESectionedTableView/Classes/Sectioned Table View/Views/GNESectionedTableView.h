@@ -208,10 +208,26 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 
 
 #pragma mark - Views
+/**
+ Returns the index path corresponding to the specified view or nil if the view is not an instance
+ of NSTableRowView or a subview of an instance of NSTableRowView.
+ 
+ @param view Instance of NSTableRowView or a subview of an instance of NSTableRowView that is
+ currently present in the table view.
+ @return Index path corresponding to the specified view or nil.
+ */
 - (NSIndexPath *)indexPathForView:(NSView *)view;
 
 
 #pragma mark - Counts
+/**
+ Returns the number of rows in the specified section.
+ 
+ @discussion When exceptions are enabled, if the specified section is greater than or equal to the
+ number of sections in the table view, an exception is thrown. Otherwise, 0 is returned.
+ @param section Section index to find the number of rows of.
+ @return Number of rows in the specified section.
+ */
 - (NSUInteger)numberOfRowsInSection:(NSUInteger)section;
 
 
