@@ -1898,8 +1898,11 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     SEL numberOfSectionsSelector = NSSelectorFromString(@"numberOfSections");
     SEL numberOfRowsSelector = NSSelectorFromString(@"numberOfRows");
     
-    NSParameterAssert([dataSource respondsToSelector:numberOfSectionsSelector]);
-    NSParameterAssert([dataSource respondsToSelector:numberOfRowsSelector]);
+    if ([dataSource respondsToSelector:numberOfSectionsSelector] == NO ||
+        [dataSource respondsToSelector:numberOfRowsSelector] == NO)
+    {
+        return;
+    }
     
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
