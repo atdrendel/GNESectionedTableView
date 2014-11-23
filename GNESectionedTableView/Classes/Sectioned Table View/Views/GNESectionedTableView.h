@@ -41,6 +41,23 @@
 // ------------------------------------------------------------------------------------------
 
 
+#ifndef GNE_PARAMETER_ASSERT_ENABLED
+    #if DEBUG
+        #define GNE_PARAMETER_ASSERT_ENABLED 1
+    #else
+        #define GNE_PARAMETER_ASSERT_ENABLED 0
+    #endif
+#endif
+
+#ifndef GNEParameterAssert
+    #if GNE_PARAMETER_ASSERT_ENABLED
+        #define GNEParameterAssert(condition) NSParameterAssert(condition)
+    #else
+        #define GNEParameterAssert(condition) do { } while (0)
+    #endif
+#endif
+
+
 // By default, unsafe row heights are allowed. They work in 10.9 and above, but not 10.8.
 #ifndef UNSAFE_ROW_HEIGHT_ALLOWED
     #define UNSAFE_ROW_HEIGHT_ALLOWED 1

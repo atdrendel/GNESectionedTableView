@@ -207,7 +207,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     {
         NSIndexSet *rowIndexes = [NSIndexSet indexSetWithIndex:(NSUInteger)tableViewRow];
         
-        NSInteger columnCount = self.numberOfColumns;
+        NSUInteger columnCount = (NSUInteger)self.numberOfColumns;
         NSRange columnRange = NSMakeRange(0, columnCount);
         NSIndexSet *columnIndexes = [NSIndexSet indexSetWithIndexesInRange:columnRange];
         
@@ -233,7 +233,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 // ------------------------------------------------------------------------------------------
 - (NSUInteger)numberOfSections
 {
-    NSParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
+    GNEParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
     
     return self.outlineViewParentItems.count;
 }
@@ -241,7 +241,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (NSUInteger)numberOfRowsInSection:(NSUInteger)section
 {
-    NSParameterAssert(section < self.outlineViewItems.count);
+    GNEParameterAssert(section < self.outlineViewItems.count);
     
     if (section < self.outlineViewItems.count)
     {
@@ -342,7 +342,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
             }
             
             NSUInteger parentItemIndex = [self.outlineViewParentItems indexOfObject:parentItem];
-            NSParameterAssert(parentItemIndex < self.outlineViewItems.count);
+            GNEParameterAssert(parentItemIndex < self.outlineViewItems.count);
             
             NSMutableArray *rows = self.outlineViewItems[parentItemIndex];
             
@@ -392,7 +392,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
         
         GNEOutlineViewParentItem *parentItem = firstItem.parentItem;
         
-        NSParameterAssert(parentItem);
+        GNEParameterAssert(parentItem);
         
         NSMutableIndexSet *deletedIndexes = [NSMutableIndexSet indexSet];
         for (NSIndexPath *indexPath in indexPathsInSection)
@@ -404,11 +404,11 @@ static const CGFloat kDefaultRowHeight = 32.0f;
                 continue;
             }
          
-            NSParameterAssert([item.parentItem isEqual:parentItem]);
+            GNEParameterAssert([item.parentItem isEqual:parentItem]);
             
 #if DEBUG
             NSIndexPath *actualIndexPath = [self p_indexPathOfOutlineViewItem:item];
-            NSParameterAssert([actualIndexPath compare:indexPath] == NSOrderedSame);
+            GNEParameterAssert([actualIndexPath compare:indexPath] == NSOrderedSame);
 #endif
             
             // Add the item's index path row to the index set that will be passed to the NSOutlineView.
@@ -429,14 +429,14 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (void)moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
 {
-    NSParameterAssert(fromIndexPath);
-    NSParameterAssert(toIndexPath);
+    GNEParameterAssert(fromIndexPath);
+    GNEParameterAssert(toIndexPath);
     
     NSUInteger toSection = toIndexPath.gne_section;
     
     GNEOutlineViewParentItem *toParentItem = [self p_outlineViewParentItemForSection:toSection];
     
-    NSParameterAssert(toParentItem);
+    GNEParameterAssert(toParentItem);
     if (toParentItem == nil)
     {
         return;
@@ -444,7 +444,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     
     GNEOutlineViewItem *fromItem = [self p_outlineViewItemAtIndexPath:fromIndexPath];
     
-    NSParameterAssert(fromItem);
+    GNEParameterAssert(fromItem);
     if (fromItem == nil)
     {
         return;
@@ -458,7 +458,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPaths:(NSArray *)toIndexPaths
 {
-    NSParameterAssert(fromIndexPaths.count == toIndexPaths.count);
+    GNEParameterAssert(fromIndexPaths.count == toIndexPaths.count);
     
     [self p_checkIndexPathsArray:fromIndexPaths];
     [self p_checkIndexPathsArray:toIndexPaths];
@@ -516,7 +516,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
         
         GNEOutlineViewParentItem *parentItem = firstItem.parentItem;
         
-        NSParameterAssert(parentItem);
+        GNEParameterAssert(parentItem);
         
         // TODO: Remove this ugliness or, at least, factor it away.
         if (fromSectionEqualsToSection)
@@ -584,7 +584,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), sections);
 #endif
     
-    NSParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:numberOfRowsInSection:)]);
+    GNEParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:numberOfRowsInSection:)]);
     
     NSMutableIndexSet *insertedSections = [NSMutableIndexSet indexSet];
     
@@ -618,7 +618,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
         }
     }];
     
-    NSParameterAssert(sections.count == insertedSections.count);
+    GNEParameterAssert(sections.count == insertedSections.count);
     
     self.outlineViewParentItems = outlineViewParentItemsCopy;
     self.outlineViewItems = outlineViewItemsCopy;
@@ -650,12 +650,12 @@ static const CGFloat kDefaultRowHeight = 32.0f;
             
             if (index != NSNotFound)
             {
-                NSParameterAssert([deletedSections containsIndex:index] == NO);
+                GNEParameterAssert([deletedSections containsIndex:index] == NO);
                 
                 [deletedSections addIndex:index];
                 
-                NSParameterAssert(index < outlineViewParentItemsCopy.count);
-                NSParameterAssert(index < outlineViewItemsCopy.count);
+                GNEParameterAssert(index < outlineViewParentItemsCopy.count);
+                GNEParameterAssert(index < outlineViewItemsCopy.count);
                 
                 [outlineViewParentItemsCopy removeObjectAtIndex:index];
                 [outlineViewItemsCopy removeObjectAtIndex:index];
@@ -663,7 +663,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
         }
     }];
     
-    NSParameterAssert(sections.count == deletedSections.count);
+    GNEParameterAssert(sections.count == deletedSections.count);
     
     self.outlineViewParentItems = outlineViewParentItemsCopy;
     self.outlineViewItems = outlineViewItemsCopy;
@@ -686,7 +686,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     NSLog(@"%@\nFrom: %@ To: %lu", NSStringFromSelector(_cmd), fromSections, toSection);
 #endif
     
-    NSParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
+    GNEParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
     
     NSMutableIndexSet *validSections = [[self p_indexSetByRemovingInvalidSectionsFromIndexSet:fromSections]
                                         mutableCopy];
@@ -737,7 +737,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
         GNEOutlineViewParentItem *parentItem = [self p_outlineViewParentItemForSection:convertedFromSection];
         NSUInteger parentItemIndex = [self p_sectionForOutlineViewParentItem:parentItem];
         
-        NSParameterAssert(parentItemIndex != NSNotFound && parentItemIndex < self.outlineViewItems.count);
+        GNEParameterAssert(parentItemIndex != NSNotFound && parentItemIndex < self.outlineViewItems.count);
         
         if (parentItemIndex == NSNotFound || parentItemIndex >= self.outlineViewItems.count)
         {
@@ -769,7 +769,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), sections);
 #endif
     
-    NSParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
+    GNEParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
     
     NSUInteger sectionCount = self.outlineViewParentItems.count;
     
@@ -793,7 +793,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 // ------------------------------------------------------------------------------------------
 - (BOOL)isSectionExpanded:(NSUInteger)section
 {
-    NSParameterAssert(section < self.outlineViewParentItems.count);
+    GNEParameterAssert(section < self.outlineViewParentItems.count);
     
     if (section < self.outlineViewParentItems.count)
     {
@@ -815,7 +815,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (void)expandSection:(NSUInteger)section animated:(BOOL)animated
 {
-    NSParameterAssert(section < self.outlineViewParentItems.count);
+    GNEParameterAssert(section < self.outlineViewParentItems.count);
     
     if (section < self.outlineViewParentItems.count)
     {
@@ -863,7 +863,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (void)collapseSection:(NSUInteger)section animated:(BOOL)animated
 {
-    NSParameterAssert(section < self.outlineViewParentItems.count);
+    GNEParameterAssert(section < self.outlineViewParentItems.count);
     
     if (section < self.outlineViewParentItems.count)
     {
@@ -953,7 +953,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (BOOL)isIndexPathSelected:(NSIndexPath *)indexPath
 {
-    NSParameterAssert(indexPath);
+    GNEParameterAssert(indexPath);
     
     NSArray *selectedIndexPaths = self.selectedIndexPaths;
     
@@ -981,8 +981,8 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     NSUInteger section = indexPath.gne_section;
     NSUInteger row = indexPath.gne_row;
     
-    NSParameterAssert(section < self.outlineViewItems.count &&
-                      row < ((NSArray *)self.outlineViewItems[section]).count);
+    GNEParameterAssert(section < self.outlineViewItems.count &&
+                       row < ((NSArray *)self.outlineViewItems[section]).count);
     
     if (section >= self.outlineViewItems.count ||
         row >= ((NSArray *)self.outlineViewItems[section]).count)
@@ -1097,13 +1097,13 @@ static const CGFloat kDefaultRowHeight = 32.0f;
  */
 - (void)p_animateMoveOfOutlineViewItem:(GNEOutlineViewItem *)item toRow:(NSUInteger)toRow
 {
-    NSParameterAssert(item);
+    GNEParameterAssert(item);
     
     GNEOutlineViewParentItem *parentItem = item.parentItem;
     
     NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
 
-    NSParameterAssert(section != NSNotFound);
+    GNEParameterAssert(section != NSNotFound);
     if (section == NSNotFound)
     {
         return;
@@ -1111,7 +1111,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     
     NSIndexPath *fromIndexPath = [self p_indexPathOfOutlineViewItem:item];
     
-    NSParameterAssert(fromIndexPath);
+    GNEParameterAssert(fromIndexPath);
     if (fromIndexPath == nil)
     {
         return;
@@ -1143,8 +1143,8 @@ static const CGFloat kDefaultRowHeight = 32.0f;
                                  toRow:(NSUInteger)toRow
                inOutlineViewParentItem:(GNEOutlineViewParentItem *)toParentItem
 {
-    NSParameterAssert(item);
-    NSParameterAssert(toParentItem);
+    GNEParameterAssert(item);
+    GNEParameterAssert(toParentItem);
     
     GNEOutlineViewParentItem *fromParentItem = item.parentItem;
     
@@ -1157,8 +1157,8 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     NSIndexPath *actualIndexPath = [self p_indexPathOfOutlineViewItem:item];
     NSUInteger toSection = [self p_sectionForOutlineViewParentItem:toParentItem];
     
-    NSParameterAssert(actualIndexPath);
-    NSParameterAssert(toSection != NSNotFound);
+    GNEParameterAssert(actualIndexPath);
+    GNEParameterAssert(toSection != NSNotFound);
     if (actualIndexPath == nil || toSection == NSNotFound)
     {
         return;
@@ -1191,8 +1191,8 @@ static const CGFloat kDefaultRowHeight = 32.0f;
                                     inSection:(NSUInteger)section
                                         toRow:(NSUInteger)toRow
 {
-    NSParameterAssert(section < self.outlineViewParentItems.count &&
-                      section < self.outlineViewItems.count);
+    GNEParameterAssert(section < self.outlineViewParentItems.count &&
+                       section < self.outlineViewItems.count);
     
     NSMutableIndexSet *mutableFromRows = [fromRows mutableCopy];
     
@@ -1234,7 +1234,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
         }
         
         GNEOutlineViewParentItem *parentItem = [strongSelf p_outlineViewParentItemForSection:section];
-        NSParameterAssert([strongSelf p_sectionForOutlineViewParentItem:parentItem] == section);
+        GNEParameterAssert([strongSelf p_sectionForOutlineViewParentItem:parentItem] == section);
         
         if (parentItem == nil)
         {
@@ -1321,7 +1321,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
  */
 - (NSIndexSet *)p_indexSetByRemovingInvalidSectionsFromIndexSet:(NSIndexSet *)sections
 {
-    NSParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
+    GNEParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
     
     if (sections.count == 0)
     {
@@ -1361,7 +1361,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
  */
 - (NSUInteger)p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)parentItem
 {
-    NSParameterAssert([parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+    GNEParameterAssert([parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
     
     NSUInteger index = [self.outlineViewParentItems indexOfObject:parentItem];
     
@@ -1389,7 +1389,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
         GNEOutlineViewItem *item = [strongSelf itemAtRow:(NSInteger)idx];
         if (item.parentItem == nil)
         {
-            NSParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
+            GNEParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
             NSUInteger section = [strongSelf p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
             if (section != NSNotFound)
             {
@@ -1500,7 +1500,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
  */
 - (GNEOutlineViewItem *)p_outlineViewItemAtIndex:(NSUInteger)index ofParent:(GNEOutlineViewParentItem *)parentItem
 {
-    NSParameterAssert(parentItem == nil || [parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+    GNEParameterAssert(parentItem == nil || [parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
     
     if (parentItem)
     {
@@ -1546,12 +1546,12 @@ static const CGFloat kDefaultRowHeight = 32.0f;
  */
 - (GNEOutlineViewParentItem *)p_outlineViewParentItemWithIndexPath:(NSIndexPath *)indexPath
 {
-    NSParameterAssert(indexPath);
-    NSParameterAssert(indexPath.gne_row == NSNotFound);
+    GNEParameterAssert(indexPath);
+    GNEParameterAssert(indexPath.gne_row == NSNotFound);
     
     NSUInteger parentItemsCount = self.outlineViewParentItems.count;
     
-    NSParameterAssert(indexPath.gne_section < parentItemsCount);
+    GNEParameterAssert(indexPath.gne_section < parentItemsCount);
     
     if (indexPath.gne_section < parentItemsCount)
     {
@@ -1570,7 +1570,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
  */
 - (GNEOutlineViewItem *)p_outlineViewItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSParameterAssert(indexPath);
+    GNEParameterAssert(indexPath);
     
     // If it's an outline view parent item, call the appropriate method.
     if (indexPath.gne_row == NSNotFound)
@@ -1580,14 +1580,14 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     
     NSUInteger sectionCount = self.outlineViewItems.count;
     
-    NSParameterAssert(indexPath.gne_section < sectionCount);
+    GNEParameterAssert(indexPath.gne_section < sectionCount);
     
     if (indexPath.gne_section < sectionCount)
     {
         NSArray *sectionArray = self.outlineViewItems[indexPath.gne_section];
         NSUInteger rowCount = sectionArray.count;
         
-        NSParameterAssert(indexPath.gne_row < rowCount);
+        GNEParameterAssert(indexPath.gne_row < rowCount);
         
         if (indexPath.gne_row < rowCount)
         {
@@ -1640,7 +1640,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (NSUInteger)p_numberOfOutlineViewItemsForOutlineViewParentItem:(GNEOutlineViewParentItem *)parentItem
 {
-    NSParameterAssert([parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+    GNEParameterAssert([parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
     
     NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
     if (section < self.outlineViewItems.count)
@@ -1769,7 +1769,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
             if (parentItem == nil &&
                 [strongSelf.tableViewDataSource respondsToSelector:sectionSelector])
             {
-                NSParameterAssert([draggedItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+                GNEParameterAssert([draggedItem isKindOfClass:[GNEOutlineViewParentItem class]]);
                 
                 NSUInteger fromSection = [strongSelf p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)draggedItem];
                 canDrag = [strongSelf.tableViewDataSource tableView:strongSelf
@@ -1920,7 +1920,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 #pragma clang diagnostic pop
     NSUInteger numberOfSectionsInOutlineView = (NSUInteger)[self p_numberOfSections];
     
-    NSParameterAssert(numberOfSectionsInDataSource == numberOfSectionsInOutlineView);
+    GNEParameterAssert(numberOfSectionsInDataSource == numberOfSectionsInOutlineView);
     
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
@@ -1928,7 +1928,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 #pragma clang diagnostic pop
     NSUInteger numberOfRowsInOutlineView = [self p_numberOfRowsInOutlineView] - [self p_numberOfSections];
     
-    NSParameterAssert(numberOfRowsInDataSource == numberOfRowsInOutlineView);
+    GNEParameterAssert(numberOfRowsInDataSource == numberOfRowsInOutlineView);
 }
 #else
 - (void)p_checkDataSourceIntegrity
@@ -1943,7 +1943,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 {
     for (NSIndexPath *indexPath in indexPaths)
     {
-        NSParameterAssert([indexPath isKindOfClass:[NSIndexPath class]] && indexPath.length == 2);
+        GNEParameterAssert([indexPath isKindOfClass:[NSIndexPath class]] && indexPath.length == 2);
     }
 }
 #else
@@ -1967,7 +1967,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
             child:(NSInteger)index
            ofItem:(GNEOutlineViewParentItem *)parentItem
 {
-    NSParameterAssert(parentItem == nil || [parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+    GNEParameterAssert(parentItem == nil || [parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
     
     return [self p_outlineViewItemAtIndex:(NSUInteger)index ofParent:parentItem];
 }
@@ -1975,7 +1975,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (BOOL)outlineView:(NSOutlineView * __unused)outlineView isItemExpandable:(GNEOutlineViewItem *)item
 {
-    NSParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
     
     if (item)
     {
@@ -1995,7 +1995,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (NSInteger)outlineView:(NSOutlineView * __unused)outlineView numberOfChildrenOfItem:(GNEOutlineViewItem *)item
 {
-    NSParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
     
     if (item)
     {
@@ -2017,7 +2017,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
   objectValueForTableColumn:(NSTableColumn * __unused)tableColumn
                      byItem:(GNEOutlineViewItem *)item
 {
-    NSParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
     
     return item;
 }
@@ -2028,7 +2028,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 // ------------------------------------------------------------------------------------------
 - (CGFloat)outlineView:(NSOutlineView * __unused)outlineView heightOfRowByItem:(GNEOutlineViewItem *)item
 {
-    NSParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
     
     // Section header
     if (item.parentItem == nil)
@@ -2055,7 +2055,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (BOOL)outlineView:(NSOutlineView * __unused)outlineView isGroupItem:(GNEOutlineViewItem *)item
 {
-    NSParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
     
     return NO;
 }
@@ -2063,8 +2063,8 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (NSTableRowView *)outlineView:(NSOutlineView *)outlineView rowViewForItem:(GNEOutlineViewItem *)item
 {
-    NSParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
-    NSParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:rowViewForRowAtIndexPath:)]);
+    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:rowViewForRowAtIndexPath:)]);
     
     // Section header
     if (item.parentItem == nil)
@@ -2107,8 +2107,8 @@ static const CGFloat kDefaultRowHeight = 32.0f;
      viewForTableColumn:(NSTableColumn * __unused)tableColumn
                    item:(GNEOutlineViewItem *)item
 {
-    NSParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
-    NSParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:cellViewForRowAtIndexPath:)]);
+    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:cellViewForRowAtIndexPath:)]);
     
     // Section header
     if (item.parentItem == nil)
@@ -2175,7 +2175,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 // ------------------------------------------------------------------------------------------
 - (BOOL)outlineView:(NSOutlineView * __unused)outlineView shouldExpandItem:(GNEOutlineViewItem *)item
 {
-    NSParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
     
     // Don't allow rows to be expanded.
     if (item.parentItem)
@@ -2196,7 +2196,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (BOOL)outlineView:(NSOutlineView * __unused)outlineView shouldCollapseItem:(GNEOutlineViewItem *)item
 {
-    NSParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
     
     // Don't allow rows to be collapsed.
     if (item.parentItem)
@@ -2220,7 +2220,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 // ------------------------------------------------------------------------------------------
 - (BOOL)outlineView:(NSOutlineView * __unused)outlineView shouldSelectItem:(GNEOutlineViewItem *)item
 {
-    NSParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
     
     // Don't allow the selection of the root object (not that it is even possible).
     if (item == nil)
@@ -2288,7 +2288,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
         GNEOutlineViewParentItem *parentItem = item.parentItem;
         if (parentItem == nil && [self.tableViewDelegate respondsToSelector:selectHeaderSelector])
         {
-            NSParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
+            GNEParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
             NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
             [self.tableViewDelegate tableView:self didSelectHeaderInSection:section];
         }
@@ -2321,7 +2321,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 - (id<NSPasteboardWriting>)outlineView:(NSOutlineView * __unused)outlineView
                pasteboardWriterForItem:(GNEOutlineViewItem *)item
 {
-    NSParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
     
     BOOL canDrag = YES;
     
@@ -2329,7 +2329,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     if (parentItem == nil &&
         [self.tableViewDataSource respondsToSelector:@selector(tableView:canDragSection:)])
     {
-        NSParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
+        GNEParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
         
         NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
         canDrag = [self.tableViewDataSource tableView:self canDragSection:section];
@@ -2485,7 +2485,7 @@ static const CGFloat kDefaultRowHeight = 32.0f;
     }
     else // Calculate the destination index path and move the items there.
     {
-        NSParameterAssert([proposedParentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+        GNEParameterAssert([proposedParentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
         
         NSUInteger toSection = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)proposedParentItem];
         NSIndexPath *toIndexPath = [NSIndexPath gne_indexPathForRow:(NSUInteger)proposedChildIndex
@@ -2556,8 +2556,8 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 // ------------------------------------------------------------------------------------------
 - (void)setTableViewDataSource:(id<GNESectionedTableViewDataSource>)tableViewDataSource
 {
-    NSParameterAssert(tableViewDataSource == nil ||
-                      [tableViewDataSource conformsToProtocol:@protocol(GNESectionedTableViewDataSource)]);
+    GNEParameterAssert(tableViewDataSource == nil ||
+                       [tableViewDataSource conformsToProtocol:@protocol(GNESectionedTableViewDataSource)]);
     
     if (_tableViewDataSource != tableViewDataSource)
     {
@@ -2570,8 +2570,8 @@ static const CGFloat kDefaultRowHeight = 32.0f;
 
 - (void)setTableViewDelegate:(id<GNESectionedTableViewDelegate>)tableViewDelegate
 {
-    NSParameterAssert(tableViewDelegate == nil ||
-                      [tableViewDelegate conformsToProtocol:@protocol(GNESectionedTableViewDelegate)]);
+    GNEParameterAssert(tableViewDelegate == nil ||
+                       [tableViewDelegate conformsToProtocol:@protocol(GNESectionedTableViewDelegate)]);
     
     if (_tableViewDelegate != tableViewDelegate)
     {
