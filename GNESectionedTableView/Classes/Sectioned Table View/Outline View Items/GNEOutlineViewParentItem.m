@@ -92,7 +92,7 @@ static NSString * const kOutlineViewParentItemVisibleKey = @"visible";
 // ------------------------------------------------------------------------------------------
 - (void)setParentItem:(GNEOutlineViewParentItem * __unused)parentItem
 {
-    NSAssert(NO, @"Outline view parent items cannot themselves have parent items.");
+    NSAssert(NO, @"Outline view parent items cannot have parent items.");
 }
 
 
