@@ -94,6 +94,9 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 - (void)setTableView:(GNESectionedTableView *)tableView
 {
     _tableView = tableView;
+    
+    [tableView reloadData];
+    [tableView expandAllSections:NO];
 }
 
 
