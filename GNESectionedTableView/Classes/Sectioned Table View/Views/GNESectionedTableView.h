@@ -105,20 +105,20 @@ static const CGFloat GNESectionedTableViewInvisibleRowHeight = 1.0f;
 - (BOOL)tableView:(GNESectionedTableView *)tableView canDragRowAtIndexPath:(NSIndexPath *)indexPath;
 @optional
 -       (BOOL)tableView:(GNESectionedTableView *)tableView
-  canDragRowAtIndexPath:(NSIndexPath *)fromIndexPath
-              toSection:(NSUInteger)toSection;
+  canDropRowAtIndexPath:(NSIndexPath *)fromIndexPath
+       onRowAtIndexPath:(NSIndexPath *)toIndexPath;
 @optional
 -       (BOOL)tableView:(GNESectionedTableView *)tableView
   canDragRowAtIndexPath:(NSIndexPath *)fromIndexPath
             toIndexPath:(NSIndexPath *)toIndexPath;
 @optional
 -       (void)tableView:(GNESectionedTableView *)tableView
-didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
-            toIndexPath:(NSIndexPath *)toIndexPath;
+didDropRowsAtIndexPaths:(NSArray *)fromIndexPaths
+       onRowAtIndexPath:(NSIndexPath *)toIndexPath;
 @optional
 -       (void)tableView:(GNESectionedTableView *)tableView
 didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
-              toSection:(NSUInteger)toSection;
+            toIndexPath:(NSIndexPath *)toIndexPath;
 
 
 @end
@@ -142,17 +142,21 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 @optional
 - (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForHeaderInSection:(NSUInteger)section;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didDisplayRowView:(NSTableRowView *)rowView forRow:(NSUInteger)row;
+- (void)tableView:(GNESectionedTableView *)tableView
+didDisplayRowView:(NSTableRowView *)rowView
+      atIndexPath:(NSIndexPath *)indexPath;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didDisplayCellView:(NSTableCellView *)cellView forRow:(NSUInteger)row;
+-   (void)tableView:(GNESectionedTableView *)tableView
+ didDisplayCellView:(NSTableCellView *)cellView
+        atIndexPath:(NSIndexPath *)indexPath;
 @optional
-        - (void)tableView:(GNESectionedTableView *)tableView
-  didEndDisplayingRowView:(NSTableRowView *)rowView
-                   forRow:(NSUInteger)row;
+-       (void)tableView:(GNESectionedTableView *)tableView
+didEndDisplayingRowView:(NSTableRowView *)rowView
+            atIndexPath:(NSIndexPath *)indexPath;
 @optional
-        - (void)tableView:(GNESectionedTableView *)tableView
- didEndDisplayingCellView:(NSTableCellView *)cellView
-                   forRow:(NSUInteger)row;
+-           (void)tableView:(GNESectionedTableView *)tableView
+   didEndDisplayingCellView:(NSTableCellView *)cellView
+                atIndexPath:(NSIndexPath *)indexPath;
 
 /* Expand/Collapse */
 @optional
@@ -329,14 +333,36 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 - (void)selectRowAtIndexPath:(NSIndexPath *)indexPath byExtendingSelection:(BOOL)extend;
 
 
-#pragma mark - Frame of Table View Cells
+#pragma mark - Layout Support
 /**
- Returns the frame of the table view cell at the specified index.
+ Returns the index path for the section header or row at the specified point or nil if the point
+ does not correspond to a subview of the table view.
  
- @param indexPath Index path for the cell.
- @return Frame of the cell at the specified index path in the coordinate space of the table view.
+ @param point Point in the coordinate system of the receiver.
+ @return Index path for the section header or row at the specified point or nil.
  */
-- (CGRect)frameOfCellAtIndexPath:(NSIndexPath *)indexPath;
+- (NSIndexPath *)indexPathForViewAtPoint:(CGPoint)point;
+
+
+/**
+ Returns the frame of the section header or row at the specified index path.
+ 
+ @discussion As with the rest of this project, this method assumes that the table view only has one
+ column. If the table view has more than one column, this method returns the frame for the last
+ column in the row.
+ @param indexPath Index path for the section header or row.
+ @return Frame of the view at the specified index path in the coordinate space of the table view.
+ */
+- (CGRect)frameOfViewAtIndexPath:(NSIndexPath *)indexPath;
+
+
+/**
+ Returns the frame for the section header and all expanded rows of specified section.
+ 
+ @param section Section index.
+ @return Frame encompassing the section header and all expanded rows of the specified section.
+ */
+- (CGRect)frameOfSection:(NSUInteger)section;
 
 
 #pragma mark - Scrolling

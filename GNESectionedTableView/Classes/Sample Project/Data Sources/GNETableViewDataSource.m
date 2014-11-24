@@ -634,21 +634,19 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 }
 
 
+-       (BOOL)tableView:(GNESectionedTableView * __unused)tableView
+  canDropRowAtIndexPath:(NSIndexPath *)fromIndexPath
+       onRowAtIndexPath:(NSIndexPath *)toIndexPath
+{
+    return ([fromIndexPath compare:toIndexPath] != NSOrderedSame);
+}
+
+
 - (BOOL)tableView:(GNESectionedTableView * __unused)tableView
    canDragSection:(NSUInteger)fromSection
         toSection:(NSUInteger)toSection
 {
     return (fromSection != toSection);
-}
-
-
--       (BOOL)tableView:(GNESectionedTableView * __unused)tableView
-  canDragRowAtIndexPath:(NSIndexPath *)fromIndexPath
-              toSection:(NSUInteger)toSection
-{
-    NSLog(@"canDragRowAtIndexPath: (%lu, %lu) toSection: %lu", fromIndexPath.gne_section, fromIndexPath.gne_row, toSection);
-    
-    return YES;
 }
 
 
@@ -663,22 +661,20 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 
 
 -       (void)tableView:(GNESectionedTableView * __unused)tableView
+didDropRowsAtIndexPaths:(NSArray *)fromIndexPaths
+       onRowAtIndexPath:(NSIndexPath *)toIndexPath
+{
+    NSLog(@"didDropRowsAtIndexPaths: %@ onRowAtIndexPath: %@", fromIndexPaths, toIndexPath);
+}
+
+
+-       (void)tableView:(GNESectionedTableView * __unused)tableView
         didDragSections:(NSIndexSet *)fromSections
               toSection:(NSUInteger)toSection
 {
     NSLog(@"didDragSections: %@ toSection: %lu", fromSections, toSection);
     
     [self p_moveSections:fromSections toSection:toSection];
-}
-
-
--       (void)tableView:(GNESectionedTableView * __unused)tableView
-didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
-              toSection:(NSUInteger)toSection
-{
-    NSLog(@"didDragRowsatIndexPaths: %@ toSection: %lu", fromIndexPaths, toSection);
-    
-    [self p_moveRowsAtIndexPaths:fromIndexPaths toSection:toSection];
 }
 
 
