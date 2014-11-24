@@ -602,7 +602,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             NSUInteger section = (proposedSection > sectionCount) ? sectionCount : proposedSection;
             
             GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc] init];
-            parentItem.visible = [self p_outlineViewParentItemIsVisibleForSection:section];
+            parentItem.visible = [self p_isOutlineViewParentItemVisibleForSection:section];
             [outlineViewParentItemsCopy gne_insertObject:parentItem atIndex:section];
             
             NSMutableArray *rows = [NSMutableArray array];
@@ -996,7 +996,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     GNEOutlineViewItem *item = ((NSArray *)self.outlineViewItems[section])[row];
     NSInteger tableViewRow = [self rowForItem:item];
     
-    if (tableViewRow >= 0)
+    if (tableViewRow >= 0 &&
+        tableViewRow < self.numberOfRows)
     {
         [self selectRowIndexes:[NSIndexSet indexSetWithIndex:(NSUInteger)tableViewRow]
           byExtendingSelection:extend];
@@ -1082,7 +1083,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc] init];
         parentItem.pasteboardWritingDelegate = self;
-        BOOL isVisible = [self p_outlineViewParentItemIsVisibleForSection:section];
+        BOOL isVisible = [self p_isOutlineViewParentItemVisibleForSection:section];
         parentItem.visible = isVisible;
         
         [self.outlineViewParentItems addObject:parentItem];
@@ -1109,18 +1110,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
  @param section Section of the outline view parent item.
  @return YES if the outline view parent item is visible, otherwise NO.
  */
-- (BOOL)p_outlineViewParentItemIsVisibleForSection:(NSUInteger)section
+- (BOOL)p_isOutlineViewParentItemVisibleForSection:(NSUInteger)section
 {
-    if ([self.tableViewDelegate respondsToSelector:@selector(tableView:heightForHeaderInSection:)] &&
-        [self.tableViewDelegate respondsToSelector:@selector(tableView:rowViewForHeaderInSection:)])
+    if ([self.tableViewDelegate respondsToSelector:@selector(tableView:heightForHeaderInSection:)])
     {
         CGFloat height = [self.tableViewDelegate tableView:self heightForHeaderInSection:section];
-        NSTableRowView *rowView = [self.tableViewDelegate tableView:self rowViewForHeaderInSection:section];
         
-        if (height >= 1.0f && rowView)
-        {
-            return YES;
-        }
+        return (height >= 1.0f);
     }
     
     return NO;
@@ -2291,7 +2287,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     if (item.parentItem == nil)
     {
         NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
-        if (section != NSNotFound && [self p_outlineViewParentItemIsVisibleForSection:section])
+        if (section != NSNotFound &&
+            [self p_isOutlineViewParentItemVisibleForSection:section])
         {
             return [self.tableViewDelegate tableView:self heightForHeaderInSection:section];
         }
