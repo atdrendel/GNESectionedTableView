@@ -92,6 +92,8 @@ static const CGFloat GNESectionedTableViewInvisibleRowHeight = 1.0f;
 @optional
 - (NSArray *)draggedTypesForTableView:(GNESectionedTableView *)tableView;
 @optional
+- (void)tableViewDraggingSessionWillBegin:(GNESectionedTableView *)tableView;
+@optional
 - (BOOL)tableView:(GNESectionedTableView *)tableView canDragSection:(NSUInteger)section;
 @optional
 - (BOOL)tableView:(GNESectionedTableView *)tableView
@@ -119,6 +121,8 @@ didDropRowsAtIndexPaths:(NSArray *)fromIndexPaths
 -       (void)tableView:(GNESectionedTableView *)tableView
 didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
             toIndexPath:(NSIndexPath *)toIndexPath;
+@optional
+- (void)tableViewDraggingSessionDidEnd:(GNESectionedTableView *)tableView;
 
 
 @end

@@ -2122,6 +2122,86 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
+/**
+ Retargets the proposed parent item and/or proposed child index for the specified drag operation if needed.
+ Returns YES if the proposed targets were changed, otherwise NO.
+ 
+ @discussion If the user drags a row to a section header, we need to retarget it to the last index in the
+ previous section. Additionally, if the user drags the row past the last row, we need to retarget it to 
+ the count (last index plus one) of the last section.
+ @param info Drag operation
+ @param proposedParentItemPtr Pointer to a pointer to an instance of GNEOutlineViewItem or nil.
+ @param proposedChildIndexPtr Pointer to the proposedChildIndex integer.
+ @return YES if the drop was retargeted, otherwise NO.
+ */
+- (BOOL)p_retargetDropOnDragOperation:(id<NSDraggingInfo>)info
+                 toProposedParentItem:(GNEOutlineViewItem **)proposedParentItemPtr
+                   proposedChildIndex:(NSInteger *)proposedChildIndexPtr
+{
+    if (proposedParentItemPtr == NULL || proposedChildIndexPtr == NULL)
+    {
+        return NO;
+    }
+    
+    GNEOutlineViewItem *proposedParent = *proposedParentItemPtr;
+    NSInteger proposedChildIndex = *proposedChildIndexPtr;
+    GNEOutlineViewParentItem *parentItem = proposedParent.parentItem;
+    if (proposedParent && parentItem == nil)
+    {
+        GNEParameterAssert([proposedParent isKindOfClass:[GNEOutlineViewParentItem class]]);
+        
+        GNEOutlineViewParentItem *aParentItem = (GNEOutlineViewParentItem *)proposedParent;
+        NSUInteger toSection = [self p_sectionForOutlineViewParentItem:aParentItem];
+        
+        if (toSection > 0 && toSection != NSNotFound)
+        {
+            NSUInteger prevSection = toSection - 1;
+            GNEOutlineViewParentItem *prevParentItem = [self p_outlineViewParentItemForSection:prevSection];
+            GNEParameterAssert(prevParentItem);
+            NSUInteger rowCount = [self p_numberOfOutlineViewItemsForOutlineViewParentItem:prevParentItem];
+            *proposedParentItemPtr = prevParentItem;
+            *proposedChildIndexPtr = (NSInteger)rowCount;
+            [self setDropItem:prevParentItem dropChildIndex:proposedChildIndex];
+            
+            return YES;
+        }
+    }
+    else if (proposedParent && parentItem)
+    {
+        GNEParameterAssert([proposedParent isMemberOfClass:[GNEOutlineViewItem class]]);
+        GNEParameterAssert([parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+        
+        /*
+         When a row is dragged past the last row in the table view, the default behavior is to create a "drop on"
+         drag operation to the last row. What we want is to be able to drag the row past the last row and
+         reorder them. So, we have to do that manually here.
+         */
+        
+        NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:proposedParent];
+        CGRect rowFrame = [self frameOfViewAtIndexPath:indexPath];
+        NSUInteger proposedParentChildIndex = (indexPath) ? indexPath.gne_row : NSNotFound;
+        NSUInteger rowCount = [self p_numberOfOutlineViewItemsForOutlineViewParentItem:parentItem];
+        if (CGRectEqualToRect(CGRectZero, rowFrame) == NO && proposedParentChildIndex != NSNotFound &&
+            rowCount > 0 && proposedParentChildIndex == (rowCount - 1))
+        {
+            CGPoint draggingLocation = [info draggingLocation];
+            CGPoint convertedDraggingLocation = [self convertPoint:draggingLocation fromView:nil];
+            CGFloat bottomThirdOriginY = rowFrame.origin.y + ((2.0f/3.0f) * rowFrame.size.height);
+            if (convertedDraggingLocation.y > bottomThirdOriginY)
+            {
+                *proposedParentItemPtr = parentItem;
+                *proposedChildIndexPtr = (NSInteger)rowCount;
+                [self setDropItem:parentItem dropChildIndex:(NSInteger)rowCount];
+                
+                return YES;
+            }
+        }
+    }
+    
+    return NO;
+}
+
+
 - (GNEDragLocation)p_dragLocationForWindowPoint:(CGPoint)windowPoint
                                       inSection:(NSUInteger)section
 {
@@ -2620,6 +2700,12 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
    willBeginAtPoint:(NSPoint __unused)screenPoint
            forItems:(NSArray * __unused)draggedItems
 {
+    SEL selector = @selector(tableViewDraggingSessionWillBegin:);
+    if ([self.tableViewDataSource respondsToSelector:selector])
+    {
+        [self.tableViewDataSource tableViewDraggingSessionWillBegin:self];
+    }
+    
     session.draggingFormation = NSDraggingFormationNone;
     CGPoint draggingLocation = session.draggingLocation;
     CGRect screenDraggingLocation = CGRectMake(draggingLocation.x, draggingLocation.y, 0.0f, 0.0f);
@@ -2688,29 +2774,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     else
     {
         // Retarget "drop on" drags that target section headers.
-        if (proposedChildIndex == NSOutlineViewDropOnItemIndex &&
-            proposedParentItem &&
-            proposedParentItem.parentItem == nil)
+        if (proposedChildIndex == NSOutlineViewDropOnItemIndex)
         {
-            GNEParameterAssert([proposedParentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
-            
-            GNEOutlineViewParentItem *aParentItem = (GNEOutlineViewParentItem *)proposedParentItem;
-            NSUInteger toSection = [self p_sectionForOutlineViewParentItem:aParentItem];
-            
-            if (toSection > 0)
-            {
-                NSUInteger prevSection = toSection - 1;
-                GNEOutlineViewParentItem *prevParentItem = [self p_outlineViewParentItemForSection:prevSection];
-                GNEParameterAssert(prevParentItem);
-                NSUInteger rowCount = [self p_numberOfOutlineViewItemsForOutlineViewParentItem:prevParentItem];
-                proposedParentItem = prevParentItem;
-                proposedChildIndex = (NSInteger)rowCount;
-                [self setDropItem:prevParentItem dropChildIndex:proposedChildIndex];
-            }
-            else // Don't allow items to be dragged before the first section header.
-            {
-                return dragOperation;
-            }
+            [self p_retargetDropOnDragOperation:info
+                           toProposedParentItem:&proposedParentItem
+                             proposedChildIndex:&proposedChildIndex];
         }
         
         dragOperation = [self p_rowDragOperationForDrop:info
@@ -2792,7 +2860,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
        endedAtPoint:(NSPoint __unused)screenPoint
           operation:(NSDragOperation __unused)operation
 {
-    
+    SEL selector = @selector(tableViewDraggingSessionDidEnd:);
+    if ([self.tableViewDataSource respondsToSelector:selector])
+    {
+        [self.tableViewDataSource tableViewDraggingSessionDidEnd:self];
+    }
 }
 
 
