@@ -1996,27 +1996,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             return;
         }
         
-        // Retarget drop on section header
-        if (proposedParentItem && parentItem == nil)
-        {
-            GNEOutlineViewParentItem *aParentItem = (GNEOutlineViewParentItem *)proposedParentItem;
-            NSUInteger toSection = [strongSelf p_sectionForOutlineViewParentItem:aParentItem];
-            
-            if (toSection > 0)
-            {
-                NSUInteger prevSection = toSection - 1;
-                GNEOutlineViewParentItem *prevParentItem = [self p_outlineViewParentItemForSection:prevSection];
-                if (prevParentItem)
-                {
-                    NSUInteger rowCount = [self p_numberOfOutlineViewItemsForOutlineViewParentItem:prevParentItem];
-                    [self setDropItem:prevParentItem dropChildIndex:(NSInteger)rowCount];
-                    canDropOn = YES;
-                }
-            }
-        }
         // Drop on row
-        else if (proposedParentItem && parentItem &&
-                 [strongSelf.tableViewDataSource respondsToSelector:rowSelector])
+        if (proposedParentItem && parentItem &&
+            [strongSelf.tableViewDataSource respondsToSelector:rowSelector])
         {
             NSIndexPath *toIndexPath = [strongSelf p_indexPathOfOutlineViewItem:proposedParentItem];
             canDropOn = [strongSelf.tableViewDataSource tableView:strongSelf
@@ -2038,7 +2020,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 - (BOOL)p_performDropOnDragOperationWithProposedParentItem:(GNEOutlineViewItem *)proposedParentItem
                                             fromIndexPaths:(NSArray *)fromIndexPaths
 {
-    NSParameterAssert(proposedParentItem.parentItem);
+    GNEParameterAssert(proposedParentItem.parentItem);
     
     SEL selector = @selector(tableView:didDropRowsAtIndexPaths:onRowAtIndexPath:);
     
@@ -2708,6 +2690,32 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }
     else
     {
+        // Retarget "drop on" drags that target section headers.
+        if (proposedChildIndex == NSOutlineViewDropOnItemIndex &&
+            proposedParentItem &&
+            proposedParentItem.parentItem == nil)
+        {
+            GNEParameterAssert([proposedParentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+            
+            GNEOutlineViewParentItem *aParentItem = (GNEOutlineViewParentItem *)proposedParentItem;
+            NSUInteger toSection = [self p_sectionForOutlineViewParentItem:aParentItem];
+            
+            if (toSection > 0)
+            {
+                NSUInteger prevSection = toSection - 1;
+                GNEOutlineViewParentItem *prevParentItem = [self p_outlineViewParentItemForSection:prevSection];
+                GNEParameterAssert(prevParentItem);
+                NSUInteger rowCount = [self p_numberOfOutlineViewItemsForOutlineViewParentItem:prevParentItem];
+                proposedParentItem = prevParentItem;
+                proposedChildIndex = (NSInteger)rowCount;
+                [self setDropItem:prevParentItem dropChildIndex:proposedChildIndex];
+            }
+            else // Don't allow items to be dragged before the first section header.
+            {
+                return dragOperation;
+            }
+        }
+        
         dragOperation = [self p_rowDragOperationForDrop:info
                                      proposedParentItem:proposedParentItem
                                      proposedChildIndex:proposedChildIndex];
