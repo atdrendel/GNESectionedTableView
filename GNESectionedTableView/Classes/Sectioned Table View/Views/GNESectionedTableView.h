@@ -335,6 +335,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 #pragma mark - Selection
 - (BOOL)isIndexPathSelected:(NSIndexPath *)indexPath;
 - (void)selectRowAtIndexPath:(NSIndexPath *)indexPath byExtendingSelection:(BOOL)extend;
+- (void)selectRowsAtIndexPaths:(NSArray *)indexPaths byExtendingSelection:(BOOL)extend;
 
 
 #pragma mark - Layout Support

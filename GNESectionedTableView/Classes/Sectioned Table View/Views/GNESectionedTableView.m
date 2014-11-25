@@ -193,7 +193,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [self.outlineViewItems removeAllObjects];
     
     [self p_buildOutlineViewItemArrays];
-    [super reloadData];
+    [super reloadItem:nil reloadChildren:YES];
 }
 
 
@@ -1005,6 +1005,28 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
+- (void)selectRowsAtIndexPaths:(NSArray *)indexPaths byExtendingSelection:(BOOL)extend
+{
+    if (indexPaths.count == 0)
+    {
+        return;
+    }
+    
+    NSMutableIndexSet *tableViewRowIndexes = [NSMutableIndexSet indexSet];
+    
+    for (NSIndexPath *indexPath in indexPaths)
+    {
+        NSInteger tableViewRow = [self tableViewRowForIndexPath:indexPath];
+        if (tableViewRow >= 0)
+        {
+            [tableViewRowIndexes addIndex:(NSUInteger)tableViewRow];
+        }
+    }
+    
+    [self selectRowIndexes:tableViewRowIndexes byExtendingSelection:extend];
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Public - Layout Support
 // ------------------------------------------------------------------------------------------
@@ -1775,63 +1797,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [self setDraggingSourceOperationMask:(NSDragOperationGeneric | NSDragOperationMove)
                                 forLocal:YES];
 }
-
-
-//- (NSDragOperation)p_dragOperationForDrop:(id<NSDraggingInfo>)info
-//                        toProposedSection:(NSUInteger)toSection
-//{
-//    __block BOOL canDrag = YES;
-//    
-//    __weak typeof(self) weakSelf = self;
-//    [info enumerateDraggingItemsWithOptions:0
-//                                    forView:self
-//                                    classes:@[[GNEOutlineViewItem class]]
-//                              searchOptions:nil
-//                                 usingBlock:^(NSDraggingItem *draggingItem,
-//                                              NSInteger idx __unused,
-//                                              BOOL *stop)
-//    {
-//        __strong typeof(weakSelf) strongSelf = weakSelf;
-//        
-//        GNEOutlineViewItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
-//        
-//        if (draggedItem)
-//        {
-//            GNEOutlineViewParentItem *parentItem = draggedItem.parentItem;
-//            
-//            SEL sectionSelector = @selector(tableView:canDragSection:toSection:);
-//            SEL rowSelector = @selector(tableView:canDragRowAtIndexPath:toSection:);
-//            if (parentItem == nil &&
-//                [strongSelf.tableViewDataSource respondsToSelector:sectionSelector])
-//            {
-//                GNEParameterAssert([draggedItem isKindOfClass:[GNEOutlineViewParentItem class]]);
-//                
-//                NSUInteger fromSection = [strongSelf p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)draggedItem];
-//                canDrag = [strongSelf.tableViewDataSource tableView:strongSelf
-//                                                     canDragSection:fromSection
-//                                                          toSection:toSection];
-//            }
-//            else if (parentItem && [strongSelf.tableViewDataSource respondsToSelector:rowSelector])
-//            {
-//                NSIndexPath *fromIndexPath = [strongSelf p_indexPathOfOutlineViewItem:draggedItem];
-//                canDrag = [strongSelf.tableViewDataSource tableView:strongSelf
-//                                              canDragRowAtIndexPath:fromIndexPath
-//                                                          toSection:toSection];
-//            }
-//            
-//            if (canDrag == NO)
-//            {
-//                *stop = YES;
-//            }
-//        }
-//    }];
-//    
-//    // TODO: Add ability to retarget drop here.
-//    // - (NSIndexPath *)tableView:(GNESectionedTableView *)tableView targetIndexPathForMoveFromSection:(NSUInteger *)fromSection toProposedSection:(NSUInteger)proposedToSection
-//    // - (NSIndexPath *)tableView:(GNESectionedTableView *)tableView targetIndexPathForMoveFromRowAtIndexPath:(NSIndexPath *)fromIndexPath toProposedIndexPath:(NSIndexPath *)proposedToIndexPath
-//    
-//    return ((canDrag) ? NSDragOperationMove : NSDragOperationNone);
-//}
 
 
 - (NSDragOperation)p_sectionDragOperationForDrop:(id<NSDraggingInfo>)info
