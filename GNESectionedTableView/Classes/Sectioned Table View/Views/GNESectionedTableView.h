@@ -232,6 +232,17 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 - (instancetype)initWithFrame:(NSRect)frameRect;
 
 
+#pragma mark - Reload data
+/**
+ Reloads the table view. This deletes all of the stored section, row, and selection data and queries the data
+ source and delegates to rebuild the table.
+ 
+ @discussion This method replaces reloadItem: and reloadItem:reloadChildren: in NSOutlineView. It is strongly
+ advised to not call those methods.
+ */
+- (void)reloadData;
+
+
 #pragma mark - Views
 /**
  Returns the index path corresponding to the specified view or nil if the view is not an instance

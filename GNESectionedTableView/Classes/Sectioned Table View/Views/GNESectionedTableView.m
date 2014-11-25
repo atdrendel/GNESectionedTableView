@@ -189,6 +189,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 - (void)reloadData
 {
+    [self selectRowIndexes:nil byExtendingSelection:NO];
+    
     [self.outlineViewParentItems removeAllObjects];
     [self.outlineViewItems removeAllObjects];
     
