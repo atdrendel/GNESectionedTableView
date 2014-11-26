@@ -270,9 +270,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     NSUInteger sectionCount = self.outlineViewItems.count;
     if (indexPath.gne_section < sectionCount)
     {
+        BOOL isSectionHeader = (indexPath.gne_row == NSNotFound);
         NSUInteger rowCount = ((NSArray *)self.outlineViewItems[indexPath.gne_section]).count;
         
-        return (indexPath.gne_row < rowCount);
+        return (isSectionHeader || indexPath.gne_row < rowCount);
     }
     
     return NO;
