@@ -1461,6 +1461,57 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
+- (NSIndexSet *)p_indexSetOfTableViewRowsForIndexPaths:(NSArray *)indexPaths
+{
+    if (indexPaths.count == 0)
+    {
+        return nil;
+    }
+    
+    NSMutableIndexSet *mutableIndexSet = [NSMutableIndexSet indexSet];
+    for (NSIndexPath *indexPath in indexPaths)
+    {
+        NSInteger tableViewRow = [self tableViewRowForIndexPath:indexPath];
+        if (tableViewRow >= 0)
+        {
+            [mutableIndexSet addIndex:(NSUInteger)tableViewRow];
+        }
+    }
+    
+    return ((mutableIndexSet.count > 0) ? [mutableIndexSet copy] : nil);
+}
+
+
+- (NSIndexSet *)p_indexSetOfTableViewRowsForSectionIndexes:(NSIndexSet *)sectionIndexes
+{
+    if (sectionIndexes.count == 0)
+    {
+        return nil;
+    }
+    
+    NSMutableIndexSet *mutableIndexSet = [NSMutableIndexSet indexSet];
+    
+    __weak typeof(self) weakSelf = self;
+    [sectionIndexes enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stop __unused)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf == nil)
+        {
+            return;
+        }
+        
+        NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
+        NSInteger tableViewRow = [strongSelf tableViewRowForIndexPath:indexPath];
+        if (tableViewRow >= 0)
+        {
+            [mutableIndexSet addIndex:(NSUInteger) tableViewRow];
+        }
+    }];
+    
+    return ((mutableIndexSet.count > 0) ? [mutableIndexSet copy] : nil);
+}
+
+
 /**
  Returns the index path pointing to the specified outline view item in the outline view items array.
  
@@ -2576,6 +2627,98 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }
     
     return NO;
+}
+
+
+-           (NSIndexSet *)outlineView:(NSOutlineView * __unused)outlineView
+ selectionIndexesForProposedSelection:(NSIndexSet *)proposedSelectionIndexes
+{
+    SEL selector = @selector(tableView:sectionIndexesForProposedSelectedSections:indexPathsForProposedSelectedRowIndexPaths:);
+    
+    if ([self.tableViewDelegate respondsToSelector:selector] == NO)
+    {
+        return proposedSelectionIndexes;
+    }
+    
+    SEL sectionSelector = @selector(tableView:shouldSelectHeaderInSection:);
+    SEL rowSelector = @selector(tableView:shouldSelectRowAtIndexPath:);
+    
+    NSMutableIndexSet *mutableSectionIndexes = [NSMutableIndexSet indexSet];
+    NSMutableArray *mutableIndexPaths = [NSMutableArray array];
+    __weak typeof(self) weakSelf = self;
+    [proposedSelectionIndexes enumerateIndexesUsingBlock:^(NSUInteger tableViewRow,
+                                                           BOOL *stop __unused)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf == nil)
+        {
+            return;
+        }
+        
+        id <GNESectionedTableViewDelegate> tableViewDelegate = strongSelf.tableViewDelegate;
+        
+        NSIndexPath *indexPath = [strongSelf indexPathForTableViewRow:(NSInteger)tableViewRow];
+        
+        if (indexPath == nil)
+        {
+            return;
+        }
+        
+        // Section header
+        if (indexPath.gne_row == NSNotFound)
+        {
+            BOOL addSection = YES;
+            if ([tableViewDelegate respondsToSelector:sectionSelector])
+            {
+                addSection = [tableViewDelegate tableView:strongSelf
+                              shouldSelectHeaderInSection:indexPath.gne_section];
+            }
+            
+            if (addSection)
+            {
+                [mutableSectionIndexes addIndex:indexPath.gne_section];
+            }
+        }
+        else // Row index path
+        {
+            BOOL addRow = YES;
+            if ([tableViewDelegate respondsToSelector:rowSelector])
+            {
+                addRow = [tableViewDelegate tableView:strongSelf shouldSelectRowAtIndexPath:indexPath];
+            }
+            
+            if (addRow)
+            {
+                [mutableIndexPaths addObject:indexPath];
+            }
+        }
+    }];
+    
+    NSMutableIndexSet *proposedSectionIndexes = (mutableSectionIndexes.count > 0) ? mutableSectionIndexes : nil;
+    NSMutableArray *proposedIndexPaths = (mutableIndexPaths.count > 0) ? mutableIndexPaths : nil;
+    
+    [self.tableViewDelegate                 tableView:self
+            sectionIndexesForProposedSelectedSections:&proposedSectionIndexes
+           indexPathsForProposedSelectedRowIndexPaths:&proposedIndexPaths];
+    
+    NSMutableIndexSet *approvedSelectionIndexes = [NSMutableIndexSet indexSet];
+    
+    if (proposedSectionIndexes && proposedSectionIndexes.count > 0)
+    {
+        NSIndexSet *approvedSectionIndexes = [self
+                                              p_indexSetOfTableViewRowsForSectionIndexes:proposedSectionIndexes];
+        [approvedSelectionIndexes addIndexes:approvedSectionIndexes];
+    }
+    
+    if (proposedIndexPaths && proposedIndexPaths.count > 0)
+    {
+        NSIndexSet *approvedRowIndexes = [self
+                                          p_indexSetOfTableViewRowsForIndexPaths:proposedIndexPaths];
+        
+        [approvedSelectionIndexes addIndexes:approvedRowIndexes];
+    }
+    
+    return ((approvedSelectionIndexes.count > 0) ? [approvedSelectionIndexes copy] : nil);
 }
 
 
