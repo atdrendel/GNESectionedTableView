@@ -785,7 +785,15 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         GNEOutlineViewParentItem *parentItem = nil;
         if (section < sectionCount && (parentItem = [self p_outlineViewParentItemForSection:section]))
         {
-            [self reloadItem:parentItem reloadChildren:YES];
+            [self reloadItem:parentItem];
+            if (section < self.outlineViewItems.count)
+            {
+                NSArray *children = self.outlineViewItems[section];
+                for (id child in children)
+                {
+                    [self reloadItem:child];
+                }
+            }
         }
     }];
     [self endUpdates];
@@ -2634,7 +2642,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 -           (NSIndexSet *)outlineView:(NSOutlineView * __unused)outlineView
  selectionIndexesForProposedSelection:(NSIndexSet *)proposedSelectionIndexes
 {
-    SEL selector = @selector(tableView:sectionIndexesForProposedSelectedSections:indexPathsForProposedSelectedRowIndexPaths:);
+    SEL selector = @selector(tableView:
+                             indexesForProposedSelectedHeadersInSections:
+                             indexPathsForProposedSelectedRowIndexPaths:);
     
     if ([self.tableViewDelegate respondsToSelector:selector] == NO)
     {
@@ -2699,7 +2709,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     NSMutableArray *proposedIndexPaths = (mutableIndexPaths.count > 0) ? mutableIndexPaths : nil;
     
     [self.tableViewDelegate                 tableView:self
-            sectionIndexesForProposedSelectedSections:&proposedSectionIndexes
+          indexesForProposedSelectedHeadersInSections:&proposedSectionIndexes
            indexPathsForProposedSelectedRowIndexPaths:&proposedIndexPaths];
     
     NSMutableIndexSet *approvedSelectionIndexes = [NSMutableIndexSet indexSet];

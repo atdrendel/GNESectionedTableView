@@ -175,8 +175,8 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 - (BOOL)tableView:(GNESectionedTableView *)tableView shouldSelectRowAtIndexPath:(NSIndexPath *)indexPath;
 @optional
 -                           (void)tableView:(GNESectionedTableView *)tableView
-  sectionIndexesForProposedSelectedSections:(NSIndexSet **)sectionIndexes
- indexPathsForProposedSelectedRowIndexPaths:(NSArray **)indexPath;
+indexesForProposedSelectedHeadersInSections:(NSIndexSet **)sectionIndexes
+ indexPathsForProposedSelectedRowIndexPaths:(NSArray **)indexPaths;
 @optional
 - (void)tableView:(GNESectionedTableView *)tableView didClickHeaderInSection:(NSUInteger)section;
 @optional
