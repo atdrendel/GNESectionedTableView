@@ -861,7 +861,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             if (index < count)
             {
                 GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[index];
-                [outlineView expandItem:parentItem];
+                if ([strongSelf isItemExpanded:parentItem] == NO)
+                {
+                    [outlineView expandItem:parentItem];
+                }
             }
         }
     }];
@@ -909,7 +912,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             if (index < count)
             {
                 GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[index];
-                [outlineView collapseItem:parentItem];
+                if ([strongSelf isItemExpanded:parentItem])
+                {
+                    [outlineView collapseItem:parentItem];
+                }
             }
         }
     }];
