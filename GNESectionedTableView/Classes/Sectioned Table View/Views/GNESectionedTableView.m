@@ -2800,7 +2800,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     GNEParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
     
-    BOOL canDrag = YES;
+    BOOL canDrag = NO;
     
     GNEOutlineViewParentItem *parentItem = item.parentItem;
     if (parentItem == nil &&
