@@ -147,8 +147,19 @@ static NSString * const GNEOutlineViewItemDraggedIndexPathKey = @"GNEOutlineView
 // ------------------------------------------------------------------------------------------
 - (NSString *)description
 {
-    return [NSString
-            stringWithFormat:@"<%@: %p> Parent: %@", [self className], self, self.parentItem];
+    NSString *indexPathString = @"";
+    id <GNEOutlineViewItemPasteboardWritingDelegate> theDelegate = self.pasteboardWritingDelegate;
+    SEL selector = @selector(draggedIndexPathForOutlineViewItem:);
+    if ([theDelegate respondsToSelector:selector])
+    {
+        NSIndexPath *indexPath = [theDelegate draggedIndexPathForOutlineViewItem:self];
+        unsigned long section = indexPath.gne_section;
+        unsigned long row = indexPath.gne_row;
+        indexPathString = [NSString stringWithFormat:@" Index Path: {%lu, %lu}", section, row];
+    }
+    
+    return [NSString stringWithFormat:@"<%@: %p>%@ Parent: %@",
+            [self className], self, indexPathString, self.parentItem];
 }
 
 

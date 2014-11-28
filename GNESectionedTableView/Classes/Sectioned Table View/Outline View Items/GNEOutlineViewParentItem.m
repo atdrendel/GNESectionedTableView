@@ -88,6 +88,26 @@ static NSString * const kOutlineViewParentItemVisibleKey = @"visible";
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Description
+// ------------------------------------------------------------------------------------------
+- (NSString *)description
+{
+    NSString *sectionString = @"";
+    id <GNEOutlineViewItemPasteboardWritingDelegate> theDelegate = self.pasteboardWritingDelegate;
+    SEL selector = @selector(draggedIndexPathForOutlineViewItem:);
+    if ([theDelegate respondsToSelector:selector])
+    {
+        NSIndexPath *indexPath = [theDelegate draggedIndexPathForOutlineViewItem:self];
+        unsigned long section = indexPath.gne_section;
+        sectionString = [NSString stringWithFormat:@" Section: %lu", section];
+    }
+    
+    return [NSString stringWithFormat:@"<%@: %p>%@",
+            [self className], self, sectionString];
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Accessors
 // ------------------------------------------------------------------------------------------
 - (void)setParentItem:(GNEOutlineViewParentItem * __unused)parentItem
