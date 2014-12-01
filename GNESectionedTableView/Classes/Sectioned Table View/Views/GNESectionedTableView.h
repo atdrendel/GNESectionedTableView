@@ -58,6 +58,15 @@
 #endif
 
 
+#ifndef GNE_CRUD_LOGGING_ENABLED
+    #if DEBUG
+        #define GNE_CRUD_LOGGING_ENABLED 1
+    #else
+        #define GNE_CRUD_LOGGING_ENABLED 0
+    #endif
+#endif
+
+
 // By default, unsafe row heights are allowed. They work in 10.9 and above, but not 10.8.
 #ifndef UNSAFE_ROW_HEIGHT_ALLOWED
     #define UNSAFE_ROW_HEIGHT_ALLOWED 1

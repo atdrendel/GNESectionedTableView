@@ -323,7 +323,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 - (void)insertRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
-#ifdef DEBUG
+#if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), indexPaths);
 #endif
     
@@ -355,6 +355,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             for (NSIndexPath *indexPath in indexPathsInSection)
             {
                 GNEOutlineViewItem *outlineViewItem = [[GNEOutlineViewItem alloc] initWithParentItem:parentItem];
+                outlineViewItem.pasteboardWritingDelegate = self;
                 [insertedIndexes addIndex:[rows gne_insertObject:outlineViewItem atIndex:indexPath.gne_row]];
             }
             
@@ -369,7 +370,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)deleteRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
-#ifdef DEBUG
+#if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), indexPaths);
 #endif
     
@@ -412,7 +413,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
          
             GNEParameterAssert([item.parentItem isEqual:parentItem]);
             
-#if DEBUG
+#if GNE_CRUD_LOGGING_ENABLED
             NSIndexPath *actualIndexPath = [self p_indexPathOfOutlineViewItem:item];
             GNEParameterAssert([actualIndexPath compare:indexPath] == NSOrderedSame);
 #endif
@@ -492,7 +493,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPath:(NSIndexPath *)toIndexPath
 {
-#ifdef DEBUG
+#if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\nFrom %@ to %@", NSStringFromSelector(_cmd), fromIndexPaths, toIndexPath);
 #endif
     
@@ -555,7 +556,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)reloadRowsAtIndexPaths:(NSArray *)indexPaths
 {
-#ifdef DEBUG
+#if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), indexPaths);
 #endif
     
@@ -586,7 +587,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
-#ifdef DEBUG
+#if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), sections);
 #endif
     
@@ -605,6 +606,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             NSUInteger section = (proposedSection > sectionCount) ? sectionCount : proposedSection;
             
             GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc] init];
+            parentItem.pasteboardWritingDelegate = self;
             parentItem.visible = [self p_isOutlineViewParentItemVisibleForSection:section];
             [outlineViewParentItemsCopy gne_insertObject:parentItem atIndex:section];
             
@@ -616,6 +618,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             for (NSUInteger row = 0; row < rowCount; row++)
             {
                 GNEOutlineViewItem *item = [[GNEOutlineViewItem alloc] initWithParentItem:parentItem];
+                item.pasteboardWritingDelegate = self;
                 
                 [rows addObject:item];
             }
@@ -638,7 +641,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)deleteSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
-#ifdef DEBUG
+#if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), sections);
 #endif
     
@@ -688,7 +691,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)moveSections:(NSIndexSet *)fromSections toSection:(NSUInteger)toSection
 {
-#ifdef DEBUG
+#if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\nFrom: %@ To: %lu", NSStringFromSelector(_cmd), fromSections, toSection);
 #endif
     
@@ -771,7 +774,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)reloadSections:(NSIndexSet *)sections
 {
-#ifdef DEBUG
+#if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), sections);
 #endif
     
