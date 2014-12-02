@@ -196,6 +196,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     [self p_buildOutlineViewItemArrays];
     [super reloadItem:nil reloadChildren:YES];
+    [self expandAllSections:NO];
 }
 
 
