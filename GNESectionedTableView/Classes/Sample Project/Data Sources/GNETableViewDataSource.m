@@ -135,6 +135,7 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 - (void)p_buildAndConfigureSectionsAndRows
 {
     NSUInteger sectionCount = MAX((NSUInteger)arc4random_uniform(10), (NSUInteger)3);
+    sectionCount = 10;
     
     self.sections = [NSMutableArray arrayWithCapacity:sectionCount];
     self.rows = [NSMutableArray arrayWithCapacity:sectionCount];
@@ -144,6 +145,7 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
         [self.sections addObject:[self p_stringForSection:section]];
         
         NSUInteger rowCount = arc4random_uniform(10);
+        rowCount = 4;
         NSMutableArray *rowsArray = [NSMutableArray array];
         for (NSUInteger row = 0; row < rowCount; row++)
         {
@@ -181,8 +183,6 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 // ------------------------------------------------------------------------------------------
 - (void)p_buildAndConfigureTimers
 {
-    return;
-    
     self.updateTimer = [NSTimer timerWithTimeInterval:15
                                                target:self
                                              selector:@selector(p_performRandomUpdates)
@@ -194,6 +194,8 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 
 - (void)p_performRandomUpdates
 {
+    return;
+    
     if ([self.sections count] == 0)
     {
         [self p_insertRandomSections];
@@ -621,14 +623,15 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 
 
 - (BOOL)tableView:(GNESectionedTableView * __unused)tableView
-   canMoveSection:(NSUInteger __unused)section
+   canDragSection:(NSUInteger __unused)section
 {
     return YES;
 }
 
 
+
 -       (BOOL)tableView:(GNESectionedTableView * __unused)tableView
-  canMoveRowAtIndexPath:(NSIndexPath * __unused)indexPath
+  canDragRowAtIndexPath:(NSIndexPath * __unused)indexPath
 {
     return YES;
 }
