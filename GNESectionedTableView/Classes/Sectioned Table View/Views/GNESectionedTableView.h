@@ -41,22 +41,37 @@
 // ------------------------------------------------------------------------------------------
 
 
-#ifndef GNE_PARAMETER_ASSERT_ENABLED
+#ifndef GNE_ASSERT_ENABLED
     #if DEBUG
-        #define GNE_PARAMETER_ASSERT_ENABLED 1
+        #define GNE_ASSERT_ENABLED 1
     #else
-        #define GNE_PARAMETER_ASSERT_ENABLED 0
+        #define GNE_ASSERT_ENABLED 0
     #endif
 #endif
 
 #ifndef GNEParameterAssert
-    #if GNE_PARAMETER_ASSERT_ENABLED
+    #if GNE_ASSERT_ENABLED
         #define GNEParameterAssert(condition) NSParameterAssert(condition)
     #else
         #define GNEParameterAssert(condition) do { } while (0)
     #endif
 #endif
 
+#ifndef GNEAssert1
+    #if GNE_ASSERT_ENABLED
+        #define GNEAssert1(condition, desc, arg1) NSAssert1(condition, desc, arg1)
+    #else
+        #define GNEAssert1(condition, desc, arg1) do { } while (0)
+    #endif
+#endif
+
+#ifndef GNEAssert2
+    #if GNE_ASSERT_ENABLED
+        #define GNEAssert2(condition, desc, arg1, arg2) NSAssert2(condition, desc, arg1, arg2)
+    #else
+        #define GNEAssert2(condition, desc, arg1, arg2) do { } while (0)
+    #endif
+#endif
 
 #ifndef GNE_CRUD_LOGGING_ENABLED
     #if DEBUG

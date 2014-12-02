@@ -341,7 +341,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             NSUInteger section = ((NSIndexPath *)indexPathsInSection.firstObject).gne_section;
             
             GNEOutlineViewParentItem *parentItem = [self p_outlineViewParentItemForSection:section];
-            NSAssert1(parentItem, @"No outline view parent item exists for section %lu", (long unsigned)section);
+            GNEAssert1(parentItem, @"No outline view parent item exists for section %lu", (long unsigned)section);
             
             if (parentItem == nil)
             {
@@ -1647,7 +1647,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         return self.outlineViewParentItems[index];
     }
     
-    NSAssert2(NO, @"Could not find item at index %lu of parent %@", (unsigned long)index, parentItem);
+    GNEAssert2(NO, @"Could not find item at index %lu of parent %@", (unsigned long)index, parentItem);
     
     return nil;
 }
