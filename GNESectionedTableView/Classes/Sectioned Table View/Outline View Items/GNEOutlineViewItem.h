@@ -56,7 +56,7 @@ extern NSString * const GNEOutlineViewItemParentItemKey;
 // ------------------------------------------------------------------------------------------
 
 
-@interface GNEOutlineViewItem : NSObject <NSCoding, NSPasteboardReading, NSPasteboardWriting>
+@interface GNEOutlineViewItem : NSObject <NSSecureCoding, NSPasteboardReading, NSPasteboardWriting>
 
 
 @property (nonatomic, weak) id <GNEOutlineViewItemPasteboardWritingDelegate> pasteboardWritingDelegate;

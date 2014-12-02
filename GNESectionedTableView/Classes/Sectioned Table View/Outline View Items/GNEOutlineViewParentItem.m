@@ -71,9 +71,17 @@ static NSString * const kOutlineViewParentItemVisibleKey = @"visible";
 // ------------------------------------------------------------------------------------------
 - (instancetype)initWithCoder:(NSCoder *)aDecoder
 {
+    NSNumber *visibleNumber = [aDecoder decodeObjectOfClass:[NSNumber class]
+                                                     forKey:kOutlineViewParentItemVisibleKey];
+    
+    if (visibleNumber == nil)
+    {
+        return nil;
+    }
+    
     if ((self = [super initWithCoder:aDecoder]))
     {
-        _visible = [aDecoder decodeBoolForKey:kOutlineViewParentItemVisibleKey];
+        _visible = visibleNumber.boolValue;
     }
     
     return self;
@@ -83,7 +91,7 @@ static NSString * const kOutlineViewParentItemVisibleKey = @"visible";
 - (void)encodeWithCoder:(NSCoder *)aCoder
 {
     [super encodeWithCoder:aCoder];
-    [aCoder encodeBool:self.visible forKey:kOutlineViewParentItemVisibleKey];
+    [aCoder encodeObject:@(self.visible) forKey:kOutlineViewParentItemVisibleKey];
 }
 
 

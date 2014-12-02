@@ -74,14 +74,16 @@ static NSString * const GNEOutlineViewItemDraggedIndexPathKey = @"GNEOutlineView
 
 
 // ------------------------------------------------------------------------------------------
-#pragma mark - NSCoding
+#pragma mark - NSSecureCoding
 // ------------------------------------------------------------------------------------------
 - (instancetype)initWithCoder:(NSCoder *)aDecoder
 {
     if ((self = [super init]))
     {
-        _parentItem = [aDecoder decodeObjectForKey:GNEOutlineViewItemParentItemKey];
-        _draggedIndexPath = [aDecoder decodeObjectForKey:GNEOutlineViewItemDraggedIndexPathKey];
+        _parentItem = [aDecoder decodeObjectOfClass:[GNEOutlineViewParentItem class]
+                                             forKey:GNEOutlineViewItemParentItemKey];
+        _draggedIndexPath = [aDecoder decodeObjectOfClass:[NSIndexPath class]
+                                                   forKey:GNEOutlineViewItemDraggedIndexPathKey];
     }
     
     return self;
@@ -97,6 +99,12 @@ static NSString * const GNEOutlineViewItemDraggedIndexPathKey = @"GNEOutlineView
         NSIndexPath *indexPath = [delegate draggedIndexPathForOutlineViewItem:self];
         [aCoder encodeObject:indexPath forKey:GNEOutlineViewItemDraggedIndexPathKey];
     }
+}
+
+
++ (BOOL)supportsSecureCoding
+{
+    return YES;
 }
 
 
