@@ -2605,6 +2605,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 #pragma mark - NSOutlineViewDelegate - Selection
 // ------------------------------------------------------------------------------------------
+/**
+ This method will never be called because outlineView:selectionIndexesForProposedSelection:
+ is implemented.
+ */
 - (BOOL)outlineView:(NSOutlineView * __unused)outlineView shouldSelectItem:(GNEOutlineViewItem *)item
 {
     GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
@@ -2649,21 +2653,20 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
+/**
+ This method is messy because it calls the delegate's shouldSelectHeader and shouldSelectRow methods
+ when determining the allowable selections. Because this method is implemented,
+ outlineView:shouldSelectItem: will never be called.
+ */
 -           (NSIndexSet *)outlineView:(NSOutlineView * __unused)outlineView
  selectionIndexesForProposedSelection:(NSIndexSet *)proposedSelectionIndexes
 {
-    SEL selector = @selector(tableView:
-                             indexesForProposedSelectedHeadersInSections:
-                             indexPathsForProposedSelectedRowIndexPaths:);
-    
-    if ([self.tableViewDelegate respondsToSelector:selector] == NO)
-    {
-        return proposedSelectionIndexes;
-    }
+    SEL selector = @selector(tableView:proposedSelectedHeadersInSections:proposedSelectedRowIndexPaths:);
     
     SEL sectionSelector = @selector(tableView:shouldSelectHeaderInSection:);
     SEL rowSelector = @selector(tableView:shouldSelectRowAtIndexPath:);
     
+    // Convert all table view row indexes into section indexes and/or row index paths.
     NSMutableIndexSet *mutableSectionIndexes = [NSMutableIndexSet indexSet];
     NSMutableArray *mutableIndexPaths = [NSMutableArray array];
     __weak typeof(self) weakSelf = self;
@@ -2715,13 +2718,20 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         }
     }];
     
-    NSMutableIndexSet *proposedSectionIndexes = (mutableSectionIndexes.count > 0) ? mutableSectionIndexes : nil;
-    NSMutableArray *proposedIndexPaths = (mutableIndexPaths.count > 0) ? mutableIndexPaths : nil;
+    NSIndexSet *proposedSectionIndexes = [mutableSectionIndexes copy];
+    NSArray *proposedIndexPaths = [mutableIndexPaths copy];
     
-    [self.tableViewDelegate                 tableView:self
-          indexesForProposedSelectedHeadersInSections:&proposedSectionIndexes
-           indexPathsForProposedSelectedRowIndexPaths:&proposedIndexPaths];
+    // If the delegate implements tableView:proposedSelectedHeadersInSections:proposedSelectedRowIndexPaths:
+    // then send it the proposals and act on the return values. If the delegate doesn't implement the method
+    // use the values we calculated based on its responses to the previous queries.
+    if ([self.tableViewDelegate respondsToSelector:selector])
+    {
+        [self.tableViewDelegate tableView:self
+        proposedSelectedHeadersInSections:&proposedSectionIndexes
+            proposedSelectedRowIndexPaths:&proposedIndexPaths];
+    }
     
+    // Re-transform the approved section indexes and index paths into table view row indexes.
     NSMutableIndexSet *approvedSelectionIndexes = [NSMutableIndexSet indexSet];
     
     if (proposedSectionIndexes && proposedSectionIndexes.count > 0)
