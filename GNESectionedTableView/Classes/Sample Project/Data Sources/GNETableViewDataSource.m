@@ -44,6 +44,9 @@ static NSString * const kCellViewIdentifier = @"com.goneeast.CellViewIdentifier"
 static NSString * const kHeaderRowViewIdentifier = @"com.goneeast.HeaderRowViewIdentifier";
 static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellViewIdentifier";
 
+static NSString * const kFooterRowViewIdentifier = @"com.goneeast.FooterRowViewIdentifer";
+static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellViewIdentifer";
+
 
 // ------------------------------------------------------------------------------------------
 
@@ -583,7 +586,7 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 - (NSTableRowView *)tableView:(GNESectionedTableView *)tableView
      rowViewForRowAtIndexPath:(NSIndexPath * __unused)indexPath
 {
-    GNETableRowView *rowView = [tableView makeViewWithIdentifier:kRowViewIdentifier owner:tableView];
+    GNETableRowView *rowView = [tableView makeViewWithIdentifier:kRowViewIdentifier owner:self];
     
     if (rowView == nil)
     {
@@ -600,7 +603,7 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
 - (NSTableCellView *)tableView:(GNESectionedTableView *)tableView
      cellViewForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    GNETableCellView *cellView = [tableView makeViewWithIdentifier:kCellViewIdentifier owner:tableView];
+    GNETableCellView *cellView = [tableView makeViewWithIdentifier:kCellViewIdentifier owner:self];
     
     if (cellView == nil)
     {
@@ -617,6 +620,8 @@ static NSString * const kHeaderCellViewIdentifier = @"com.goneeast.HeaderCellVie
     {
         cellView.title = @"";
     }
+    
+    cellView.layer.backgroundColor = [NSColor colorWithCalibratedRed:0.0 green:0.0 blue:1.0 alpha:0.2].CGColor;
     
     return cellView;
 }
@@ -710,6 +715,13 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 }
 
 
+-       (CGFloat)tableView:(GNESectionedTableView * __unused)tableView
+  heightForFooterInSection:(NSUInteger __unused)section
+{
+    return 22.0f;
+}
+
+
 - (NSTableRowView *)tableView:(GNESectionedTableView *)tableView
     rowViewForHeaderInSection:(NSUInteger)section
 {
@@ -719,7 +731,7 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
         return nil;
     }
     
-    GNETableRowView *rowView = [tableView makeViewWithIdentifier:kHeaderRowViewIdentifier owner:tableView];
+    GNETableRowView *rowView = [tableView makeViewWithIdentifier:kHeaderRowViewIdentifier owner:self];
     
     if (rowView == nil)
     {
@@ -727,6 +739,23 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
         rowView.autoresizingMask = NSViewWidthSizable;
         rowView.identifier = kHeaderRowViewIdentifier;
         rowView.backgroundColor = [NSColor greenColor];
+    }
+    
+    return rowView;
+}
+
+
+- (NSTableRowView *)tableView:(GNESectionedTableView *)tableView
+    rowViewForFooterInSection:(NSUInteger __unused)section
+{
+    GNETableRowView *rowView = [tableView makeViewWithIdentifier:kFooterRowViewIdentifier owner:self];
+    
+    if (rowView == nil)
+    {
+        rowView = [[GNETableRowView alloc] initWithFrame:CGRectZero];
+        rowView.autoresizingMask = NSViewWidthSizable;
+        rowView.identifier = kFooterRowViewIdentifier;
+        rowView.backgroundColor = [NSColor blueColor];
     }
     
     return rowView;
@@ -742,16 +771,41 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
         return nil;
     }
     
-    GNEHeaderCellView *cellView = [tableView makeViewWithIdentifier:kHeaderCellViewIdentifier owner:tableView];
+    GNEHeaderCellView *cellView = [tableView makeViewWithIdentifier:kHeaderCellViewIdentifier owner:self];
     
     if (cellView == nil)
     {
         cellView = [[GNEHeaderCellView alloc] initWithFrame:CGRectZero];
-        [cellView setAutoresizingMask:NSViewWidthSizable];
+        cellView.autoresizingMask = NSViewWidthSizable;
         cellView.identifier = kHeaderCellViewIdentifier;
     }
     
+    cellView.layer.backgroundColor = [NSColor colorWithCalibratedRed:1.0 green:0.0 blue:0.0 alpha:0.2].CGColor;
     cellView.title = self.sections[section];
+    
+    return cellView;
+}
+
+
+- (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForFooterInSection:(NSUInteger)section
+{
+    NSArray *rowsArray = self.rows[section];
+    if (rowsArray.count <= 1)
+    {
+        return nil;
+    }
+    
+    GNEHeaderCellView *cellView = [tableView makeViewWithIdentifier:kFooterCellViewIdentifier owner:self];
+    
+    if (cellView == nil)
+    {
+        cellView = [[GNEHeaderCellView alloc] initWithFrame:CGRectZero];
+        cellView.autoresizingMask = NSViewWidthSizable;
+        cellView.identifier = kFooterCellViewIdentifier;
+    }
+    
+    cellView.layer.backgroundColor = [NSColor colorWithCalibratedRed:0.0 green:1.0 blue:0.0 alpha:0.2].CGColor;
+    cellView.title = [NSString stringWithFormat:@"Footer %lu", (unsigned long) section];
     
     return cellView;
 }

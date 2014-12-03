@@ -47,6 +47,9 @@ static NSString * const kOutlineViewStandardHeaderCellViewIdentifier =
 
 static const CGFloat kDefaultRowHeight = 32.0f;
 
+static const NSUInteger kSectionHeaderRowModifier = 1;
+static const NSUInteger kSectionFooterRowModifier = 2;
+
 typedef NS_ENUM(NSUInteger, GNEDragType)
 {
     GNEDragTypeBoth = 0,
@@ -271,22 +274,73 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     NSUInteger sectionCount = self.outlineViewItems.count;
     if (indexPath.gne_section < sectionCount)
     {
-        BOOL isSectionHeader = (indexPath.gne_row == NSNotFound);
+        BOOL isSectionHeader = [self isHeaderIndexPath:indexPath];
+        BOOL isSectionFooter = [self isFooterIndexPath:indexPath];
         NSUInteger rowCount = ((NSArray *)self.outlineViewItems[indexPath.gne_section]).count;
         
-        return (isSectionHeader || indexPath.gne_row < rowCount);
+        return (isSectionHeader || isSectionFooter || indexPath.gne_row < rowCount);
     }
     
     return NO;
 }
 
 
-- (NSIndexPath *)indexPathForSection:(NSUInteger)section
+- (BOOL)isHeaderIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath == nil)
+    {
+        return NO;
+    }
+    
+    NSUInteger sectionCount = self.numberOfSections;
+    
+    NSUInteger section = indexPath.gne_section;
+    NSUInteger row = indexPath.gne_row;
+    NSUInteger headerRow = (NSUInteger)(NSNotFound - kSectionHeaderRowModifier);
+    
+    return (section < sectionCount && row == headerRow);
+}
+
+
+- (BOOL)isFooterIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath == nil)
+    {
+        return NO;
+    }
+    
+    NSUInteger sectionCount = self.numberOfSections;
+    
+    NSUInteger section = indexPath.gne_section;
+    NSUInteger row = indexPath.gne_row;
+    NSUInteger footerRow = (NSUInteger)(NSNotFound - kSectionFooterRowModifier);
+    
+    return (section < sectionCount && row == footerRow);
+}
+
+
+- (NSIndexPath *)indexPathForHeaderInSection:(NSUInteger)section
 {
     NSUInteger sectionCount = self.numberOfSections;
     if (section < sectionCount)
     {
-        return [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
+        NSUInteger headerRow = (NSUInteger)(NSNotFound - kSectionHeaderRowModifier);
+        
+        return [NSIndexPath gne_indexPathForRow:headerRow inSection:section];
+    }
+    
+    return nil;
+}
+
+
+- (NSIndexPath *)indexPathForFooterInSection:(NSUInteger)section
+{
+    NSUInteger sectionCount = self.numberOfSections;
+    if (section < sectionCount)
+    {
+        NSUInteger footerRow = (NSUInteger)(NSNotFound - kSectionFooterRowModifier);
+        
+        return [NSIndexPath gne_indexPathForRow:footerRow inSection:section];
     }
     
     return nil;
@@ -608,13 +662,17 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             
             GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc] init];
             parentItem.pasteboardWritingDelegate = self;
-            parentItem.visible = [self p_isOutlineViewParentItemVisibleForSection:section];
+            parentItem.hasFooter = [self p_requestDelegateHasFooterInSection:section];
             [outlineViewParentItemsCopy gne_insertObject:parentItem atIndex:section];
             
             NSMutableArray *rows = [NSMutableArray array];
             [outlineViewItemsCopy gne_insertObject:rows atIndex:section];
             
+            // Check to make sure that the section was inserted at the correct index.
+            GNEParameterAssert(section == [self p_sectionForOutlineViewParentItem:parentItem]);
+            
             NSUInteger rowCount = [self.tableViewDataSource tableView:self numberOfRowsInSection:section];
+            rowCount += (parentItem.hasFooter) ? 1 : 0; // Add a footer item, if needed.
             
             for (NSUInteger row = 0; row < rowCount; row++)
             {
@@ -1126,14 +1184,14 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc] init];
         parentItem.pasteboardWritingDelegate = self;
-        BOOL isVisible = [self p_isOutlineViewParentItemVisibleForSection:section];
-        parentItem.visible = isVisible;
+        parentItem.hasFooter = [self p_requestDelegateHasFooterInSection:section];
         
         [self.outlineViewParentItems addObject:parentItem];
         NSMutableArray *rowArray = [NSMutableArray array];
         [self.outlineViewItems addObject:rowArray];
         
         NSUInteger rowCount = [self p_numberOfRowsInSection:section];
+        rowCount += ((parentItem.hasFooter) ? 1 : 0);
         for (NSUInteger row = 0; row < rowCount; row++)
         {
             GNEOutlineViewItem *item = [[GNEOutlineViewItem alloc] initWithParentItem:parentItem];
@@ -1145,24 +1203,64 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 
 /**
- Determines if the outline view parent item for the specified item is visible to the user based on the 
- height and row view of the section header returned by the table view delegate.
+ Returns YES if the specified section has a header, otherwise NO.
  
- @discussion This method should only be called when originally building the outline view item arrays. After the
- outline view parent items' visible property is initially set, it's up to the user to reload the cell.
- @param section Section of the outline view parent item.
- @return YES if the outline view parent item is visible, otherwise NO.
+ @discussion Returns YES if the table view delegate responds to
+ tableView:heightForHeaderInSection:, tableView:rowViewForHeaderInSection:, and
+ tableView:cellViewForHeaderInSection: and if the returned height for the header in
+ the specified section is greater than or equal to 1.0.
+ @param section Section to query the delegate for.
+ @return YES if the specified section has a header, otherwise NO.
  */
-- (BOOL)p_isOutlineViewParentItemVisibleForSection:(NSUInteger)section
+- (BOOL)p_requestDelegateHasHeaderInSection:(NSUInteger)section
 {
-    if ([self.tableViewDelegate respondsToSelector:@selector(tableView:heightForHeaderInSection:)])
+    SEL heightSelector = @selector(tableView:heightForHeaderInSection:);
+    SEL rowViewSelector = @selector(tableView:rowViewForHeaderInSection:);
+    SEL cellViewSelector = @selector(tableView:cellViewForHeaderInSection:);
+    
+    id <GNESectionedTableViewDelegate> theDelegate = self.tableViewDelegate;
+    
+    if ([theDelegate respondsToSelector:heightSelector] == NO ||
+        [theDelegate respondsToSelector:rowViewSelector] == NO ||
+        [theDelegate respondsToSelector:cellViewSelector] == NO)
     {
-        CGFloat height = [self.tableViewDelegate tableView:self heightForHeaderInSection:section];
-        
-        return (height >= 1.0f);
+        return NO;
     }
     
-    return NO;
+    CGFloat height = [theDelegate tableView:self heightForHeaderInSection:section];
+    
+    return (height >= 1.0f);
+}
+
+
+/**
+ Returns YES if the specified section has a footer, otherwise NO.
+ 
+ @discussion Returns YES if the table view delegate responds to
+ tableView:heightForFooterInSection:, tableView:rowViewForFooterInSection:,
+ and tableView:cellViewForFooterInSection: and if the returned height for
+ the footer in the specified section is greater than or equal to 1.0.
+ @param section Section to query the delegate for.
+ @return YES if the specified section has a footer, otherwise NO.
+ */
+- (BOOL)p_requestDelegateHasFooterInSection:(NSUInteger)section
+{
+    SEL heightSelector = @selector(tableView:heightForFooterInSection:);
+    SEL rowViewSelector = @selector(tableView:rowViewForFooterInSection:);
+    SEL cellViewSelector = @selector(tableView:cellViewForFooterInSection:);
+    
+    id <GNESectionedTableViewDelegate> theDelegate = self.tableViewDelegate;
+    
+    if ([theDelegate respondsToSelector:heightSelector] == NO ||
+        [theDelegate respondsToSelector:rowViewSelector] == NO ||
+        [theDelegate respondsToSelector:cellViewSelector] == NO)
+    {
+        return NO;
+    }
+    
+    CGFloat height = [theDelegate tableView:self heightForFooterInSection:section];
+    
+    return (height >= 1.0f);
 }
 
 
@@ -1448,7 +1546,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 
 /**
- Returns an index set of all of the sections headers contained in the specified row indexes, or nil if the
+ Returns an index set of all of the section headers contained in the specified row indexes, or nil if the
  row indexes do not correspond to any section headers.
  
  @param rowIndexes Table view indexes.
@@ -1460,15 +1558,57 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     NSMutableIndexSet *sectionIndexes = [NSMutableIndexSet indexSet];
     
     __weak typeof(self) weakSelf = self;
-    [rowIndexes enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop __unused)
+    [rowIndexes enumerateIndexesUsingBlock:^(NSUInteger tableViewRow, BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf == nil)
+        {
+            return;
+        }
 
-        GNEOutlineViewItem *item = [strongSelf itemAtRow:(NSInteger)idx];
+        GNEOutlineViewItem *item = [strongSelf itemAtRow:(NSInteger)tableViewRow];
         if (item.parentItem == nil)
         {
             GNEParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
             NSUInteger section = [strongSelf p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+            if (section != NSNotFound)
+            {
+                [sectionIndexes addIndex:section];
+            }
+        }
+    }];
+    
+    return ((sectionIndexes.count > 0) ? [sectionIndexes copy] : nil);
+}
+
+
+/**
+ Returns an index set of all of the section footers contained in the specified row indexes, or nil if the
+ row indexes do not correspond to any section footers.
+ 
+ @param rowIndexes Table view indexes.
+ @return Index set of the section footers or nil if the specified row indexes don't correspond to any
+ section footers.
+ */
+- (NSIndexSet *)p_indexSetOfSectionFootersAtTableViewRows:(NSIndexSet *)rowIndexes
+{
+    NSMutableIndexSet *sectionIndexes = [NSMutableIndexSet indexSet];
+    
+    __weak typeof(self) weakSelf = self;
+    [rowIndexes enumerateIndexesUsingBlock:^(NSUInteger tableViewRow, BOOL *stop __unused)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf == nil)
+        {
+            return;
+        }
+        
+        GNEOutlineViewItem *item = [strongSelf itemAtRow:(NSInteger)tableViewRow];
+        BOOL isFooter = [self p_isOutlineViewItemFooter:item];
+        if (isFooter)
+        {
+            NSUInteger section = [self p_sectionForOutlineViewParentItem:item.parentItem];
+            
             if (section != NSNotFound)
             {
                 [sectionIndexes addIndex:section];
@@ -1501,7 +1641,27 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (NSIndexSet *)p_indexSetOfTableViewRowsForSectionIndexes:(NSIndexSet *)sectionIndexes
+- (NSIndexSet *)p_indexSetOfTableViewRowsForHeadersInSections:(NSIndexSet *)sectionIndexes
+{
+    return [self p_indexSetOfTableViewRowsForAccessoryViewsInSections:sectionIndexes
+                                                          rowModifier:kSectionHeaderRowModifier];
+}
+
+
+- (NSIndexSet *)p_indexSetOfTableViewRowsForFootersInSections:(NSIndexSet *)sectionIndexes
+{
+    return [self p_indexSetOfTableViewRowsForAccessoryViewsInSections:sectionIndexes
+                                                          rowModifier:kSectionFooterRowModifier];
+}
+
+
+/**
+ Returns the index set for the table view rows corresponding to the accessory views
+ (e.g., headers or footers) having the specified row modifier in the specified sections. Returns
+ nil if the specified sections don't container accessory views having the specified row modifier.
+ */
+- (NSIndexSet *)p_indexSetOfTableViewRowsForAccessoryViewsInSections:(NSIndexSet *)sectionIndexes
+                                                         rowModifier:(NSUInteger)rowModifier
 {
     if (sectionIndexes.count == 0)
     {
@@ -1518,16 +1678,56 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         {
             return;
         }
-        
-        NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
+
+        NSUInteger accessoryViewRow = (NSUInteger)(NSNotFound - rowModifier);
+        NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:accessoryViewRow
+                                                        inSection:section];
         NSInteger tableViewRow = [strongSelf tableViewRowForIndexPath:indexPath];
         if (tableViewRow >= 0)
         {
-            [mutableIndexSet addIndex:(NSUInteger) tableViewRow];
+            [mutableIndexSet addIndex:(NSUInteger)tableViewRow];
         }
     }];
     
     return ((mutableIndexSet.count > 0) ? [mutableIndexSet copy] : nil);
+}
+
+
+/**
+ Returns the child index of the specified outline view item in its parent, otherwise NSNotFound.
+ Throws an exception if the specified outline view parent item does not match the specified
+ outline view item's parent.
+ */
+- (NSUInteger)p_childIndexOfOutlineViewItem:(GNEOutlineViewItem *)item
+                               inParentItem:(GNEOutlineViewParentItem *)parentItem
+{
+    GNEOutlineViewParentItem *theParentItem = item.parentItem;
+    
+    GNEParameterAssert([theParentItem isEqual:parentItem]);
+    
+    if ([theParentItem isEqual:parentItem])
+    {
+        return [self p_childIndexOfOutlineViewItem:item];
+    }
+    
+    return NSNotFound;
+}
+
+
+/// Returns the child index of the specified outline view item in its parent, otherwise NSNotFound.
+- (NSUInteger)p_childIndexOfOutlineViewItem:(GNEOutlineViewItem *)item
+{
+    NSUInteger section = [self p_sectionForOutlineViewParentItem:item.parentItem];
+    NSUInteger sectionCount = self.outlineViewItems.count;
+    
+    if (section == NSNotFound || section >= sectionCount)
+    {
+        return NSNotFound;
+    }
+    
+    NSArray *items = self.outlineViewItems[section];
+    
+    return [items indexOfObject:item];
 }
 
 
@@ -1547,41 +1747,52 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     NSUInteger sectionCount = self.outlineViewItems.count;
     
-    // If it's a outline view parent item, find its section and then make an appropriate index path for it.
+    // If it's a outline view parent item, make a section header index path for it.
     GNEOutlineViewParentItem *parentItem = item.parentItem;
     if (parentItem == nil)
     {
         NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
-        NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
+        NSIndexPath *indexPath = [self indexPathForHeaderInSection:section];
         
         return ((section == NSNotFound) ? nil : indexPath);
     }
-
-    // Find the outline view item in its parent's section.
+    
     NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
+
     if (section != NSNotFound && section < sectionCount)
     {
-        NSArray *sectionArray = self.outlineViewItems[section];
-        
-        NSUInteger row = [sectionArray indexOfObject:item];
-        if (row != NSNotFound)
+        // If it represents a section footer, make a section footer index path for it.
+        if ([self p_isOutlineViewItemFooter:item])
         {
-            return [NSIndexPath gne_indexPathForRow:row inSection:section];
+            return [self indexPathForFooterInSection:section];
         }
-    }
-    
-    // If the item wasn't found, iterate through all of the sections to find it.
-    for (section = 0; section < sectionCount; section++)
-    {
-        NSArray *sectionArray = self.outlineViewItems[section];
-        NSUInteger row = [sectionArray indexOfObject:item];
-        if (row != NSNotFound)
+        else // Find the outline view item in its parent's section.
         {
-            return [NSIndexPath gne_indexPathForRow:row inSection:section];
+            NSUInteger childIndex = [self p_childIndexOfOutlineViewItem:item];
+            
+            return ((childIndex == NSNotFound) ? nil : [NSIndexPath gne_indexPathForRow:childIndex
+                                                                              inSection:section]);
         }
     }
     
     return nil;
+}
+
+
+- (NSArray *)p_indexPathsByRemovingHeadersAndFootersFromIndexPaths:(NSArray *)indexPaths
+{
+    NSMutableArray *mutableIndexPaths = [NSMutableArray array];
+    
+    for (NSIndexPath *indexPath in indexPaths)
+    {
+        if ([self isHeaderIndexPath:indexPath] == NO &&
+            [self isFooterIndexPath:indexPath] == NO)
+        {
+            [mutableIndexPaths addObject:indexPath];
+        }
+    }
+    
+    return [mutableIndexPaths copy];
 }
 
 
@@ -1618,13 +1829,14 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 
 /**
- Returns the outline view item or outline view parent item located at the specified index in the outline view
-    items array or outline view parent items array, or nil if the item couldn't be found.
+ Returns the outline view item or outline view parent item located at the specified index in the outline
+ view items array or outline view parent items array, or nil if the item couldn't be found.
  
- @discussion Returns an outline view item if parentItem is not nil, otherwise returns an outline view parent item.
+ @discussion Returns an outline view item if parentItem is not nil, otherwise returns an outline view
+ parent item.
  @param index Index of the desired outline view item or parent item.
- @param parentItem Outline view parent item for the desired outline view item or nil if searching for an outline
-            view parent item.
+ @param parentItem Outline view parent item for the desired outline view item or nil if searching for
+ an outline view parent item.
  @return Outline view item or outline view parent item located at the specified index of the specified parent.
  */
 - (GNEOutlineViewItem *)p_outlineViewItemAtIndex:(NSUInteger)index ofParent:(GNEOutlineViewParentItem *)parentItem
@@ -1702,7 +1914,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     GNEParameterAssert(indexPath);
     
     // If it's an outline view parent item, call the appropriate method.
-    if (indexPath.gne_row == NSNotFound)
+    if ([self isHeaderIndexPath:indexPath])
     {
         return [self p_outlineViewParentItemForSection:indexPath.gne_section];
     }
@@ -1725,6 +1937,62 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }
     
     return nil;
+}
+
+
+/**
+ Returns the outline view item that represents the footer in the section of the specified
+ outline view parent item or nil if the section for the parent item doesn't have a footer
+ or can't be found.
+ */
+- (GNEOutlineViewItem *)p_outlineViewItemForFooterInOutlineViewParentItem:(GNEOutlineViewParentItem *)parentItem
+{
+    if (parentItem.hasFooter == NO)
+    {
+        return nil;
+    }
+    
+    NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
+    NSUInteger sectionCount = self.outlineViewItems.count;
+    
+    if (section == NSNotFound || section >= sectionCount)
+    {
+        return nil;
+    }
+    
+    NSArray *items = self.outlineViewItems[section];
+    NSUInteger rowCount = items.count;
+    
+    if (rowCount == 0)
+    {
+        return nil;
+    }
+    
+    GNEOutlineViewItem *item = items[rowCount - 1];
+    
+    return item;
+}
+
+
+/// Returns YES if the specified outline view item represents the footer in its section, otherwise NO.
+- (BOOL)p_isOutlineViewItemFooter:(GNEOutlineViewItem *)item
+{
+    GNEOutlineViewParentItem *parentItem = item.parentItem;
+    
+    if (parentItem == nil || parentItem.hasFooter == NO)
+    {
+        return NO;
+    }
+    
+    NSUInteger childCount = [self p_numberOfOutlineViewItemsForOutlineViewParentItem:parentItem];
+    NSUInteger childIndex = [self p_childIndexOfOutlineViewItem:item];
+    
+    if (childCount == 0 || childIndex == NSNotFound)
+    {
+        return NO;
+    }
+    
+    return ((childCount - 1) == childIndex);
 }
 
 
@@ -1753,20 +2021,28 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
+/**
+ Returns the total number of rows (headers, footers, and normal rows) contained in the outline
+ view.
+ */
 - (NSUInteger)p_numberOfRowsInOutlineView
 {
     NSUInteger sectionCount = self.outlineViewItems.count;
-    NSUInteger rowCount = 0;
+    NSUInteger rowAndFooterCount = 0;
     
     for (NSUInteger section = 0; section < sectionCount; section++)
     {
-        rowCount += ((NSArray *)self.outlineViewItems[section]).count;
+        rowAndFooterCount += ((NSArray *)self.outlineViewItems[section]).count;
     }
     
-    return (sectionCount + rowCount); // Section headers count as rows even if they are not "visible"
+    return (sectionCount + rowAndFooterCount); // Section headers count as rows even if they are not "visible"
 }
 
 
+/**
+ Returns the number of outline view items (including items that represent normal rows and footers)
+ in the specified outline view parent item.
+ */
 - (NSUInteger)p_numberOfOutlineViewItemsForOutlineViewParentItem:(GNEOutlineViewParentItem *)parentItem
 {
     GNEParameterAssert([parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
@@ -2371,7 +2647,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         if (item.parentItem == nil)
         {
-            return (NSInteger)[self p_numberOfOutlineViewItemsForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+            GNEOutlineViewParentItem *parentItem = (GNEOutlineViewParentItem *)item;
+            
+            return (NSInteger)[self p_numberOfOutlineViewItemsForOutlineViewParentItem:parentItem];
         }
         else // Child objects cannot have children (they are too young!!!).
         {
@@ -2379,7 +2657,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         }
     }
     
-    return (NSInteger)[self.outlineViewParentItems count]; // root item has all of the parent items (sections) as children.
+    // root item has all of the parent items (sections) as children.
+    return (NSInteger)self.outlineViewParentItems.count;
 }
 
 
@@ -2400,17 +2679,30 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     GNEParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
     
+    GNEOutlineViewParentItem *parentItem = item.parentItem;
+    
     // Section header
-    if (item.parentItem == nil)
+    if (parentItem == nil)
     {
         NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
         if (section != NSNotFound &&
-            [self p_isOutlineViewParentItemVisibleForSection:section])
+            [self p_requestDelegateHasHeaderInSection:section])
         {
             return [self.tableViewDelegate tableView:self heightForHeaderInSection:section];
         }
         
         return GNESectionedTableViewInvisibleRowHeight;
+    }
+    
+    NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
+    
+    // Section footer
+    if ([self p_isOutlineViewItemFooter:item])
+    {
+        GNEParameterAssert([self.tableViewDelegate
+                            respondsToSelector:@selector(tableView:heightForFooterInSection:)]);
+        
+        return [self.tableViewDelegate tableView:self heightForFooterInSection:section];
     }
     
     // Row
@@ -2437,12 +2729,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
     GNEParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:rowViewForRowAtIndexPath:)]);
     
+    GNEOutlineViewParentItem *parentItem = item.parentItem;
+    
     // Section header
-    if (item.parentItem == nil)
+    if (parentItem == nil)
     {
         NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
-        if (section != NSNotFound &&
-            [self.tableViewDelegate respondsToSelector:@selector(tableView:rowViewForHeaderInSection:)])
+        if (section != NSNotFound && [self p_requestDelegateHasHeaderInSection:section])
         {
             return [self.tableViewDelegate tableView:self rowViewForHeaderInSection:section];
         }
@@ -2463,6 +2756,27 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         }
     }
     
+    // Section footer
+    if ([self p_isOutlineViewItemFooter:item])
+    {
+        GNEParameterAssert([self.tableViewDelegate
+                            respondsToSelector:@selector(tableView:rowViewForFooterInSection:)]);
+        
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
+        GNEParameterAssert(section != NSNotFound);
+        
+        if (section != NSNotFound)
+        {
+            NSTableRowView *rowView = [self.tableViewDelegate tableView:self
+                                              rowViewForFooterInSection:section];
+            GNEParameterAssert(rowView);
+            
+            return rowView;
+        }
+        
+        return nil;
+    }
+    
     // Row
     NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
     if (indexPath)
@@ -2481,14 +2795,32 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
     GNEParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:cellViewForRowAtIndexPath:)]);
     
+    GNEOutlineViewParentItem *parentItem = item.parentItem;
+    
     // Section header
-    if (item.parentItem == nil)
+    if (parentItem == nil)
     {
         NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
-        if (section != NSNotFound &&
-            [self.tableViewDelegate respondsToSelector:@selector(tableView:cellViewForHeaderInSection:)])
+        if (section != NSNotFound && [self p_requestDelegateHasHeaderInSection:section])
         {
             return [self.tableViewDelegate tableView:self cellViewForHeaderInSection:section];
+        }
+        
+        return nil;
+    }
+    
+    // Section footer
+    if ([self p_isOutlineViewItemFooter:item])
+    {
+        GNEParameterAssert([self.tableViewDelegate
+                            respondsToSelector:@selector(tableView:cellViewForFooterInSection:)]);
+        
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
+        GNEParameterAssert(section != NSNotFound);
+        
+        if (section != NSNotFound)
+        {
+            return [self.tableViewDelegate tableView:self cellViewForFooterInSection:section];
         }
         
         return nil;
@@ -2516,17 +2848,34 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         return;
     }
     
-    if ([self.tableViewDelegate respondsToSelector:@selector(tableView:didDisplayRowView:atIndexPath:)])
-    {
-        [self.tableViewDelegate tableView:self didDisplayRowView:rowView atIndexPath:indexPath];
-    }
+    SEL headerSelector = @selector(tableView:didDisplayRowView:forHeaderInSection:);
+    SEL footerSelector = @selector(tableView:didDisplayRowView:forFooterInSection:);
+    SEL rowSelector = @selector(tableView:didDisplayRowView:forRowAtIndexPath:);
     
-    NSInteger lastColumn = self.numberOfColumns - 1;
-    NSTableCellView *cellView = (lastColumn >= 0) ? [rowView viewAtColumn:lastColumn] : nil;
-    if (cellView &&
-        [self.tableViewDelegate respondsToSelector:@selector(tableView:didDisplayCellView:atIndexPath:)])
+    BOOL isHeader = [self isHeaderIndexPath:indexPath];
+    BOOL isFooter = [self isFooterIndexPath:indexPath];
+    
+    // Can't be both a header and a footer.
+    GNEParameterAssert((isHeader && isFooter) == NO);
+    
+    if (isHeader && [self.tableViewDelegate respondsToSelector:headerSelector])
     {
-        [self.tableViewDelegate tableView:self didDisplayCellView:cellView atIndexPath:indexPath];
+        [self.tableViewDelegate tableView:self
+                        didDisplayRowView:rowView
+                       forHeaderInSection:indexPath.gne_section];
+    }
+    else if (isFooter && [self.tableViewDelegate respondsToSelector:footerSelector])
+    {
+        [self.tableViewDelegate tableView:self
+                        didDisplayRowView:rowView
+                       forFooterInSection:indexPath.gne_section];
+    }
+    else if (isHeader == NO && isFooter == NO &&
+             [self.tableViewDelegate respondsToSelector:rowSelector])
+    {
+        [self.tableViewDelegate tableView:self
+                        didDisplayRowView:rowView
+                        forRowAtIndexPath:indexPath];
     }
 }
 
@@ -2542,17 +2891,34 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         return;
     }
     
-    if ([self.tableViewDelegate respondsToSelector:@selector(tableView:didEndDisplayingRowView:atIndexPath:)])
-    {
-        [self.tableViewDelegate tableView:self didEndDisplayingRowView:rowView atIndexPath:indexPath];
-    }
+    SEL headerSelector = @selector(tableView:didEndDisplayingRowView:forHeaderInSection:);
+    SEL footerSelector = @selector(tableView:didEndDisplayingRowView:forFooterInSection:);
+    SEL rowSelector = @selector(tableView:didEndDisplayingRowView:forRowAtIndexPath:);
     
-    NSInteger lastColumn = self.numberOfColumns - 1;
-    NSTableCellView *cellView = (lastColumn >= 0) ? [rowView viewAtColumn:lastColumn] : nil;
-    if (cellView &&
-        [self.tableViewDelegate respondsToSelector:@selector(tableView:didEndDisplayingCellView:atIndexPath:)])
+    BOOL isHeader = [self isHeaderIndexPath:indexPath];
+    BOOL isFooter = [self isFooterIndexPath:indexPath];
+    
+    // Can't be both a header and a footer.
+    GNEParameterAssert((isHeader && isFooter) == NO);
+    
+    if (isHeader && [self.tableViewDelegate respondsToSelector:headerSelector])
     {
-        [self.tableViewDelegate tableView:self didEndDisplayingCellView:cellView atIndexPath:indexPath];
+        [self.tableViewDelegate tableView:self
+                  didEndDisplayingRowView:rowView
+                       forHeaderInSection:indexPath.gne_section];
+    }
+    else if (isFooter && [self.tableViewDelegate respondsToSelector:footerSelector])
+    {
+        [self.tableViewDelegate tableView:self
+                  didEndDisplayingRowView:rowView
+                       forFooterInSection:indexPath.gne_section];
+    }
+    else if (isHeader == NO && isFooter == NO &&
+             [self.tableViewDelegate respondsToSelector:rowSelector])
+    {
+        [self.tableViewDelegate tableView:self
+                  didEndDisplayingRowView:rowView
+                        forRowAtIndexPath:indexPath];
     }
 }
 
@@ -2564,7 +2930,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     GNEParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
     
-    // Don't allow rows to be expanded.
+    // Don't allow rows or footers to be expanded.
     if (item.parentItem)
     {
         return NO;
@@ -2585,7 +2951,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     GNEParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
     
-    // Don't allow rows to be collapsed.
+    // Don't allow rows or footers to be collapsed.
     if (item.parentItem)
     {
         return NO;
@@ -2606,57 +2972,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 #pragma mark - NSOutlineViewDelegate - Selection
 // ------------------------------------------------------------------------------------------
 /**
- This method will never be called because outlineView:selectionIndexesForProposedSelection:
- is implemented.
- */
-- (BOOL)outlineView:(NSOutlineView * __unused)outlineView shouldSelectItem:(GNEOutlineViewItem *)item
-{
-    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
-    
-    // Don't allow the selection of the root object (not that it is even possible).
-    if (item == nil)
-    {
-        return NO;
-    }
-    
-    NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
-    
-    if (indexPath == nil)
-    {
-        return NO;
-    }
-
-    SEL sectionSelector = @selector(tableView:shouldSelectHeaderInSection:);
-    SEL rowSelector = @selector(tableView:shouldSelectRowAtIndexPath:);
-    
-    if (item.parentItem == nil)
-    {
-        if ([self.tableViewDelegate respondsToSelector:sectionSelector])
-        {
-            return [self.tableViewDelegate tableView:self
-                         shouldSelectHeaderInSection:indexPath.gne_section];
-        }
-        
-        return NO; // By default, don't allow the section headers to be selected.
-    }
-    else
-    {
-        if ([self.tableViewDelegate respondsToSelector:rowSelector])
-        {
-            return [self.tableViewDelegate tableView:self shouldSelectRowAtIndexPath:indexPath];
-        }
-        
-        return YES; // Allow selection of normal rows by default.
-    }
-    
-    return NO;
-}
-
-
-/**
  This method is messy because it calls the delegate's shouldSelectHeader and shouldSelectRow methods
- when determining the allowable selections. Because this method is implemented,
- outlineView:shouldSelectItem: will never be called.
+ when determining the allowable selections. Rows corresponding to footers are removed from the proposed
+ selection indexes because footers are not selectable.
+ 
+ Because this method is implemented, outlineView:shouldSelectItem: will never be called.
  */
 -           (NSIndexSet *)outlineView:(NSOutlineView * __unused)outlineView
  selectionIndexesForProposedSelection:(NSIndexSet *)proposedSelectionIndexes
@@ -2683,7 +3003,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         
         NSIndexPath *indexPath = [strongSelf indexPathForTableViewRow:(NSInteger)tableViewRow];
         
-        if (indexPath == nil)
+        // Skip nil index paths and footer index paths.
+        if (indexPath == nil || [strongSelf isFooterIndexPath:indexPath])
         {
             return;
         }
@@ -2736,15 +3057,16 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     if (proposedSectionIndexes && proposedSectionIndexes.count > 0)
     {
-        NSIndexSet *approvedSectionIndexes = [self
-                                              p_indexSetOfTableViewRowsForSectionIndexes:proposedSectionIndexes];
-        [approvedSelectionIndexes addIndexes:approvedSectionIndexes];
+        NSIndexSet *approvedSectionHeaders = [self
+                                              p_indexSetOfSectionHeadersAtTableViewRows:proposedSectionIndexes];
+        [approvedSelectionIndexes addIndexes:approvedSectionHeaders];
     }
     
     if (proposedIndexPaths && proposedIndexPaths.count > 0)
     {
-        NSIndexSet *approvedRowIndexes = [self
-                                          p_indexSetOfTableViewRowsForIndexPaths:proposedIndexPaths];
+        NSArray *rowIndexPaths = [self p_indexPathsByRemovingHeadersAndFootersFromIndexPaths:proposedIndexPaths];
+        
+        NSIndexSet *approvedRowIndexes = [self p_indexSetOfTableViewRowsForIndexPaths:rowIndexPaths];
         
         [approvedSelectionIndexes addIndexes:approvedRowIndexes];
     }
@@ -2813,6 +3135,12 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                pasteboardWriterForItem:(GNEOutlineViewItem *)item
 {
     GNEParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
+    
+    // Footers are never draggable.
+    if ([self p_isOutlineViewItemFooter:item])
+    {
+        return nil;
+    }
     
     BOOL canDrag = NO;
     

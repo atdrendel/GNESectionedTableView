@@ -41,8 +41,7 @@
 {
     if ((self = [super initWithFrame:frameRect]))
     {
-        CALayer *layer = [self layer];
-        layer.backgroundColor = [[[NSColor purpleColor] colorWithAlphaComponent:0.1f] CGColor];
+        
     }
     
     return self;

@@ -162,29 +162,49 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 @required
 - (CGFloat)tableView:(GNESectionedTableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath;
 @optional
+/// Required if the table view includes headers.
 - (CGFloat)tableView:(GNESectionedTableView *)tableView heightForHeaderInSection:(NSUInteger)section;
+@optional
+/// Required if the table view includes footers.
+- (CGFloat)tableView:(GNESectionedTableView *)tableView heightForFooterInSection:(NSUInteger)section;
 
 /* Views */
 @optional
+/// Required if the table view includes headers.
 - (NSTableRowView *)tableView:(GNESectionedTableView *)tableView rowViewForHeaderInSection:(NSUInteger)section;
 @optional
+/// Required if the table view includes headers.
 - (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForHeaderInSection:(NSUInteger)section;
+@optional
+/// Required if the table view includes footers.
+- (NSTableRowView *)tableView:(GNESectionedTableView *)tableView rowViewForFooterInSection:(NSUInteger)section;
+@optional
+/// Required if the table view includes footers.
+- (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForFooterInSection:(NSUInteger)section;
+@optional
+-   (void)tableView:(GNESectionedTableView *)tableView
+  didDisplayRowView:(NSTableRowView *)rowView
+ forHeaderInSection:(NSUInteger)section;
+@optional
+-   (void)tableView:(GNESectionedTableView *)tableView
+  didDisplayRowView:(NSTableRowView *)rowView
+ forFooterInSection:(NSUInteger)section;
 @optional
 - (void)tableView:(GNESectionedTableView *)tableView
 didDisplayRowView:(NSTableRowView *)rowView
-      atIndexPath:(NSIndexPath *)indexPath;
-@optional
--   (void)tableView:(GNESectionedTableView *)tableView
- didDisplayCellView:(NSTableCellView *)cellView
-        atIndexPath:(NSIndexPath *)indexPath;
+forRowAtIndexPath:(NSIndexPath *)indexPath;
 @optional
 -       (void)tableView:(GNESectionedTableView *)tableView
 didEndDisplayingRowView:(NSTableRowView *)rowView
-            atIndexPath:(NSIndexPath *)indexPath;
+     forHeaderInSection:(NSUInteger)section;
 @optional
--           (void)tableView:(GNESectionedTableView *)tableView
-   didEndDisplayingCellView:(NSTableCellView *)cellView
-                atIndexPath:(NSIndexPath *)indexPath;
+-       (void)tableView:(GNESectionedTableView *)tableView
+didEndDisplayingRowView:(NSTableRowView *)rowView
+     forFooterInSection:(NSUInteger)section;
+@optional
+-       (void)tableView:(GNESectionedTableView *)tableView
+didEndDisplayingRowView:(NSTableRowView *)rowView
+      forRowAtIndexPath:(NSIndexPath *)indexPath;
 
 /* Expand/Collapse */
 @optional
@@ -297,19 +317,37 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 
 #pragma mark - Index Paths / NSTableView Rows
 /**
- Returns YES if the specified index path's section is less than the total number of sections in the table
- view and the row is less than the total number of rows in the section, otherwise NO.
+ Returns YES if the specified index path points to a section header or footer or if the index
+ path's section is less than the total number of sections in the table view and the row is less
+ than the total number of rows in the section, otherwise NO.
  */
 - (BOOL)isValidIndexPath:(NSIndexPath *)indexPath;
 
+/// Returns YES if the specified index path belongs to a section header, otherwise NO.
+- (BOOL)isHeaderIndexPath:(NSIndexPath *)indexPath;
+
+/// Returns YES if the specified index path belongs to a section footer, otherwise NO.
+- (BOOL)isFooterIndexPath:(NSIndexPath *)indexPath;
+
 /**
- Returns the index path for the specified section, or nil if the section isn't valid.
+ Returns the index path for the specified section header, or nil if the section isn't valid.
  
- @discussion Section index paths have a value of section = section and row = NSNotFound.
- @param section Section index to generate an index path for.
- @return Index path corresponding to the specified section, or nil if the section is invalid.
+ @discussion This method is the preferred way of retrieving index paths for section headers.
+ @param section Section index to generate a header index path for.
+ @return Index path corresponding to the specified section header, or nil if the
+ section is invalid.
  */
-- (NSIndexPath *)indexPathForSection:(NSUInteger)section;
+- (NSIndexPath *)indexPathForHeaderInSection:(NSUInteger)section;
+
+/**
+ Returns the index path for the specified section footer, or nil if the section isn't valid.
+ 
+ @discussion This method is the preferred way of retrieving index paths for section footers.
+ @param section Section index to generate a footer index path for.
+ @return Index path corresponding to the specified section footer, or nil if the
+ section is invalid.
+ */
+- (NSIndexPath *)indexPathForFooterInSection:(NSUInteger)section;
 
 /**
  Returns the index path mapped to the underlying NSTableView row, or nil if the row isn't valid.

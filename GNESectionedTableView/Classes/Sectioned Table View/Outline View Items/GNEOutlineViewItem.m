@@ -157,7 +157,7 @@ static NSString * const GNEOutlineViewItemDraggedIndexPathKey = @"GNEOutlineView
 {
     NSString *indexPathString = @"";
     id <GNEOutlineViewItemPasteboardWritingDelegate> theDelegate = self.pasteboardWritingDelegate;
-    SEL selector = @selector(draggedIndexPathForOutlineViewItem:);
+    SEL selector = NSSelectorFromString(@"draggedIndexPathForOutlineViewItem:");
     if ([theDelegate respondsToSelector:selector])
     {
         NSIndexPath *indexPath = [theDelegate draggedIndexPathForOutlineViewItem:self];

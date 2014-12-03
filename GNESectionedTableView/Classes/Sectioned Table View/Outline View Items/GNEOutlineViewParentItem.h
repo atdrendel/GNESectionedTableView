@@ -38,11 +38,8 @@
 @interface GNEOutlineViewParentItem : GNEOutlineViewItem
 
 
-/**
- YES if the outline view row view representing this object should be visible to the user, NO otherwise. If the row
-    view should not be visible, it should be completely transparent and have a height of 0.1 pixel.
- */
-@property (nonatomic, assign, getter = isVisible) BOOL visible;
+/// YES if the parent item's section has a footer, otherwise NO.
+@property (nonatomic, assign) BOOL hasFooter;
 
 
 /**

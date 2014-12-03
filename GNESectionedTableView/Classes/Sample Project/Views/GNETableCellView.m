@@ -57,11 +57,7 @@
 {
     if ((self = [super initWithFrame:frame]))
     {
-        [self setAutoresizingMask:NSViewWidthSizable];
-        [self setWantsLayer:YES];
-        
-        CALayer *layer = [self layer];
-        layer.backgroundColor = [[[NSColor orangeColor] colorWithAlphaComponent:0.1f] CGColor];
+        self.wantsLayer = YES;
         
         [self buildAndConfigure];
     }
@@ -97,9 +93,9 @@
 - (void)buildAndConfigureTextField
 {
     self.titleTextField = [[NSTextField alloc] initWithFrame:CGRectZero];
-    [self.titleTextField setBordered:NO];
-    [self.titleTextField setBezeled:NO];
-    [self.titleTextField setBackgroundColor:[NSColor clearColor]];
+    self.titleTextField.bordered = NO;
+    self.titleTextField.bezeled = NO;
+    self.titleTextField.backgroundColor = [NSColor clearColor];
     
     [self addSubview:self.titleTextField];
 }

@@ -35,7 +35,7 @@
 // ------------------------------------------------------------------------------------------
 
 
-static NSString * const kOutlineViewParentItemVisibleKey = @"visible";
+static NSString * const kOutlineViewParentItemHasFooterKey = @"hasFooter";
 
 
 // ------------------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ static NSString * const kOutlineViewParentItemVisibleKey = @"visible";
 {
     if (self = [super initWithParentItem:nil])
     {
-        
+        _hasFooter = NO;
     }
     
     return self;
@@ -71,17 +71,17 @@ static NSString * const kOutlineViewParentItemVisibleKey = @"visible";
 // ------------------------------------------------------------------------------------------
 - (instancetype)initWithCoder:(NSCoder *)aDecoder
 {
-    NSNumber *visibleNumber = [aDecoder decodeObjectOfClass:[NSNumber class]
-                                                     forKey:kOutlineViewParentItemVisibleKey];
+    NSNumber *hasFooterNumber = [aDecoder decodeObjectOfClass:[NSNumber class]
+                                                     forKey:kOutlineViewParentItemHasFooterKey];
     
-    if (visibleNumber == nil)
+    if (hasFooterNumber == nil)
     {
         return nil;
     }
     
     if ((self = [super initWithCoder:aDecoder]))
     {
-        _visible = visibleNumber.boolValue;
+        _hasFooter = hasFooterNumber.boolValue;
     }
     
     return self;
@@ -91,7 +91,7 @@ static NSString * const kOutlineViewParentItemVisibleKey = @"visible";
 - (void)encodeWithCoder:(NSCoder *)aCoder
 {
     [super encodeWithCoder:aCoder];
-    [aCoder encodeObject:@(self.visible) forKey:kOutlineViewParentItemVisibleKey];
+    [aCoder encodeObject:@(self.hasFooter) forKey:kOutlineViewParentItemHasFooterKey];
 }
 
 
@@ -102,7 +102,7 @@ static NSString * const kOutlineViewParentItemVisibleKey = @"visible";
 {
     NSString *sectionString = @"";
     id <GNEOutlineViewItemPasteboardWritingDelegate> theDelegate = self.pasteboardWritingDelegate;
-    SEL selector = @selector(draggedIndexPathForOutlineViewItem:);
+    SEL selector = NSSelectorFromString(@"draggedIndexPathForOutlineViewItem:");
     if ([theDelegate respondsToSelector:selector])
     {
         NSIndexPath *indexPath = [theDelegate draggedIndexPathForOutlineViewItem:self];
