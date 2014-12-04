@@ -1400,6 +1400,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                                       usingBlock:^(NSUInteger fromRow, BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf == nil)
+        {
+            return;
+        }
         
         NSUInteger convertedFromRow = fromRow;
         NSUInteger convertedToRow = toRow;
