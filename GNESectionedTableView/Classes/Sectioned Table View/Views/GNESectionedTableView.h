@@ -328,10 +328,10 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 - (BOOL)isValidIndexPath:(NSIndexPath *)indexPath;
 
 /// Returns YES if the specified index path belongs to a section header, otherwise NO.
-- (BOOL)isHeaderIndexPath:(NSIndexPath *)indexPath;
+- (BOOL)isIndexPathHeader:(NSIndexPath *)indexPath;
 
 /// Returns YES if the specified index path belongs to a section footer, otherwise NO.
-- (BOOL)isFooterIndexPath:(NSIndexPath *)indexPath;
+- (BOOL)isIndexPathFooter:(NSIndexPath *)indexPath;
 
 /**
  Returns the index path for the specified section header, or nil if the section isn't valid.

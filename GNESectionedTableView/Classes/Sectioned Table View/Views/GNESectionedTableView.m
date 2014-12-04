@@ -278,8 +278,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     NSUInteger sectionCount = self.outlineViewItems.count;
     if (indexPath.gne_section < sectionCount)
     {
-        BOOL isSectionHeader = [self isHeaderIndexPath:indexPath];
-        BOOL isSectionFooter = [self isFooterIndexPath:indexPath];
+        BOOL isSectionHeader = [self isIndexPathHeader:indexPath];
+        BOOL isSectionFooter = [self isIndexPathFooter:indexPath];
         NSUInteger rowCount = ((NSArray *)self.outlineViewItems[indexPath.gne_section]).count;
         
         return (isSectionHeader || isSectionFooter || indexPath.gne_row < rowCount);
@@ -289,7 +289,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (BOOL)isHeaderIndexPath:(NSIndexPath *)indexPath
+- (BOOL)isIndexPathHeader:(NSIndexPath *)indexPath
 {
     if (indexPath == nil)
     {
@@ -306,7 +306,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (BOOL)isFooterIndexPath:(NSIndexPath *)indexPath
+- (BOOL)isIndexPathFooter:(NSIndexPath *)indexPath
 {
     if (indexPath == nil)
     {
@@ -1789,8 +1789,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     for (NSIndexPath *indexPath in indexPaths)
     {
-        if ([self isHeaderIndexPath:indexPath] == NO &&
-            [self isFooterIndexPath:indexPath] == NO)
+        if ([self isIndexPathHeader:indexPath] == NO &&
+            [self isIndexPathFooter:indexPath] == NO)
         {
             [mutableIndexPaths addObject:indexPath];
         }
@@ -1892,7 +1892,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 - (GNEOutlineViewParentItem *)p_outlineViewParentItemWithIndexPath:(NSIndexPath *)indexPath
 {
     GNEParameterAssert(indexPath);
-    GNEParameterAssert([self isHeaderIndexPath:indexPath]);
+    GNEParameterAssert([self isIndexPathHeader:indexPath]);
     
     NSUInteger parentItemsCount = self.outlineViewParentItems.count;
     
@@ -1918,7 +1918,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     GNEParameterAssert(indexPath);
     
     // If it's an outline view parent item, call the appropriate method.
-    if ([self isHeaderIndexPath:indexPath])
+    if ([self isIndexPathHeader:indexPath])
     {
         return [self p_outlineViewParentItemForSection:indexPath.gne_section];
     }
@@ -1935,7 +1935,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         GNEParameterAssert([self isFooterIndexPath:indexPath] ||
                            indexPath.gne_row < rowCount);
         
-        if ([self isFooterIndexPath:indexPath])
+        if ([self isIndexPathFooter:indexPath])
         {
             return [self p_outlineViewItemForFooterInSection:indexPath.gne_section];
         }
@@ -2899,8 +2899,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     SEL footerSelector = @selector(tableView:didDisplayRowView:forFooterInSection:);
     SEL rowSelector = @selector(tableView:didDisplayRowView:forRowAtIndexPath:);
     
-    BOOL isHeader = [self isHeaderIndexPath:indexPath];
-    BOOL isFooter = [self isFooterIndexPath:indexPath];
+    BOOL isHeader = [self isIndexPathHeader:indexPath];
+    BOOL isFooter = [self isIndexPathFooter:indexPath];
     
     // Can't be both a header and a footer.
     GNEParameterAssert((isHeader && isFooter) == NO);
@@ -2942,8 +2942,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     SEL footerSelector = @selector(tableView:didEndDisplayingRowView:forFooterInSection:);
     SEL rowSelector = @selector(tableView:didEndDisplayingRowView:forRowAtIndexPath:);
     
-    BOOL isHeader = [self isHeaderIndexPath:indexPath];
-    BOOL isFooter = [self isFooterIndexPath:indexPath];
+    BOOL isHeader = [self isIndexPathHeader:indexPath];
+    BOOL isFooter = [self isIndexPathFooter:indexPath];
     
     // Can't be both a header and a footer.
     GNEParameterAssert((isHeader && isFooter) == NO);
