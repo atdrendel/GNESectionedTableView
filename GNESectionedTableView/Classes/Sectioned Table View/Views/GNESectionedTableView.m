@@ -674,9 +674,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             NSMutableArray *rows = [NSMutableArray array];
             [outlineViewItemsCopy gne_insertObject:rows atIndex:section];
             
-            // Check to make sure that the section was inserted at the correct index.
-            GNEParameterAssert(section == [self p_sectionForOutlineViewParentItem:parentItem]);
-            
             NSUInteger rowCount = [self.tableViewDataSource tableView:self numberOfRowsInSection:section];
             rowCount += (parentItem.hasFooter) ? 1 : 0; // Add a footer item, if needed.
             
