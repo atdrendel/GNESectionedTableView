@@ -121,10 +121,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)p_commonInitialization
 {
-    NSLog(@"\nHeader: %ld\nFooter: %ld",
-          (NSNotFound - kSectionHeaderRowModifier),
-          (NSNotFound - kSectionFooterRowModifier));
-    
     _outlineViewParentItems = [NSMutableArray array];
     _outlineViewItems = [NSMutableArray array];
     
@@ -559,6 +555,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [self p_checkIndexPathsArray:fromIndexPaths];
     
     GNEOutlineViewParentItem *toParentItem = [self p_outlineViewParentItemForSection:toIndexPath.gne_section];
+    NSUInteger toRow = toIndexPath.gne_row;
     
     NSArray *groupedIndexPaths = [self p_reverseSortedIndexPathsGroupedBySectionInIndexPaths:fromIndexPaths];
     
@@ -592,9 +589,14 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             {
                 [mutableFromRows addIndex:indexPath.gne_row];
             }
+            
+            NSRange rowsBelowRange = NSMakeRange(0, toRow);
+            NSUInteger rowsBelow = [mutableFromRows countOfIndexesInRange:rowsBelowRange];
+            
             [self p_animateMoveOfOutlineViewItemsAtRows:mutableFromRows
                                               inSection:toIndexPath.gne_section
-                                                  toRow:toIndexPath.gne_row];
+                                                  toRow:toRow];
+            toRow -= rowsBelow;
         }
         else
         {
@@ -603,7 +605,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             {
                 GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
                 [self p_animateMoveOfOutlineViewItem:item
-                                               toRow:toIndexPath.gne_row
+                                               toRow:toRow
                              inOutlineViewParentItem:toParentItem];
             }
             [self endUpdates];
@@ -1423,6 +1425,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         GNEParameterAssert([strongSelf p_sectionForOutlineViewParentItem:parentItem] == section);
         
         if (parentItem == nil)
+        {
+            return;
+        }
+        
+        if (convertedFromRow == convertedToRow)
         {
             return;
         }
@@ -3034,11 +3041,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     SEL selector = @selector(tableView:proposedSelectedHeadersInSections:proposedSelectedRowIndexPaths:);
     
-    SEL sectionSelector = @selector(tableView:shouldSelectHeaderInSection:);
+    SEL headerSelector = @selector(tableView:shouldSelectHeaderInSection:);
     SEL rowSelector = @selector(tableView:shouldSelectRowAtIndexPath:);
     
     // Convert all table view row indexes into section indexes and/or row index paths.
-    NSMutableIndexSet *mutableSectionIndexes = [NSMutableIndexSet indexSet];
+    NSMutableIndexSet *mutableHeaderIndexes = [NSMutableIndexSet indexSet];
     NSMutableArray *mutableIndexPaths = [NSMutableArray array];
     __weak typeof(self) weakSelf = self;
     [proposedSelectionIndexes enumerateIndexesUsingBlock:^(NSUInteger tableViewRow,
@@ -3061,18 +3068,18 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         }
         
         // Section header
-        if (indexPath.gne_row == NSNotFound)
+        if ([strongSelf isIndexPathHeader:indexPath])
         {
-            BOOL addSection = YES;
-            if ([tableViewDelegate respondsToSelector:sectionSelector])
+            BOOL addHeader = YES;
+            if ([tableViewDelegate respondsToSelector:headerSelector])
             {
-                addSection = [tableViewDelegate tableView:strongSelf
-                              shouldSelectHeaderInSection:indexPath.gne_section];
+                addHeader = [tableViewDelegate tableView:strongSelf
+                             shouldSelectHeaderInSection:indexPath.gne_section];
             }
             
-            if (addSection)
+            if (addHeader)
             {
-                [mutableSectionIndexes addIndex:indexPath.gne_section];
+                [mutableHeaderIndexes addIndex:indexPath.gne_section];
             }
         }
         else // Row index path
@@ -3090,7 +3097,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         }
     }];
     
-    NSIndexSet *proposedSectionIndexes = [mutableSectionIndexes copy];
+    NSIndexSet *proposedHeaderIndexes = [mutableHeaderIndexes copy];
     NSArray *proposedIndexPaths = [mutableIndexPaths copy];
     
     // If the delegate implements tableView:proposedSelectedHeadersInSections:proposedSelectedRowIndexPaths:
@@ -3099,17 +3106,17 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     if ([self.tableViewDelegate respondsToSelector:selector])
     {
         [self.tableViewDelegate tableView:self
-        proposedSelectedHeadersInSections:&proposedSectionIndexes
+        proposedSelectedHeadersInSections:&proposedHeaderIndexes
             proposedSelectedRowIndexPaths:&proposedIndexPaths];
     }
     
     // Re-transform the approved section indexes and index paths into table view row indexes.
     NSMutableIndexSet *approvedSelectionIndexes = [NSMutableIndexSet indexSet];
     
-    if (proposedSectionIndexes && proposedSectionIndexes.count > 0)
+    if (proposedHeaderIndexes && proposedHeaderIndexes.count > 0)
     {
         NSIndexSet *approvedSectionHeaders = [self
-                                              p_indexSetOfSectionHeadersAtTableViewRows:proposedSectionIndexes];
+                                              p_indexSetOfSectionHeadersAtTableViewRows:proposedHeaderIndexes];
         [approvedSelectionIndexes addIndexes:approvedSectionHeaders];
     }
     
