@@ -165,7 +165,7 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
 - (void)p_buildAndConfigureSectionsAndRows
 {
     NSUInteger sectionCount = MAX((NSUInteger)arc4random_uniform(10), (NSUInteger)3);
-    sectionCount = 20;
+    sectionCount = 5;
     
     self.sections = [NSMutableArray arrayWithCapacity:sectionCount];
     self.rows = [NSMutableArray arrayWithCapacity:sectionCount];
@@ -175,7 +175,7 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
         [self.sections addObject:[self p_stringForSection:section]];
         
         NSUInteger rowCount = arc4random_uniform(10);
-        rowCount = 0;
+        rowCount = 4;
         NSMutableArray *rowsArray = [NSMutableArray array];
         for (NSUInteger row = 0; row < rowCount; row++)
         {
@@ -670,10 +670,18 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
 
 
 -       (BOOL)tableView:(GNESectionedTableView * __unused)tableView
-  canDropRowAtIndexPath:(NSIndexPath *)fromIndexPath
-       onRowAtIndexPath:(NSIndexPath *)toIndexPath
+  canDropRowAtIndexPath:(NSIndexPath * __unused)fromIndexPath
+      onHeaderInSection:(NSUInteger __unused)section
 {
-    return ([fromIndexPath compare:toIndexPath] != NSOrderedSame);
+    return YES;
+}
+
+
+-       (BOOL)tableView:(GNESectionedTableView * __unused)tableView
+  canDropRowAtIndexPath:(NSIndexPath * __unused)fromIndexPath
+       onRowAtIndexPath:(NSIndexPath * __unused)toIndexPath
+{
+    return NO;
 }
 
 
@@ -690,8 +698,20 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
             toIndexPath:(NSIndexPath *)toIndexPath
 {
     NSLog(@"canDragRowAtIndexPath: (%lu, %lu) toIndexPath: (%lu, %lu)", fromIndexPath.gne_section, fromIndexPath.gne_row, toIndexPath.gne_section, toIndexPath.gne_row);
+    if (toIndexPath.gne_row == 5)
+    {
+        return NO;
+    }
     
     return YES;
+}
+
+
+-       (void)tableView:(GNESectionedTableView * __unused)tableView
+didDropRowsAtIndexPaths:(NSArray *)fromIndexPaths
+      onHeaderInSection:(NSUInteger)section
+{
+    NSLog(@"didDropRowsAtIndexPaths: %@ onHeaderInSection: %lu", fromIndexPaths, (unsigned long)section);
 }
 
 

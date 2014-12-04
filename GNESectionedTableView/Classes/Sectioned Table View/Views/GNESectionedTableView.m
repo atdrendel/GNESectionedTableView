@@ -2275,9 +2275,18 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     // Only allow drags to locations inside sections, not between sections
     else if (toSection != NSNotFound && [self.tableViewDataSource respondsToSelector:selector])
     {
+        GNEParameterAssert([proposedParentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+        GNEParameterAssert(toSection < self.outlineViewItems.count);
+        
         __block BOOL canDrag = NO;
-        NSIndexPath *toIndexPath = [NSIndexPath gne_indexPathForRow:(NSUInteger)proposedChildIndex
-                                                          inSection:toSection];
+        
+        NSIndexPath *toIndexPath = [self p_targetIndexPathForDragToProposedParentItem:proposedParentItem
+                                                                   proposedChildIndex:proposedChildIndex];
+        
+        if (toIndexPath == nil)
+        {
+            return NSDragOperationNone;
+        }
         
         __weak typeof(self) weakSelf = self;
         [info enumerateDraggingItemsWithOptions:0
@@ -2328,6 +2337,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     __block BOOL canDropOn = NO;
     
+    SEL headerSelector = @selector(tableView:canDropRowAtIndexPath:onHeaderInSection:);
     SEL rowSelector = @selector(tableView:canDropRowAtIndexPath:onRowAtIndexPath:);
     
     GNEOutlineViewParentItem *parentItem = proposedParentItem.parentItem;
@@ -2351,22 +2361,37 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         
         GNEOutlineViewItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
         NSIndexPath *fromIndexPath = [strongSelf p_indexPathOfOutlineViewItem:draggedItem];
+        BOOL isFooter = [strongSelf p_isOutlineViewItemFooter:proposedParentItem];
         
-        if (fromIndexPath == nil)
+        if (fromIndexPath == nil || isFooter)
         {
             canDropOn = NO;
             *stop = YES;
             return;
         }
         
-        // Drop on row
+        if (proposedParentItem && parentItem == nil &&
+            [strongSelf.tableViewDataSource respondsToSelector:headerSelector])
+        {
+            GNEOutlineViewParentItem *theParentItem = (GNEOutlineViewParentItem *)proposedParentItem;
+            NSUInteger section = [strongSelf p_sectionForOutlineViewParentItem:theParentItem];
+            if (section != NSNotFound)
+            {
+                canDropOn = [strongSelf.tableViewDataSource tableView:strongSelf
+                                                canDropRowAtIndexPath:fromIndexPath
+                                                    onHeaderInSection:section];
+            }
+        }
         if (proposedParentItem && parentItem &&
             [strongSelf.tableViewDataSource respondsToSelector:rowSelector])
         {
             NSIndexPath *toIndexPath = [strongSelf p_indexPathOfOutlineViewItem:proposedParentItem];
-            canDropOn = [strongSelf.tableViewDataSource tableView:strongSelf
-                                      canDropRowAtIndexPath:fromIndexPath
-                                           onRowAtIndexPath:toIndexPath];
+            if (toIndexPath)
+            {
+                canDropOn = [strongSelf.tableViewDataSource tableView:strongSelf
+                                                canDropRowAtIndexPath:fromIndexPath
+                                                     onRowAtIndexPath:toIndexPath];
+            }
         }
         
         // If one of the drops has been denied, cancel the drag operation.
@@ -2383,12 +2408,24 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 - (BOOL)p_performDropOnDragOperationWithProposedParentItem:(GNEOutlineViewItem *)proposedParentItem
                                             fromIndexPaths:(NSArray *)fromIndexPaths
 {
-    GNEParameterAssert(proposedParentItem.parentItem);
+    GNEParameterAssert([self p_isOutlineViewItemFooter:proposedParentItem] == NO);
     
-    SEL selector = @selector(tableView:didDropRowsAtIndexPaths:onRowAtIndexPath:);
+    SEL headerSelector = @selector(tableView:didDropRowsAtIndexPaths:onHeaderInSection:);
+    SEL rowSelector = @selector(tableView:didDropRowsAtIndexPaths:onRowAtIndexPath:);
     
+    GNEOutlineViewParentItem *parentItem = proposedParentItem.parentItem;
     NSIndexPath *toIndexPath = [self p_indexPathOfOutlineViewItem:proposedParentItem];
-    if (toIndexPath && fromIndexPaths.count > 0 && [self.tableViewDataSource respondsToSelector:selector])
+    
+    if (parentItem == nil && [self.tableViewDataSource respondsToSelector:headerSelector])
+    {
+        [self.tableViewDataSource tableView:self
+                    didDropRowsAtIndexPaths:fromIndexPaths
+                          onHeaderInSection:toIndexPath.gne_section];
+        
+        return YES;
+    }
+    else if (parentItem && toIndexPath && fromIndexPaths.count > 0 &&
+             [self.tableViewDataSource respondsToSelector:rowSelector])
     {
         [self.tableViewDataSource tableView:self
                     didDropRowsAtIndexPaths:fromIndexPaths
@@ -2540,32 +2577,113 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         
         /*
          When a row is dragged past the last row in the table view, the default behavior is to create a "drop on"
-         drag operation to the last row. What we want is to be able to drag the row past the last row and
+         drag operation to the last row. For our purposes, this is always wrong. However, what we want to do
+         here depends on whether or not the section has a footer.
+         
+         If the section does NOT have a footer, we want to be able to drag the row past the last row and
          reorder them. So, we have to do that manually here.
+         
+         If the section does have a footer, we want to retarget the drop to the first index of the next section,
+         if it exists.
          */
         
+        BOOL hasFooter = parentItem.hasFooter;
         NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:proposedParent];
         CGRect rowFrame = [self frameOfViewAtIndexPath:indexPath];
         NSUInteger proposedParentChildIndex = (indexPath) ? indexPath.gne_row : NSNotFound;
         NSUInteger rowCount = [self p_numberOfOutlineViewItemsForOutlineViewParentItem:parentItem];
-        if (CGRectEqualToRect(CGRectZero, rowFrame) == NO && proposedParentChildIndex != NSNotFound &&
-            rowCount > 0 && proposedParentChildIndex == (rowCount - 1))
+        
+        if (CGRectEqualToRect(CGRectZero, rowFrame) == NO &&
+            proposedParentChildIndex != NSNotFound &&
+            rowCount > 0 &&
+            proposedParentChildIndex == (rowCount - 1))
         {
-            CGPoint draggingLocation = [info draggingLocation];
-            CGPoint convertedDraggingLocation = [self convertPoint:draggingLocation fromView:nil];
-            CGFloat bottomThirdOriginY = rowFrame.origin.y + ((2.0f/3.0f) * rowFrame.size.height);
-            if (convertedDraggingLocation.y > bottomThirdOriginY)
+            
+            if (hasFooter)
             {
-                *proposedParentItemPtr = parentItem;
-                *proposedChildIndexPtr = (NSInteger)rowCount;
-                [self setDropItem:parentItem dropChildIndex:(NSInteger)rowCount];
+                NSUInteger sectionCount = self.outlineViewParentItems.count;
+                NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
+                NSUInteger nextSection = section + 1;
+                if (nextSection < sectionCount) // It's not the last section.
+                {
+                    GNEOutlineViewParentItem *nextSectionParentItem = self.outlineViewParentItems[nextSection];
+                    *proposedParentItemPtr = nextSectionParentItem;
+                    *proposedChildIndexPtr = 0;
+                    [self setDropItem:nextSectionParentItem dropChildIndex:0];
+                }
+                else // It's the last section; retarget the drag to the last index before the footer.
+                {
+                    NSInteger lastRowBeforeFooterIndex = (NSInteger)(proposedParentChildIndex - 1);
+                    *proposedParentItemPtr = parentItem;
+                    *proposedChildIndexPtr = lastRowBeforeFooterIndex;
+                    [self setDropItem:parentItem dropChildIndex:lastRowBeforeFooterIndex];
+                }
                 
                 return YES;
+            }
+            else
+            {
+                CGPoint draggingLocation = [info draggingLocation];
+                CGPoint convertedDraggingLocation = [self convertPoint:draggingLocation fromView:nil];
+                CGFloat bottomThirdOriginY = rowFrame.origin.y + ((2.0f/3.0f) * rowFrame.size.height);
+                if (convertedDraggingLocation.y > bottomThirdOriginY)
+                {
+                    *proposedParentItemPtr = parentItem;
+                    *proposedChildIndexPtr = (NSInteger)rowCount;
+                    [self setDropItem:parentItem dropChildIndex:(NSInteger)rowCount];
+                    
+                    return YES;
+                }
             }
         }
     }
     
     return NO;
+}
+
+
+- (NSIndexPath *)p_targetIndexPathForDragToProposedParentItem:(GNEOutlineViewItem *)proposedParentItem
+                                           proposedChildIndex:(NSInteger)proposedChildIndex
+{
+    GNEParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
+    
+    GNEOutlineViewParentItem *parentItem = (GNEOutlineViewParentItem *)proposedParentItem;
+    
+    NSUInteger sectionCount = self.outlineViewItems.count;
+    NSUInteger toSection = [self p_sectionForOutlineViewParentItem:parentItem];
+    
+    if (toSection == NSNotFound || toSection >= sectionCount)
+    {
+        return nil;
+    }
+    
+    NSUInteger rowCount = ((NSArray *)self.outlineViewItems[toSection]).count;
+    if (parentItem.hasFooter && (NSUInteger)proposedChildIndex == rowCount)
+    {
+        NSUInteger nextSection = toSection + 1;
+        if (nextSection < sectionCount)
+        {
+            GNEOutlineViewParentItem *nextParentItem = self.outlineViewParentItems[nextSection];
+            [self setDropItem:nextParentItem dropChildIndex:0];
+            
+            return [NSIndexPath gne_indexPathForRow:0 inSection:nextSection];
+        }
+        else
+        {
+            NSInteger previousChildIndex = (proposedChildIndex > 0) ? (NSInteger)(proposedChildIndex - 1) : 0;
+            [self setDropItem:parentItem dropChildIndex:previousChildIndex];
+            
+            return [NSIndexPath gne_indexPathForRow:(NSUInteger)previousChildIndex
+                                          inSection:toSection];
+        }
+    }
+    else
+    {
+        return [NSIndexPath gne_indexPathForRow:(NSUInteger)proposedChildIndex
+                                      inSection:toSection];
+    }
+    
+    return nil;
 }
 
 
