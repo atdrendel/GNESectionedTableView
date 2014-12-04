@@ -40,6 +40,7 @@
 #ifdef DEBUG
 - (NSUInteger)numberOfSections;
 - (NSUInteger)numberOfRows;
+- (NSUInteger)numberOfFooters;
 #endif
 
 

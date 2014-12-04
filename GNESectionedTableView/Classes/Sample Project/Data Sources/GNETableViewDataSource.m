@@ -109,25 +109,52 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
 #ifdef DEBUG
 - (NSUInteger)numberOfSections
 {
-    NSParameterAssert([self.sections count] == [self.rows count]);
+    NSParameterAssert(self.sections.count == self.rows.count);
     
-    return [self.sections count];
+    return self.sections.count;
 }
 
 
 - (NSUInteger)numberOfRows
 {
-    NSParameterAssert([self.sections count] == [self.rows count]);
+    NSParameterAssert(self.sections.count == self.rows.count);
     
     NSUInteger numberOfRows = 0;
     
-    NSUInteger sectionCount = [self.rows count];
+    NSUInteger sectionCount = self.rows.count;
     for (NSUInteger section = 0; section < sectionCount; section++)
     {
-        numberOfRows += [self.rows[section] count];
+        numberOfRows += ((NSArray *)self.rows[section]).count;
     }
     
     return numberOfRows;
+}
+
+
+- (NSUInteger)numberOfFooters
+{
+    NSUInteger numberOfFooters = 0;
+    
+    SEL heightSelector = @selector(tableView:heightForFooterInSection:);
+    SEL rowViewSelector = @selector(tableView:rowViewForFooterInSection:);
+    SEL cellViewSelector = @selector(tableView:cellViewForFooterInSection:);
+    
+    if ([self respondsToSelector:heightSelector] == NO ||
+        [self respondsToSelector:rowViewSelector] == NO ||
+        [self respondsToSelector:cellViewSelector] == NO)
+    {
+        return numberOfFooters;
+    }
+    
+    NSUInteger sectionCount = self.sections.count;
+    for (NSUInteger section = 0; section < sectionCount; section++)
+    {
+        CGFloat footerHeight = [self tableView:self.tableView
+                      heightForFooterInSection:section];
+        numberOfFooters += (footerHeight > GNESectionedTableViewInvisibleRowHeight) ? 1 : 0;
+    }
+    
+    return numberOfFooters;
 }
 #endif
 
@@ -164,7 +191,7 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
 - (NSString *)p_stringForSection:(NSUInteger)section
 {
     NSString *dateString = [self.dateFormatter stringFromDate:[NSDate date]];
-    NSString *string = [NSString stringWithFormat:@"Section %lu at %@", section, dateString];
+    NSString *string = [NSString stringWithFormat:@"%lu at %@", section, dateString];
     
     return string;
 }
@@ -173,7 +200,7 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
 - (NSString *)p_stringForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSString *dateString = [self.dateFormatter stringFromDate:[NSDate date]];
-    NSString *string = [NSString stringWithFormat:@"%lu, %lu at %@",
+    NSString *string = [NSString stringWithFormat:@"{%lu, %lu} at %@",
                         indexPath.gne_section,
                         indexPath.gne_row, dateString];
     
@@ -780,8 +807,8 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
         cellView.identifier = kHeaderCellViewIdentifier;
     }
     
-    cellView.layer.backgroundColor = [NSColor colorWithCalibratedRed:1.0 green:0.0 blue:0.0 alpha:0.2].CGColor;
-    cellView.title = self.sections[section];
+    cellView.layer.backgroundColor = [NSColor colorWithCalibratedRed:0.0 green:1.0 blue:0.0 alpha:0.2].CGColor;
+    cellView.title = [NSString stringWithFormat:@"Header %@", self.sections[section]];
     
     return cellView;
 }
@@ -804,8 +831,8 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
         cellView.identifier = kFooterCellViewIdentifier;
     }
     
-    cellView.layer.backgroundColor = [NSColor colorWithCalibratedRed:0.0 green:1.0 blue:0.0 alpha:0.2].CGColor;
-    cellView.title = [NSString stringWithFormat:@"Footer %lu", (unsigned long) section];
+    cellView.layer.backgroundColor = [NSColor colorWithCalibratedRed:1.0 green:0.0 blue:0.0 alpha:0.2].CGColor;
+    cellView.title = [NSString stringWithFormat:@"Footer %@", self.sections[section]];
     
     return cellView;
 }
@@ -841,6 +868,12 @@ shouldSelectHeaderInSection:(NSUInteger)section
 }
 
 
+- (void)tableView:(GNESectionedTableView * __unused)tableView didClickFooterInSection:(NSUInteger)section
+{
+    NSLog(@"didClickFooterInSection: %lu", section);
+}
+
+
 - (void)tableView:(GNESectionedTableView * __unused)tableView didClickRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSLog(@"didClickRowAtIndexPath: %@", indexPath);
@@ -850,6 +883,12 @@ shouldSelectHeaderInSection:(NSUInteger)section
 - (void)tableView:(GNESectionedTableView * __unused)tableView didDoubleClickHeaderInSection:(NSUInteger)section
 {
     NSLog(@"didDoubleClickHeaderInSection: %lu", section);
+}
+
+
+- (void)tableView:(GNESectionedTableView * __unused)tableView didDoubleClickFooterInSection:(NSUInteger)section
+{
+    NSLog(@"didDoubleClickFooterInSection: %lu", section);
 }
 
 

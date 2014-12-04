@@ -224,7 +224,11 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 @optional
 - (void)tableView:(GNESectionedTableView *)tableView didClickHeaderInSection:(NSUInteger)section;
 @optional
+- (void)tableView:(GNESectionedTableView *)tableView didClickFooterInSection:(NSUInteger)section;
+@optional
 - (void)tableView:(GNESectionedTableView *)tableView didDoubleClickHeaderInSection:(NSUInteger)section;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didDoubleClickFooterInSection:(NSUInteger)section;
 @optional
 - (void)tableView:(GNESectionedTableView *)tableView didClickRowAtIndexPath:(NSIndexPath *)indexPath;
 @optional

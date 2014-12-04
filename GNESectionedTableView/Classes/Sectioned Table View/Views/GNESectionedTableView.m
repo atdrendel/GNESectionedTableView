@@ -121,6 +121,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)p_commonInitialization
 {
+    NSLog(@"\nHeader: %ld\nFooter: %ld",
+          (NSNotFound - kSectionHeaderRowModifier),
+          (NSNotFound - kSectionFooterRowModifier));
+    
     _outlineViewParentItems = [NSMutableArray array];
     _outlineViewItems = [NSMutableArray array];
     
@@ -1229,7 +1233,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     CGFloat height = [theDelegate tableView:self heightForHeaderInSection:section];
     
-    return (height >= 1.0f);
+    return (height > GNESectionedTableViewInvisibleRowHeight);
 }
 
 
@@ -1260,7 +1264,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     CGFloat height = [theDelegate tableView:self heightForFooterInSection:section];
     
-    return (height >= 1.0f);
+    return (height > GNESectionedTableViewInvisibleRowHeight);
 }
 
 
@@ -1873,7 +1877,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
  */
 - (GNEOutlineViewParentItem *)p_outlineViewParentItemForSection:(NSUInteger)section
 {
-    NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:NSNotFound inSection:section];
+    NSIndexPath *indexPath = [self indexPathForHeaderInSection:section];
     
     return [self p_outlineViewParentItemWithIndexPath:indexPath];
 }
@@ -1888,7 +1892,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 - (GNEOutlineViewParentItem *)p_outlineViewParentItemWithIndexPath:(NSIndexPath *)indexPath
 {
     GNEParameterAssert(indexPath);
-    GNEParameterAssert(indexPath.gne_row == NSNotFound);
+    GNEParameterAssert([self isHeaderIndexPath:indexPath]);
     
     NSUInteger parentItemsCount = self.outlineViewParentItems.count;
     
@@ -1928,15 +1932,28 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         NSArray *sectionArray = self.outlineViewItems[indexPath.gne_section];
         NSUInteger rowCount = sectionArray.count;
         
-        GNEParameterAssert(indexPath.gne_row < rowCount);
+        GNEParameterAssert([self isFooterIndexPath:indexPath] ||
+                           indexPath.gne_row < rowCount);
         
-        if (indexPath.gne_row < rowCount)
+        if ([self isFooterIndexPath:indexPath])
+        {
+            return [self p_outlineViewItemForFooterInSection:indexPath.gne_section];
+        }
+        else if (indexPath.gne_row < rowCount)
         {
             return sectionArray[indexPath.gne_row];
         }
     }
     
     return nil;
+}
+
+
+- (GNEOutlineViewItem *)p_outlineViewItemForFooterInSection:(NSUInteger)section
+{
+    GNEOutlineViewParentItem *parentItem = [self p_outlineViewParentItemForSection:section];
+    
+    return [self p_outlineViewItemForFooterInOutlineViewParentItem:parentItem];
 }
 
 
@@ -1969,6 +1986,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }
     
     GNEOutlineViewItem *item = items[rowCount - 1];
+    
+    NSLog(@"Footer in section %lu: %@", section, item);
     
     return item;
 }
@@ -2081,11 +2100,23 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             [self.tableViewDelegate tableView:self didClickHeaderInSection:section];
         }
         
-        SEL rowSelector = @selector(tableView:didClickRowAtIndexPath:);
-        if (parentItem && [self.tableViewDelegate respondsToSelector:rowSelector])
+        if (parentItem)
         {
+            SEL footerSelector = @selector(tableView:didClickFooterInSection:);
+            SEL rowSelector = @selector(tableView:didClickRowAtIndexPath:);
+            
+            BOOL isFooter = [self p_isOutlineViewItemFooter:item];
             NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
-            [self.tableViewDelegate tableView:self didClickRowAtIndexPath:indexPath];
+            
+            if (isFooter && [self.tableViewDelegate respondsToSelector:footerSelector])
+            {
+                [self.tableViewDelegate tableView:self
+                          didClickFooterInSection:indexPath.gne_section];
+            }
+            else if (isFooter == NO && [self.tableViewDelegate respondsToSelector:rowSelector])
+            {
+                [self.tableViewDelegate tableView:self didClickRowAtIndexPath:indexPath];
+            }
         }
     }
 }
@@ -2112,11 +2143,23 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             [self.tableViewDelegate tableView:self didDoubleClickHeaderInSection:section];
         }
         
-        SEL rowSelector = @selector(tableView:didDoubleClickRowAtIndexPath:);
-        if (parentItem && [self.tableViewDelegate respondsToSelector:rowSelector])
+        if (parentItem)
         {
+            SEL footerSelector = @selector(tableView:didDoubleClickFooterInSection:);
+            SEL rowSelector = @selector(tableView:didDoubleClickRowAtIndexPath:);
+            
+            BOOL isFooter = [self p_isOutlineViewItemFooter:item];
             NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
-            [self.tableViewDelegate tableView:self didDoubleClickRowAtIndexPath:indexPath];
+            
+            if (isFooter && [self.tableViewDelegate respondsToSelector:footerSelector])
+            {
+                [self.tableViewDelegate tableView:self
+                    didDoubleClickFooterInSection:indexPath.gne_section];
+            }
+            else if (isFooter == NO && [self.tableViewDelegate respondsToSelector:rowSelector])
+            {
+                [self.tableViewDelegate tableView:self didDoubleClickRowAtIndexPath:indexPath];
+            }
         }
     }
 }
@@ -2553,9 +2596,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     SEL numberOfSectionsSelector = NSSelectorFromString(@"numberOfSections");
     SEL numberOfRowsSelector = NSSelectorFromString(@"numberOfRows");
+    SEL numberOfFootersSelector = NSSelectorFromString(@"numberOfFooters");
     
     if ([dataSource respondsToSelector:numberOfSectionsSelector] == NO ||
-        [dataSource respondsToSelector:numberOfRowsSelector] == NO)
+        [dataSource respondsToSelector:numberOfRowsSelector] == NO ||
+        [dataSource respondsToSelector:numberOfFootersSelector] == NO)
     {
         return;
     }
@@ -2571,10 +2616,12 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
     NSUInteger numberOfRowsInDataSource = (NSUInteger)[dataSource performSelector:numberOfRowsSelector];
+    NSUInteger numberOfFootersInDataSource = (NSUInteger)[dataSource performSelector:numberOfFootersSelector];
+    NSUInteger totalNumberOfRowsInDataSource = numberOfRowsInDataSource + numberOfFootersInDataSource;
 #pragma clang diagnostic pop
     NSUInteger numberOfRowsInOutlineView = [self p_numberOfRowsInOutlineView] - [self p_numberOfSections];
     
-    GNEParameterAssert(numberOfRowsInDataSource == numberOfRowsInOutlineView);
+    GNEParameterAssert(totalNumberOfRowsInDataSource == numberOfRowsInOutlineView);
 }
 #else
 - (void)p_checkDataSourceIntegrity
