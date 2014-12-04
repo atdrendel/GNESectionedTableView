@@ -165,7 +165,7 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
 - (void)p_buildAndConfigureSectionsAndRows
 {
     NSUInteger sectionCount = MAX((NSUInteger)arc4random_uniform(10), (NSUInteger)3);
-    sectionCount = 10;
+    sectionCount = 20;
     
     self.sections = [NSMutableArray arrayWithCapacity:sectionCount];
     self.rows = [NSMutableArray arrayWithCapacity:sectionCount];
@@ -175,7 +175,7 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
         [self.sections addObject:[self p_stringForSection:section]];
         
         NSUInteger rowCount = arc4random_uniform(10);
-        rowCount = 4;
+        rowCount = 0;
         NSMutableArray *rowsArray = [NSMutableArray array];
         for (NSUInteger row = 0; row < rowCount; row++)
         {
@@ -600,13 +600,13 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
 // ------------------------------------------------------------------------------------------
 - (NSUInteger)numberOfSectionsInTableView:(GNESectionedTableView * __unused)tableView
 {
-    return [self.sections count];
+    return self.sections.count;
 }
 
 
 - (NSUInteger)tableView:(GNESectionedTableView * __unused)tableView numberOfRowsInSection:(NSUInteger)section
 {
-    return [self.rows[section] count];
+    return ((NSArray *)self.rows[section]).count;
 }
 
 
@@ -736,28 +736,26 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 -       (CGFloat)tableView:(GNESectionedTableView * __unused)tableView
   heightForHeaderInSection:(NSUInteger __unused)section
 {
+    return 22.0f;
+    
     NSArray *rowsArray = self.rows[section];
     
-    return ((rowsArray.count > 1) ? 22.0f : GNESectionedTableViewInvisibleRowHeight);
+    return ((rowsArray.count > 0) ? 22.0f : GNESectionedTableViewInvisibleRowHeight);
 }
 
 
 -       (CGFloat)tableView:(GNESectionedTableView * __unused)tableView
   heightForFooterInSection:(NSUInteger __unused)section
 {
-    return 22.0f;
+    NSArray *rowsArray = self.rows[section];
+    
+    return ((rowsArray.count > 0) ? 22.0f : 0.0f);
 }
 
 
 - (NSTableRowView *)tableView:(GNESectionedTableView *)tableView
-    rowViewForHeaderInSection:(NSUInteger)section
+    rowViewForHeaderInSection:(NSUInteger __unused)section
 {
-    NSArray *rowsArray = self.rows[section];
-    if (rowsArray.count <= 1)
-    {
-        return nil;
-    }
-    
     GNETableRowView *rowView = [tableView makeViewWithIdentifier:kHeaderRowViewIdentifier owner:self];
     
     if (rowView == nil)
@@ -766,6 +764,7 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
         rowView.autoresizingMask = NSViewWidthSizable;
         rowView.identifier = kHeaderRowViewIdentifier;
         rowView.backgroundColor = [NSColor greenColor];
+        rowView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleRegular;
     }
     
     return rowView;
@@ -792,12 +791,6 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 - (NSTableCellView *)tableView:(GNESectionedTableView *)tableView
     cellViewForHeaderInSection:(NSUInteger)section
 {
-    NSArray *rowsArray = self.rows[section];
-    if (rowsArray.count <= 1)
-    {
-        return nil;
-    }
-    
     GNEHeaderCellView *cellView = [tableView makeViewWithIdentifier:kHeaderCellViewIdentifier owner:self];
     
     if (cellView == nil)
@@ -839,9 +832,9 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 
 
 -           (BOOL)tableView:(GNESectionedTableView * __unused)tableView
-shouldSelectHeaderInSection:(NSUInteger)section
+shouldSelectHeaderInSection:(NSUInteger __unused)section
 {
-    return (((NSArray *)self.rows[section]).count > 1);
+    return YES;
 }
 
 
@@ -852,19 +845,19 @@ shouldSelectHeaderInSection:(NSUInteger)section
 }
 
 
-- (void)tableView:(GNESectionedTableView *)tableView didClickHeaderInSection:(NSUInteger)section
+- (void)tableView:(GNESectionedTableView * __unused)tableView didClickHeaderInSection:(NSUInteger)section
 {
     NSLog(@"didClickHeaderInSection: %lu", section);
-    
-    BOOL isExpanded = [tableView isSectionExpanded:section];
-    if (isExpanded)
-    {
-        [tableView collapseSection:section animated:YES];
-    }
-    else
-    {
-        [tableView expandSection:section animated:YES];
-    }
+//    
+//    BOOL isExpanded = [tableView isSectionExpanded:section];
+//    if (isExpanded)
+//    {
+//        [tableView collapseSection:section animated:YES];
+//    }
+//    else
+//    {
+//        [tableView expandSection:section animated:YES];
+//    }
 }
 
 
