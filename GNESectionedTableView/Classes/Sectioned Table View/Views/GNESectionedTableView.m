@@ -1936,7 +1936,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         NSArray *sectionArray = self.outlineViewItems[indexPath.gne_section];
         NSUInteger rowCount = sectionArray.count;
         
-        GNEParameterAssert([self isFooterIndexPath:indexPath] ||
+        GNEParameterAssert([self isIndexPathFooter:indexPath] ||
                            indexPath.gne_row < rowCount);
         
         if ([self isIndexPathFooter:indexPath])
@@ -3055,7 +3055,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         NSIndexPath *indexPath = [strongSelf indexPathForTableViewRow:(NSInteger)tableViewRow];
         
         // Skip nil index paths and footer index paths.
-        if (indexPath == nil || [strongSelf isFooterIndexPath:indexPath])
+        if (indexPath == nil || [strongSelf isIndexPathFooter:indexPath])
         {
             return;
         }
