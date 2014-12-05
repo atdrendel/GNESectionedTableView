@@ -889,7 +889,9 @@ shouldSelectHeaderInSection:(NSUInteger __unused)section
 
 - (void)tableView:(GNESectionedTableView * __unused)tableView didClickRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSLog(@"didClickRowAtIndexPath: %@", indexPath);
+    NSString *title = ((NSArray *)self.rows[indexPath.gne_section])[indexPath.gne_row];
+    
+    NSLog(@"didClickRowAtIndexPath: %@ (%@)", indexPath, title);
 }
 
 
