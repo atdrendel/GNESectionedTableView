@@ -1301,8 +1301,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     NSUInteger fromSection = fromIndexPath.gne_section;
     NSUInteger fromRow = fromIndexPath.gne_row;
     
-    toRow = (fromRow < toRow) ? (toRow - 1) : toRow;
-    
     [self.outlineViewItems[fromSection] removeObjectAtIndex:fromRow];
     [self.outlineViewItems[fromSection] gne_insertObject:item atIndex:toRow];
     
