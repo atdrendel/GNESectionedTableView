@@ -35,6 +35,9 @@
 #import "GNEOutlineViewItem.h"
 #import "GNEOutlineViewParentItem.h"
 
+#import "GNESectionedTableViewMove.h"
+#import "GNESectionedTableViewDraggingItem.h"
+
 // ------------------------------------------------------------------------------------------
 
 
@@ -77,6 +80,14 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 /// Array of arrays of outline view items that map to the table view's rows.
 @property (nonatomic, strong) NSMutableArray *outlineViewItems;
 
+@property (nonatomic, strong) NSMutableArray *autoCollapsedOutlineViewParentItems;
+
+/// Move that is initialized in -outlineView:draggingSession:willBeginAtPoint:forItems:
+/// and cleared in -outlineView:draggingSession:endedAtPoint:operation:.
+@property (nonatomic, strong) GNESectionedTableViewMove *currentMove;
+
+/// Incremented in -beginUpdates and decremented in -endUpdates.
+@property (atomic, assign) NSUInteger updateCount;
 
 @end
 
@@ -123,6 +134,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     _outlineViewParentItems = [NSMutableArray array];
     _outlineViewItems = [NSMutableArray array];
+    
+    _autoCollapsedOutlineViewParentItems = [NSMutableArray array];
     
     self.dataSource = self;
     self.delegate = self;
@@ -223,6 +236,20 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         [self reloadDataForRowIndexes:rowIndexes
                         columnIndexes:columnIndexes];
     }
+}
+
+
+- (void)beginUpdates
+{
+    self.updateCount++;
+    [super beginUpdates];
+}
+
+
+- (void)endUpdates
+{
+    [super endUpdates];
+    self.updateCount--;
 }
 
 
@@ -494,27 +521,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     GNEParameterAssert(fromIndexPath);
     GNEParameterAssert(toIndexPath);
     
-    NSUInteger toSection = toIndexPath.gne_section;
-    
-    GNEOutlineViewParentItem *toParentItem = [self p_outlineViewParentItemForSection:toSection];
-    
-    GNEParameterAssert(toParentItem);
-    if (toParentItem == nil)
+    if (self.currentMove)
     {
-        return;
+        [self.currentMove moveRowsAtIndexPaths:@[fromIndexPath]
+                                  toIndexPaths:@[toIndexPath]];
     }
-    
-    GNEOutlineViewItem *fromItem = [self p_outlineViewItemAtIndexPath:fromIndexPath];
-    
-    GNEParameterAssert(fromItem);
-    if (fromItem == nil)
-    {
-        return;
-    }
-    
-    [self p_animateMoveOfOutlineViewItem:fromItem toRow:toIndexPath.gne_row inOutlineViewParentItem:toParentItem];
-    
-    [self p_checkDataSourceIntegrity];
 }
 
 
@@ -525,93 +536,31 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [self p_checkIndexPathsArray:fromIndexPaths];
     [self p_checkIndexPathsArray:toIndexPaths];
     
-    NSUInteger moveCount = fromIndexPaths.count;
-    
-    [self beginUpdates];
-    for (NSUInteger i = 0; i < moveCount; i++)
+    if (self.currentMove)
     {
-        NSIndexPath *fromIndexPath = fromIndexPaths[i];
-        NSIndexPath *toIndexPath = toIndexPaths[i];
-        
-        if ([fromIndexPath compare:toIndexPath] == NSOrderedSame)
-        {
-            continue;
-        }
-        
-        [self moveRowAtIndexPath:fromIndexPath toIndexPath:toIndexPath];
+        [self.currentMove moveRowsAtIndexPaths:fromIndexPaths toIndexPaths:toIndexPaths];
     }
-    [self endUpdates];
-    
-    [self p_checkDataSourceIntegrity];
 }
 
 
 - (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPath:(NSIndexPath *)toIndexPath
 {
-#if GNE_CRUD_LOGGING_ENABLED
-    NSLog(@"%@\nFrom %@ to %@", NSStringFromSelector(_cmd), fromIndexPaths, toIndexPath);
-#endif
-    
     [self p_checkIndexPathsArray:fromIndexPaths];
     
-    GNEOutlineViewParentItem *toParentItem = [self p_outlineViewParentItemForSection:toIndexPath.gne_section];
-    NSUInteger toRow = toIndexPath.gne_row;
+    NSUInteger count = fromIndexPaths.count;
     
-    NSArray *groupedIndexPaths = [self p_reverseSortedIndexPathsGroupedBySectionInIndexPaths:fromIndexPaths];
+    NSMutableArray *toIndexPaths = [NSMutableArray array];
     
-    [self beginUpdates];
-    for (NSArray *indexPathsInSection in groupedIndexPaths)
+    NSUInteger section = toIndexPath.gne_section;
+    NSUInteger row = toIndexPath.gne_row;
+    for (NSUInteger i = 0; i < count; i++)
     {
-        NSIndexPath *firstIndexPath = indexPathsInSection.firstObject;
-        
-        if (firstIndexPath == nil)
-        {
-            continue;
-        }
-        
-        BOOL fromSectionEqualsToSection = (firstIndexPath.gne_section == toIndexPath.gne_section);
-        GNEOutlineViewItem *firstItem = [self p_outlineViewItemAtIndexPath:firstIndexPath];
-        
-        if (firstItem == nil)
-        {
-            continue;
-        }
-        
-        GNEOutlineViewParentItem *parentItem = firstItem.parentItem;
-        
-        GNEParameterAssert(parentItem);
-        
-        // TODO: Remove this ugliness or, at least, factor it away.
-        if (fromSectionEqualsToSection)
-        {
-            NSMutableIndexSet *mutableFromRows = [NSMutableIndexSet indexSet];
-            for (NSIndexPath *indexPath in indexPathsInSection)
-            {
-                [mutableFromRows addIndex:indexPath.gne_row];
-            }
-            
-            NSRange rowsBelowRange = NSMakeRange(0, toRow);
-            NSUInteger rowsBelow = [mutableFromRows countOfIndexesInRange:rowsBelowRange];
-            
-            [self p_animateMoveOfOutlineViewItemsAtRows:mutableFromRows
-                                              inSection:toIndexPath.gne_section
-                                                  toRow:toRow];
-            toRow -= rowsBelow;
-        }
-        else
-        {
-            [self beginUpdates];
-            for (NSIndexPath *indexPath in indexPathsInSection)
-            {
-                GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
-                [self p_animateMoveOfOutlineViewItem:item
-                                               toRow:toRow
-                             inOutlineViewParentItem:toParentItem];
-            }
-            [self endUpdates];
-        }
+        NSUInteger toRow = row + i;
+        NSIndexPath *anIndexPath = [NSIndexPath gne_indexPathForRow:toRow inSection:section];
+        [toIndexPaths addObject:anIndexPath];
     }
-    [self endUpdates];
+    
+    [self moveRowsAtIndexPaths:fromIndexPaths toIndexPaths:[toIndexPaths copy]];
 }
 
 
@@ -751,6 +700,12 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
+- (void)moveSections:(GNESections)fromSections toSections:(GNESections)toSections
+{
+    
+}
+
+
 - (void)moveSections:(NSIndexSet *)fromSections toSection:(NSUInteger)toSection
 {
 #if GNE_CRUD_LOGGING_ENABLED
@@ -828,6 +783,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                       toIndex:(NSInteger)convertedToSection
                      inParent:nil];
     }];
+    [self endUpdates];
+    
+    [self beginUpdates];
+    
     [self endUpdates];
     
     [self p_checkDataSourceIntegrity];
@@ -2716,6 +2675,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 #ifdef DEBUG
 - (void)p_checkDataSourceIntegrity
 {
+    if (self.isUpdating)
+    {
+        return;
+    }
+    
     id dataSource = (id)self.tableViewDataSource;
     
     SEL numberOfSectionsSelector = NSSelectorFromString(@"numberOfSections");
@@ -3323,6 +3287,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         
         NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
         canDrag = [self.tableViewDataSource tableView:self canDragSection:section];
+        if (canDrag && [self isItemExpanded:item])
+        {
+            [self.autoCollapsedOutlineViewParentItems addObject:item];
+            [self collapseSection:section animated:YES];
+        }
     }
     else if (parentItem &&
              [self.tableViewDataSource respondsToSelector:@selector(tableView:canDragRowAtIndexPath:)])
@@ -3346,12 +3315,16 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         [self.tableViewDataSource tableViewDraggingSessionWillBegin:self];
     }
     
+    self.currentMove = [[GNESectionedTableViewMove alloc] initWithTableView:self];
+    
     session.draggingFormation = NSDraggingFormationNone;
     CGPoint draggingLocation = session.draggingLocation;
     CGRect screenDraggingLocation = CGRectMake(draggingLocation.x, draggingLocation.y, 0.0f, 0.0f);
     CGRect windowDraggingLocation = [outlineView.window convertRectFromScreen:screenDraggingLocation];
     CGPoint convertedDraggingLocation = [outlineView.superview convertPoint:windowDraggingLocation.origin
                                                                    fromView:nil];
+    
+    __weak typeof(self) weakSelf = self;
     [session enumerateDraggingItemsWithOptions:0
                                        forView:outlineView
                                        classes:@[[GNEOutlineViewItem class]]
@@ -3360,15 +3333,31 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                                                  NSInteger idx,
                                                  BOOL *stop __unused)
     {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf == nil)
+        {
+            return;
+        }
+        
         GNEOutlineViewItem *item = draggingItem.item;
         NSInteger column = [outlineView columnWithIdentifier:kOutlineViewStandardColumnIdentifier];
         NSIndexPath *indexPath = item.draggedIndexPath;
-        GNEOutlineViewItem *draggedItem = [self p_outlineViewItemAtIndexPath:indexPath];
-        NSInteger row = [self rowForItem:draggedItem];
+        GNEOutlineViewItem *draggedItem = [strongSelf p_outlineViewItemAtIndexPath:indexPath];
+        NSInteger row = [strongSelf rowForItem:draggedItem];
         
         if ([item isKindOfClass:[GNEOutlineViewItem class]] && column >= 0 && row >= 0)
         {
-            NSTableCellView *cellView = [outlineView viewAtColumn:column row:row makeIfNecessary:NO];
+            NSTableRowView *rowView = [outlineView rowViewAtRow:row makeIfNecessary:YES];
+            NSTableCellView *cellView = [outlineView viewAtColumn:column row:row makeIfNecessary:YES];
+            
+            // Create the custom move dragging item.
+            GNESectionedTableViewDraggingItem *tableViewDraggingItem = [[GNESectionedTableViewDraggingItem alloc]
+                                                                        initWithTableCellView:cellView
+                                                                        frame:rowView.frame
+                                                                        indexPath:indexPath];
+            [strongSelf.currentMove addDraggingItem:tableViewDraggingItem];
+            
+            // Give the system dragging items the correct appearance.
             draggingItem.imageComponentsProvider = ^ NSArray * ()
             {
                 return cellView.draggingImageComponents;
@@ -3471,7 +3460,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }];
     
     BOOL success = NO;
-    [self beginUpdates];
     if (proposedChildIndex == NSOutlineViewDropOnItemIndex) // Drop on
     {
         success = [self p_performDropOnDragOperationWithProposedParentItem:proposedParentItem
@@ -3489,7 +3477,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                                                      proposedChildIndex:proposedChildIndex
                                                          fromIndexPaths:fromIndexPaths];
     }
-    [self endUpdates];
     
     return success;
 }
@@ -3505,6 +3492,21 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         [self.tableViewDataSource tableViewDraggingSessionDidEnd:self];
     }
+    
+    if (self.autoCollapsedOutlineViewParentItems.count > 0)
+    {
+        for (GNEOutlineViewParentItem *parentItem in self.autoCollapsedOutlineViewParentItems)
+        {
+            NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
+            if (section != NSNotFound)
+            {
+                [self expandSection:section animated:YES];
+            }
+        }
+    }
+    [self.autoCollapsedOutlineViewParentItems removeAllObjects];
+    
+    self.currentMove = nil;
 }
 
 
@@ -3574,6 +3576,12 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         [self p_registerForDraggedTypes];
         [self reloadData];
     }
+}
+
+
+- (BOOL)isUpdating
+{
+    return (self.updateCount > 0);
 }
 
 

@@ -552,17 +552,15 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
 
 - (void)p_moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPath:(NSIndexPath *)toIndexPath
 {
-    NSLog(@"\nBEFORE:\n\n%@\n\n", self.rows);
-    
     NSMutableArray *movedRows = [NSMutableArray array];
     __block NSUInteger toRow = toIndexPath.gne_row;
     
-    SEL sortingSelector = NSSelectorFromString(@"gne_compare:");
+    SEL sortingSelector = NSSelectorFromString(@"gne_reverseCompare:");
     NSArray *sortedFromIndexPaths = [fromIndexPaths sortedArrayUsingSelector:sortingSelector];
     
     NSUInteger sectionCount = self.rows.count;
     
-    [sortedFromIndexPaths enumerateObjectsWithOptions:NSEnumerationReverse
+    [sortedFromIndexPaths enumerateObjectsWithOptions:0
                                            usingBlock:^(NSIndexPath *indexPath,
                                                         NSUInteger idx __unused,
                                                         BOOL *stop __unused)
@@ -588,10 +586,10 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
         NSRange insertionRange = NSMakeRange(toRow, movedRows.count);
         NSIndexSet *insertionIndexSet = [NSIndexSet indexSetWithIndexesInRange:insertionRange];
         [toRowsArray insertObjects:movedRows atIndexes:insertionIndexSet];
-        [self.tableView moveRowsAtIndexPaths:fromIndexPaths toIndexPath:toIndexPath];
+        [self.tableView moveRowsAtIndexPaths:fromIndexPaths
+                                 toIndexPath:[NSIndexPath gne_indexPathForRow:toRow
+                                                                    inSection:toIndexPath.gne_section]];
     }
-    
-    NSLog(@"\nAFTER\n\n%@\n\n", self.rows);
 }
 
 

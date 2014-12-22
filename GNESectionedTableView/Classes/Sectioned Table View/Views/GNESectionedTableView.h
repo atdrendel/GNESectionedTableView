@@ -97,8 +97,17 @@ static const CGFloat GNESectionedTableViewInvisibleRowHeight = 1.0f;
 // ------------------------------------------------------------------------------------------
 
 
-@protocol GNESectionedTableViewDataSource <NSObject>
+typedef struct
+{
+    NSUInteger *indexes;
+    NSUInteger count;
+} GNESections;
 
+
+// ------------------------------------------------------------------------------------------
+
+
+@protocol GNESectionedTableViewDataSource <NSObject>
 
 /* Counts */
 @required
@@ -156,7 +165,6 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 @optional
 - (void)tableViewDraggingSessionDidEnd:(GNESectionedTableView *)tableView;
 
-
 @end
 
 
@@ -164,7 +172,6 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 
 
 @protocol GNESectionedTableViewDelegate <NSObject>
-
 
 /* Sizing */
 @required
@@ -252,15 +259,12 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 @optional
 - (void)tableView:(GNESectionedTableView *)tableView didSelectRowsAtIndexPaths:(NSArray *)indexPaths;
 
-
 @end
 
 
 // ------------------------------------------------------------------------------------------
 
-
 @interface GNESectionedTableView : NSOutlineView
-
 
 /// Table view's current data source, which must conform to GNESectionedTableViewDataSource.
 @property (nonatomic, strong) id <GNESectionedTableViewDataSource> tableViewDataSource;
@@ -280,6 +284,9 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  @discussion The index paths are returned sorted in ascending (section-first) order.
  */
 @property (nonatomic, strong, readonly) NSArray *selectedIndexPaths;
+
+/// Returns YES if the table view is in an -beginUpdate/-endUpdates block, otherwise NO.
+@property (nonatomic, assign, readonly) BOOL isUpdating;
 
 
 #pragma mark - Initialization
@@ -396,7 +403,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 - (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)deleteSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)moveSection:(NSUInteger)fromSection toSection:(NSUInteger)toSection;
-
+- (void)moveSections:(GNESections)fromSections toSections:(GNESections)toSections;
 /**
  Moves the specified sections to the specified section index. The order of the from sections is maintained.
  
