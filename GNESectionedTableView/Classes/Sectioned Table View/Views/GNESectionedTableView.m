@@ -779,7 +779,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
      If the target section is contained in the fromSections parameter, remove it, insert the sections greater than
      it above it, and insert all of the sections less than it below it.
      */
-    if ([validSections containsIndex:toSection])
+    while ([validSections containsIndex:toSection])
     {
         [validSections removeIndex:toSection];
         toSection += 1;
@@ -1384,7 +1384,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         toRow += 1;
     }
     
-    if ([mutableFromRows containsIndex:toRow])
+    while ([mutableFromRows containsIndex:toRow])
     {
         [mutableFromRows removeIndex:toRow];
         toRow += 1;
