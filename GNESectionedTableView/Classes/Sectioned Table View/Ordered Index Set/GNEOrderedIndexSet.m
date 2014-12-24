@@ -80,8 +80,8 @@ static const NSUInteger kCountIncrementLength = 50;
 {
     if ((self = [super init]))
     {
+        _indexesCount = 0;
         _memoryCount = (kMinimumCount > count) ? kMinimumCount : count + kCountIncrementLength;
-        _indexesCount = count;
         _indexes = calloc(_memoryCount, sizeof(NSUInteger));
         _sortedIndexes = calloc(_memoryCount, sizeof(NSUInteger));
         
@@ -169,7 +169,7 @@ static const NSUInteger kCountIncrementLength = 50;
     if ([self containsIndex:index] == NO)
     {
         [self p_addIndexToIndexes:index];
-        [self p_addIndexToOrderedIndexes:index];
+        [self p_addIndexToSortedIndexes:index];
         self.indexesCount++;
         [self p_increaseBackingStoreMemoryIfNeeded];
     }
@@ -188,11 +188,12 @@ static const NSUInteger kCountIncrementLength = 50;
 - (void)addIndex:(NSUInteger)index atPosition:(NSUInteger)position
 {
     NSParameterAssert(index < NSNotFound);
+    NSParameterAssert(position <= self.indexesCount);
     
     if ([self containsIndex:index] == NO)
     {
         [self p_addIndexToIndexes:index atPosition:position];
-        [self p_addIndexToOrderedIndexes:index];
+        [self p_addIndexToSortedIndexes:index];
         self.indexesCount++;
         [self p_increaseBackingStoreMemoryIfNeeded];
     }
@@ -206,7 +207,7 @@ static const NSUInteger kCountIncrementLength = 50;
     if ([self containsIndex:index])
     {
         [self p_removeIndexFromIndexes:index];
-        [self p_removeIndexFromOrderedIndexes:index];
+        [self p_removeIndexFromSortedIndexes:index];
         self.indexesCount--;
     }
 }
@@ -214,6 +215,8 @@ static const NSUInteger kCountIncrementLength = 50;
 
 - (void)removeIndexAtPosition:(NSUInteger)position
 {
+    NSParameterAssert(position < self.indexesCount);
+    
     if (position >= self.indexesCount)
     {
         return;
@@ -240,42 +243,56 @@ static const NSUInteger kCountIncrementLength = 50;
 
 - (NSUInteger)positionOfIndex:(NSUInteger)index
 {
-    NSUInteger smallestIndex = [self p_smallestIndex];
-    NSUInteger largestIndex = [self p_largestIndex];
-    
-    if (smallestIndex != NSNotFound && index < smallestIndex)
+    if ([self containsIndex:index] == NO)
     {
         return NSNotFound;
     }
     
-    if (largestIndex != NSNotFound && index > largestIndex)
+    for (NSUInteger i = 0; i < self.indexesCount; i++)
     {
-        return NSNotFound;
+        NSUInteger anIndex = [self indexAtPosition:i];
+        
+        if (index == anIndex)
+        {
+            return i;
+        }
     }
     
-    return [self p_positionOfIndex:index
-                     startPosition:0
-                       endPosition:self.indexesCount
-                 insertionPosition:NULL];
+    return NSNotFound;
 }
 
 
 - (BOOL)containsIndex:(NSUInteger)index
 {
-    return ([self positionOfIndex:index] != NSNotFound);
+    NSUInteger position = [self p_positionInSortedIndexesOfIndex:index
+                                                   startPosition:0
+                                                     endPosition:self.indexesCount];
+    
+    return (position != NSNotFound);
 }
 
 
 // ------------------------------------------------------------------------------------------
-#pragma mark - Enumeration
+#pragma mark - Public - Enumeration
 // ------------------------------------------------------------------------------------------
 - (void)enumerateIndexesUsingBlock:(void (^)(NSUInteger index, NSUInteger position, BOOL *stop))block
 {
+    [self enumerateIndexesWithOptions:0 usingBlock:block];
+}
+
+
+- (void)enumerateIndexesWithOptions:(NSEnumerationOptions)options
+                         usingBlock:(void (^)(NSUInteger, NSUInteger, BOOL *))block
+{
+    BOOL isReversed = options & NSEnumerationReverse;
+    
     NSUInteger count = self.indexesCount;
     for (NSUInteger i = 0; i < count; i++)
     {
         BOOL stop = NO;
-        block(self.indexes[i], i, &stop);
+        
+        NSUInteger index = (isReversed) ? (count - 1 - i) : i;
+        block(self.indexes[index], i, &stop);
         
         if (stop)
         {
@@ -328,9 +345,9 @@ static const NSUInteger kCountIncrementLength = 50;
 }
 
 
-- (void)p_addIndexToOrderedIndexes:(NSUInteger)index
+- (void)p_addIndexToSortedIndexes:(NSUInteger)index
 {
-    NSUInteger insertionPosition = [self p_insertionPositionForIndex:index];
+    NSUInteger insertionPosition = [self p_insertionPositionInSortedIndexesForIndex:index];
     
     if (insertionPosition == NSNotFound)
     {
@@ -364,12 +381,11 @@ static const NSUInteger kCountIncrementLength = 50;
 }
 
 
-- (void)p_removeIndexFromOrderedIndexes:(NSUInteger)index
+- (void)p_removeIndexFromSortedIndexes:(NSUInteger)index
 {
-    NSUInteger position = [self p_positionOfIndex:index
-                                    startPosition:0
-                                      endPosition:self.indexesCount
-                                insertionPosition:NULL];
+    NSUInteger position = [self p_positionInSortedIndexesOfIndex:index
+                                                   startPosition:0
+                                                     endPosition:(self.indexesCount - 1)];
     
     if (position == NSNotFound)
     {
@@ -384,6 +400,7 @@ static const NSUInteger kCountIncrementLength = 50;
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private - Finding Indexes
 // ------------------------------------------------------------------------------------------
+/// Returns the smallest index in the set or NSNotFound if there are no indexes in the set.
 - (NSUInteger)p_smallestIndex
 {
     if (self.indexesCount > 0)
@@ -407,85 +424,79 @@ static const NSUInteger kCountIncrementLength = 50;
 }
 
 
-/**
- Returns the position of the specified index within the specified range or NSNotFound if the
- specified index could not be found. Optionally, sets the "insertion position" to a best
- guess.
- */
-- (NSUInteger)p_positionOfIndex:(NSUInteger)index
-                  startPosition:(NSUInteger)startPosition
-                    endPosition:(NSUInteger)endPosition
-              insertionPosition:(NSUInteger *)insertionPosition
+
+/// Returns the position of the specified index within the specified range or NSNotFound if the
+/// specified index could not be found.
+- (NSUInteger)p_positionInSortedIndexesOfIndex:(NSUInteger)index
+                                 startPosition:(NSUInteger)startPosition
+                                   endPosition:(NSUInteger)endPosition
 {
-    NSUInteger bottom = startPosition;
-    NSUInteger top = endPosition;
+    NSInteger bottom = (NSInteger)startPosition;
+    NSInteger top = (NSInteger)endPosition;
     
-    if (top < bottom)
+    if (self.indexesCount == 0 || index >= NSNotFound || top < bottom)
     {
         return NSNotFound;
     }
     
-    NSUInteger middle = MAX((NSUInteger)(top / 2), bottom);
+    NSInteger middle = ((bottom + top) / 2);
     
-    NSUInteger anIndex = self.sortedIndexes[middle];
-    if (index < anIndex)
+    NSUInteger midIndex = self.sortedIndexes[middle];
+    if (index < midIndex)
     {
-        if (insertionPosition && bottom < (middle - 1))
-        {
-            *insertionPosition = bottom;
-        }
-        
-        return [self p_positionOfIndex:index
-                         startPosition:bottom
-                           endPosition:(middle - 1)
-                     insertionPosition:insertionPosition];
+        return [self p_positionInSortedIndexesOfIndex:index
+                                        startPosition:(NSUInteger)bottom
+                                          endPosition:((NSUInteger)middle - 1)];
     }
-    else if (index > anIndex)
+    else if (index > midIndex)
     {
-        if (insertionPosition)
-        {
-            *insertionPosition = middle;
-        }
-        
-        return [self p_positionOfIndex:index
-                         startPosition:(middle + 1)
-                           endPosition:top
-                     insertionPosition:insertionPosition];
+        return [self p_positionInSortedIndexesOfIndex:index
+                                        startPosition:((NSUInteger)middle + 1)
+                                          endPosition:(NSUInteger)top];
     }
     
-    if (insertionPosition)
-    {
-        *insertionPosition = middle;
-    }
-    
-    return middle;
+    return (NSUInteger)middle;
 }
 
 
-- (NSUInteger)p_insertionPositionForIndex:(NSUInteger)index
+- (NSUInteger)p_insertionPositionInSortedIndexesForIndex:(NSUInteger)index
 {
-    NSUInteger insertionPosition = 0;
-    NSUInteger position = [self p_positionOfIndex:index
-                                    startPosition:0
-                                      endPosition:self.indexesCount
-                                insertionPosition:&insertionPosition];
-    
-    // If the index is already in indexes, return.
-    if (position != NSNotFound)
+    if (self.indexesCount == 0)
     {
-        return NSNotFound;
+        return 0;
     }
     
-    NSParameterAssert(self.sortedIndexes[insertionPosition] < index);
+    NSUInteger smallestIndex = [self p_smallestIndex];
+    NSUInteger largestIndex = [self p_largestIndex];
     
-    NSUInteger nextIndex = self.sortedIndexes[insertionPosition + 1];
-    while (insertionPosition <= self.indexesCount && nextIndex < index)
+    if (index < smallestIndex)
     {
-        insertionPosition++;
-        nextIndex = self.sortedIndexes[insertionPosition + 1];
+        return 0;
+    }
+    else if (index > largestIndex)
+    {
+        return self.indexesCount;
     }
     
-    return insertionPosition;
+    NSUInteger bottom = 0;
+    NSUInteger top = self.indexesCount - 1;
+    
+    while (top > bottom)
+    {
+        NSUInteger middle = ((bottom + top) / 2);
+        NSUInteger midIndex = self.sortedIndexes[middle];
+        
+        if (index > midIndex)
+        {
+            bottom = middle + 1;
+        }
+        else
+        {
+            top = middle - 1;
+        }
+    }
+    
+    return top;
 }
 
 
@@ -537,11 +548,22 @@ static const NSUInteger kCountIncrementLength = 50;
         moveTo++;
         moveFrom++;
     }
+    
+    // After decrementing the indexes, zero out the remaining memory.
+    for (NSUInteger i = self.indexesCount; i < self.memoryCount; i++)
+    {
+        indexes[i] = 0;
+    }
 }
 
 
 - (void)p_incrementPositionsAtAndAbovePosition:(NSUInteger)position inIndexes:(NSUInteger *)indexes
 {
+    if (self.indexesCount == 0)
+    {
+        return;
+    }
+    
     NSUInteger moveTo = self.indexesCount;
     NSUInteger moveFrom = self.indexesCount - 1;
     
@@ -549,6 +571,11 @@ static const NSUInteger kCountIncrementLength = 50;
     {
         NSUInteger index = indexes[moveFrom];
         indexes[moveTo] = index;
+        
+        if (moveFrom == 0)
+        {
+            break;
+        }
         
         moveTo--;
         moveFrom--;
