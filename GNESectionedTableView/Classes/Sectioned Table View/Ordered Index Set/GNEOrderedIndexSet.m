@@ -18,6 +18,7 @@ static const NSUInteger kCountIncrementLength = 50;
 
 // ------------------------------------------------------------------------------------------
 
+
 @interface GNEOrderedIndexSet ()
 
 /// Contains the number of actual indexes stored in indexes and orderedIndexes.
@@ -30,7 +31,9 @@ static const NSUInteger kCountIncrementLength = 50;
 
 @end
 
+
 // ------------------------------------------------------------------------------------------
+
 
 @implementation GNEOrderedIndexSet
 
@@ -160,6 +163,21 @@ static const NSUInteger kCountIncrementLength = 50;
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - NSCopying
+// ------------------------------------------------------------------------------------------
+- (instancetype)copyWithZone:(NSZone * __unused)zone
+{
+    NSUInteger *indexes = self.indexes;
+    NSUInteger indexesCount = self.indexesCount;
+    
+    GNEOrderedIndexSet *copy = [GNEOrderedIndexSet indexSetWithIndexes:indexes
+                                                                 count:indexesCount];
+    
+    return copy;
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Public - Add/Remove
 // ------------------------------------------------------------------------------------------
 - (void)addIndex:(NSUInteger)index
@@ -190,7 +208,8 @@ static const NSUInteger kCountIncrementLength = 50;
     NSParameterAssert(index < NSNotFound);
     NSParameterAssert(position <= self.indexesCount);
     
-    if ([self containsIndex:index] == NO)
+    if (index < NSNotFound && position <= self.indexesCount &&
+        [self containsIndex:index] == NO)
     {
         [self p_addIndexToIndexes:index atPosition:position];
         [self p_addIndexToSortedIndexes:index];
@@ -204,7 +223,7 @@ static const NSUInteger kCountIncrementLength = 50;
 {
     NSParameterAssert(index < NSNotFound);
     
-    if ([self containsIndex:index])
+    if (index < NSNotFound && [self containsIndex:index])
     {
         [self p_removeIndexFromIndexes:index];
         [self p_removeIndexFromSortedIndexes:index];
@@ -223,7 +242,9 @@ static const NSUInteger kCountIncrementLength = 50;
     }
     
     NSUInteger index = self.indexes[position];
-    [self removeIndex:index];
+    [self p_decrementPositionsAbovePosition:position inIndexes:self.indexes];
+    [self p_removeIndexFromSortedIndexes:index];
+    self.indexesCount--;
 }
 
 
@@ -496,7 +517,12 @@ static const NSUInteger kCountIncrementLength = 50;
         }
     }
     
-    return top;
+    while (self.sortedIndexes[bottom] < index)
+    {
+        bottom++;
+    }
+    
+    return bottom;
 }
 
 
@@ -540,9 +566,9 @@ static const NSUInteger kCountIncrementLength = 50;
     NSUInteger moveTo = position;
     NSUInteger moveFrom = position + 1;
     
-    while (moveFrom < self.indexesCount)
+    while (moveFrom <= self.indexesCount)
     {
-        NSUInteger index = indexes[moveFrom];
+        NSUInteger index = (moveFrom == self.indexesCount) ? 0 : indexes[moveFrom];
         indexes[moveTo] = index;
         
         moveTo++;

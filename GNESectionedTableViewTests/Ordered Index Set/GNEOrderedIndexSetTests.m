@@ -14,7 +14,7 @@
 
 
 static const NSUInteger kTestIndexSetMaxIndex = 10000;
-static const NSUInteger kPerformanceTestIterations = 10000;
+static const NSUInteger kPerformanceTestIterations = 1000;
 
 
 #define XCTAssertCount(indexSet, c) \
@@ -26,7 +26,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
 #define XCTAssertNotContainsIndex(indexSet, i) \
     XCTAssertFalse([indexSet containsIndex:i])
 
-#define XCTAssertIndexPosition(i, p) \
+#define XCTAssertIndexPosition(indexSet, i, p) \
     XCTAssertEqual([indexSet indexAtPosition:p], i); \
     XCTAssertEqual([indexSet positionOfIndex:i], p)
 
@@ -89,7 +89,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     XCTAssertNotNil(indexSet);
     XCTAssertCount(indexSet, 1);
     XCTAssertContainsIndex(indexSet, index);
-    XCTAssertIndexPosition(index, 0);
+    XCTAssertIndexPosition(indexSet, index, 0);
 }
 
 
@@ -102,7 +102,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     XCTAssertNotNil(indexSet);
     XCTAssertCount(indexSet, 1);
     XCTAssertContainsIndex(indexSet, index);
-    XCTAssertIndexPosition(index, 0);
+    XCTAssertIndexPosition(indexSet, index, 0);
 }
 
 
@@ -125,11 +125,11 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     
     XCTAssertNotContainsIndex(indexSet, 5);
     
-    XCTAssertIndexPosition(indexes[0], 0);
-    XCTAssertIndexPosition(indexes[1], 1);
-    XCTAssertIndexPosition(indexes[2], 2);
-    XCTAssertIndexPosition(indexes[3], 3);
-    XCTAssertIndexPosition(indexes[4], 4);
+    XCTAssertIndexPosition(indexSet, indexes[0], 0);
+    XCTAssertIndexPosition(indexSet, indexes[1], 1);
+    XCTAssertIndexPosition(indexSet, indexes[2], 2);
+    XCTAssertIndexPosition(indexSet, indexes[3], 3);
+    XCTAssertIndexPosition(indexSet, indexes[4], 4);
 }
 
 
@@ -151,11 +151,11 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     
     XCTAssertNotContainsIndex(indexSet, 5);
     
-    XCTAssertIndexPosition(indexes[0], 0);
-    XCTAssertIndexPosition(indexes[1], 1);
-    XCTAssertIndexPosition(indexes[2], 2);
-    XCTAssertIndexPosition(indexes[3], 3);
-    XCTAssertIndexPosition(indexes[4], 4);
+    XCTAssertIndexPosition(indexSet, indexes[0], 0);
+    XCTAssertIndexPosition(indexSet, indexes[1], 1);
+    XCTAssertIndexPosition(indexSet, indexes[2], 2);
+    XCTAssertIndexPosition(indexSet, indexes[3], 3);
+    XCTAssertIndexPosition(indexSet, indexes[4], 4);
 }
 
 
@@ -185,13 +185,13 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     XCTAssertNotContainsIndex(indexSet, 1020);
     XCTAssertNotContainsIndex(indexSet, 1022);
     
-    XCTAssertIndexPosition(indexes[0], 0);
-    XCTAssertIndexPosition(indexes[1], 1);
-    XCTAssertIndexPosition(indexes[2], 2);
-    XCTAssertIndexPosition(indexes[3], 3);
-    XCTAssertIndexPosition(indexes[4], 4);
-    XCTAssertIndexPosition(indexes[6], 5);
-    XCTAssertIndexPosition(indexes[8], 6);
+    XCTAssertIndexPosition(indexSet, indexes[0], 0);
+    XCTAssertIndexPosition(indexSet, indexes[1], 1);
+    XCTAssertIndexPosition(indexSet, indexes[2], 2);
+    XCTAssertIndexPosition(indexSet, indexes[3], 3);
+    XCTAssertIndexPosition(indexSet, indexes[4], 4);
+    XCTAssertIndexPosition(indexSet, indexes[6], 5);
+    XCTAssertIndexPosition(indexSet, indexes[8], 6);
 }
 
 
@@ -221,13 +221,13 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     XCTAssertNotContainsIndex(indexSet, 1020);
     XCTAssertNotContainsIndex(indexSet, 1022);
     
-    XCTAssertIndexPosition(indexes[0], 0);
-    XCTAssertIndexPosition(indexes[1], 1);
-    XCTAssertIndexPosition(indexes[2], 2);
-    XCTAssertIndexPosition(indexes[3], 3);
-    XCTAssertIndexPosition(indexes[4], 4);
-    XCTAssertIndexPosition(indexes[6], 5);
-    XCTAssertIndexPosition(indexes[8], 6);
+    XCTAssertIndexPosition(indexSet, indexes[0], 0);
+    XCTAssertIndexPosition(indexSet, indexes[1], 1);
+    XCTAssertIndexPosition(indexSet, indexes[2], 2);
+    XCTAssertIndexPosition(indexSet, indexes[3], 3);
+    XCTAssertIndexPosition(indexSet, indexes[4], 4);
+    XCTAssertIndexPosition(indexSet, indexes[6], 5);
+    XCTAssertIndexPosition(indexSet, indexes[8], 6);
 }
 
 
@@ -371,6 +371,70 @@ static const NSUInteger kPerformanceTestIterations = 10000;
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Copying
+// ------------------------------------------------------------------------------------------
+- (void)testCopying_Empty
+{
+    GNEOrderedIndexSet *indexSet1 = [GNEOrderedIndexSet indexSet];
+    
+    XCTAssertCount(indexSet1, 0);
+    
+    GNEOrderedIndexSet *indexSet2 = [indexSet1 copy];
+    
+    XCTAssertNotEqual((id)indexSet1, (id)indexSet2); // Different pointers (separate objects).
+    XCTAssertEqualObjects(indexSet1, indexSet2); // Equal objects.
+}
+
+
+- (void)testCopying_1
+{
+    NSUInteger count = 1;
+    NSUInteger index = 1;
+    NSUInteger position = 0;
+    
+    GNEOrderedIndexSet *indexSet1 = [GNEOrderedIndexSet indexSetWithIndex:index];
+    
+    XCTAssertCount(indexSet1, count);
+    XCTAssertIndexPosition(indexSet1, index, position);
+    
+    GNEOrderedIndexSet *indexSet2 = [indexSet1 copy];
+    
+    XCTAssertNotEqual((id)indexSet1, (id)indexSet2); // Different pointers (separate objects).
+    XCTAssertEqualObjects(indexSet1, indexSet2); // Equal objects.
+    
+    XCTAssertIndexPosition(indexSet1, index, position);
+    XCTAssertIndexPosition(indexSet2, index, position);
+}
+
+
+- (void)testCopying_Multiple
+{
+    NSUInteger count = 10;
+    NSUInteger indexes[] = { 43, 42, 1081, 1082, 1080, 128, 256, 512, 64, 32 };
+    
+    GNEOrderedIndexSet *indexSet1 = [GNEOrderedIndexSet indexSetWithIndexes:indexes
+                                                                      count:count];
+    
+    XCTAssertCount(indexSet1, count);
+    XCTAssertIndexPosition(indexSet1, indexes[0], 0);
+    XCTAssertIndexPosition(indexSet1, indexes[3], 3);
+    XCTAssertIndexPosition(indexSet1, indexes[9], 9);
+    
+    GNEOrderedIndexSet *indexSet2 = [indexSet1 copy];
+    
+    XCTAssertNotEqual((id)indexSet1, (id)indexSet2); // Different pointers (separate objects).
+    XCTAssertEqualObjects(indexSet1, indexSet2); // Equal objects.
+    
+    XCTAssertIndexPosition(indexSet1, indexes[0], 0);
+    XCTAssertIndexPosition(indexSet2, indexes[0], 0);
+    XCTAssertIndexPosition(indexSet1, indexes[3], 3);
+    XCTAssertIndexPosition(indexSet2, indexes[3], 3);
+    XCTAssertIndexPosition(indexSet1, indexes[9], 9);
+    XCTAssertIndexPosition(indexSet2, indexes[9], 9);
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Contains
 // ------------------------------------------------------------------------------------------
 - (void)testContains_Empty
@@ -472,8 +536,120 @@ static const NSUInteger kPerformanceTestIterations = 10000;
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Enumeration
+// ------------------------------------------------------------------------------------------
+- (void)testEnumeration_Empty
+{
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    
+    XCTAssertCount(indexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, 0);
+    
+    __block NSUInteger iterations = 0;
+    [indexSet enumerateIndexesUsingBlock:^(NSUInteger index, NSUInteger position, BOOL *stop)
+    {
+        iterations++;
+    }];
+    
+    XCTAssertEqual(iterations, 0);
+}
+
+
+- (void)testEnumeration_1
+{
+    NSUInteger index = 0;
+    NSUInteger count = 1;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndex:index];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, 0);
+    
+    __block NSUInteger iterations = 0;
+    [indexSet enumerateIndexesUsingBlock:^(NSUInteger idx, NSUInteger position, BOOL *stop)
+    {
+        XCTAssertEqual(idx, position);
+
+        iterations++;
+    }];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertEqual(iterations, count);
+}
+
+
+- (void)testEnumeration_10
+{
+    NSUInteger count = 10;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    [self p_addIndexesToIndexSet:indexSet count:count isPerformanceTest:NO];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, 0);
+    XCTAssertContainsIndex(indexSet, 1);
+    XCTAssertContainsIndex(indexSet, 9);
+    XCTAssertNotContainsIndex(indexSet, 10);
+    
+    __block NSUInteger iterations = 0;
+    [indexSet enumerateIndexesUsingBlock:^(NSUInteger idx, NSUInteger position, BOOL *stop)
+    {
+        XCTAssertEqual(idx, position);
+
+        iterations++;
+    }];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertEqual(iterations, count);
+}
+
+
+- (void)testEnumeration_Reverse_10
+{
+    NSUInteger count = 10;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    [self p_addIndexesToIndexSet:indexSet count:count isPerformanceTest:NO];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, 0);
+    XCTAssertContainsIndex(indexSet, 1);
+    XCTAssertContainsIndex(indexSet, 9);
+    XCTAssertNotContainsIndex(indexSet, 10);
+    
+    __block NSUInteger iterations = 0;
+    [indexSet enumerateIndexesWithOptions:NSEnumerationReverse
+                               usingBlock:^(NSUInteger idx, NSUInteger position, BOOL *stop)
+    {
+        XCTAssertEqual(idx, count - 1 - position);
+
+        iterations++;
+    }];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertEqual(iterations, count);
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Add Indexes
 // ------------------------------------------------------------------------------------------
+- (void)testAddIndex_NSNotFound
+{
+    NSUInteger index = NSNotFound;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    
+    XCTAssertCount(indexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, index);
+    
+    XCTAssertThrows([indexSet addIndex:index]);
+    
+    XCTAssertCount(indexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, index);
+}
+
+
 - (void)testAddIndex_0
 {
     NSUInteger index = 0;
@@ -487,7 +663,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     
     XCTAssertCount(indexSet, 1);
     XCTAssertContainsIndex(indexSet, index);
-    XCTAssertIndexPosition(index, 0);
+    XCTAssertIndexPosition(indexSet, index, 0);
 }
 
 
@@ -504,7 +680,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     
     XCTAssertCount(indexSet, 1);
     XCTAssertContainsIndex(indexSet, index);
-    XCTAssertIndexPosition(index, 0);
+    XCTAssertIndexPosition(indexSet, index, 0);
 }
 
 
@@ -521,7 +697,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     
     XCTAssertCount(indexSet, 1);
     XCTAssertContainsIndex(indexSet, index);
-    XCTAssertIndexPosition(index, 0);
+    XCTAssertIndexPosition(indexSet, index, 0);
 }
 
 
@@ -542,8 +718,8 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     XCTAssertCount(indexSet, 2);
     XCTAssertContainsIndex(indexSet, index0);
     XCTAssertContainsIndex(indexSet, index1);
-    XCTAssertIndexPosition(index0, 0);
-    XCTAssertIndexPosition(index1, 1);
+    XCTAssertIndexPosition(indexSet, index0, 0);
+    XCTAssertIndexPosition(indexSet, index1, 1);
 }
 
 
@@ -562,7 +738,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     
     for (NSUInteger i = 0; i < count; i++)
     {
-        XCTAssertIndexPosition(i, i);
+        XCTAssertIndexPosition(indexSet, i, i);
     }
 }
 
@@ -585,7 +761,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     
     for (NSUInteger i = 0; i < count; i++)
     {
-        XCTAssertIndexPosition((count - 1 - i), i);
+        XCTAssertIndexPosition(indexSet, (count - 1 - i), i);
     }
 }
 
@@ -609,8 +785,8 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     XCTAssertCount(indexSet, 2);
     XCTAssertContainsIndex(indexSet, index0);
     XCTAssertContainsIndex(indexSet, index1);
-    XCTAssertIndexPosition(index0, 0);
-    XCTAssertIndexPosition(index1, 1);
+    XCTAssertIndexPosition(indexSet, index0, 0);
+    XCTAssertIndexPosition(indexSet, index1, 1);
 }
 
 
@@ -629,7 +805,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     XCTAssertCount(indexSet, count);
     XCTAssertContainsIndex(indexSet, indexes[0]);
     
-    XCTAssertIndexPosition(indexes[0], 0);
+    XCTAssertIndexPosition(indexSet, indexes[0], 0);
 }
 
 
@@ -648,7 +824,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     XCTAssertCount(indexSet, count);
     XCTAssertContainsIndex(indexSet, indexes[0]);
     
-    XCTAssertIndexPosition(indexes[0], 0);
+    XCTAssertIndexPosition(indexSet, indexes[0], 0);
 }
 
 
@@ -667,7 +843,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     XCTAssertCount(indexSet, count);
     XCTAssertContainsIndex(indexSet, indexes[0]);
     
-    XCTAssertIndexPosition(indexes[0], 0);
+    XCTAssertIndexPosition(indexSet, indexes[0], 0);
 }
 
 
@@ -688,8 +864,8 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     XCTAssertContainsIndex(indexSet, indexes[0]);
     XCTAssertContainsIndex(indexSet, indexes[1]);
     
-    XCTAssertIndexPosition(indexes[0], 0);
-    XCTAssertIndexPosition(indexes[1], 1);
+    XCTAssertIndexPosition(indexSet, indexes[0], 0);
+    XCTAssertIndexPosition(indexSet, indexes[1], 1);
 }
 
 
@@ -714,7 +890,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     
     for (NSUInteger i = 0; i < count; i++)
     {
-        XCTAssertIndexPosition(i, i);
+        XCTAssertIndexPosition(indexSet, i, i);
     }
 }
 
@@ -740,7 +916,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     
     for (NSUInteger i = 0; i < count; i++)
     {
-        XCTAssertIndexPosition((count - 1 - i), i);
+        XCTAssertIndexPosition(indexSet, (count - 1 - i), i);
     }
 }
 
@@ -767,7 +943,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     
     for (NSUInteger i = 0; i < expectedCount; i++)
     {
-        XCTAssertIndexPosition(expectedIndexes[i], i);
+        XCTAssertIndexPosition(indexSet, expectedIndexes[i], i);
     }
 }
 
@@ -775,6 +951,391 @@ static const NSUInteger kPerformanceTestIterations = 10000;
 - (void)testAddIndexAtPosition_0
 {
     NSUInteger index = 0;
+    NSUInteger position = 0;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    
+    XCTAssertCount(indexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, index);
+    
+    [indexSet addIndex:index atPosition:position];
+    
+    XCTAssertCount(indexSet, 1);
+    XCTAssertContainsIndex(indexSet, index);
+    XCTAssertIndexPosition(indexSet, index, position);
+}
+
+
+- (void)testAddIndexAtPosition_OutOfBounds
+{
+    NSUInteger count = 10;
+    
+    NSUInteger index = 11;
+    NSUInteger position = 11;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    [self p_addIndexesToIndexSet:indexSet count:count isPerformanceTest:NO];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, 0);
+    XCTAssertContainsIndex(indexSet, 9);
+    XCTAssertNotContainsIndex(indexSet, 10);
+    
+    XCTAssertThrows([indexSet addIndex:index atPosition:position]);
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertNotContainsIndex(indexSet, index);
+}
+
+
+- (void)testAddIndexAtPosition_Beginning
+{
+    NSUInteger index = 654321;
+    NSUInteger position = 0;
+    
+    NSUInteger count = 10;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    [self p_addIndexesToIndexSet:indexSet count:count isPerformanceTest:NO];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, 0);
+    XCTAssertContainsIndex(indexSet, 9);
+    XCTAssertNotContainsIndex(indexSet, 10);
+    
+    XCTAssertNoThrow([indexSet addIndex:index atPosition:position]);
+    
+    XCTAssertCount(indexSet, (count + 1));
+    XCTAssertContainsIndex(indexSet, index);
+    XCTAssertIndexPosition(indexSet, index, position);
+    XCTAssertIndexPosition(indexSet, position, position + 1);
+}
+
+
+- (void)testAddIndexAtPosition_Middle
+{
+    NSUInteger index = 654321;
+    NSUInteger position = 4;
+    
+    NSUInteger count = 10;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    [self p_addIndexesToIndexSet:indexSet count:count isPerformanceTest:NO];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, 0);
+    XCTAssertContainsIndex(indexSet, 9);
+    XCTAssertNotContainsIndex(indexSet, 10);
+    
+    XCTAssertNoThrow([indexSet addIndex:index atPosition:position]);
+    
+    XCTAssertCount(indexSet, (count + 1));
+    XCTAssertContainsIndex(indexSet, index);
+    XCTAssertIndexPosition(indexSet, index, position);
+    XCTAssertIndexPosition(indexSet, position - 1, position - 1);
+    XCTAssertIndexPosition(indexSet, position, position + 1);
+}
+
+
+- (void)testAddIndexAtPosition_End
+{
+    NSUInteger index = 654321;
+    NSUInteger position = 10;
+    
+    NSUInteger count = 10;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    [self p_addIndexesToIndexSet:indexSet count:count isPerformanceTest:NO];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, 0);
+    XCTAssertContainsIndex(indexSet, 9);
+    XCTAssertNotContainsIndex(indexSet, 10);
+    
+    XCTAssertNoThrow([indexSet addIndex:index atPosition:position]);
+    
+    XCTAssertCount(indexSet, (count + 1));
+    XCTAssertContainsIndex(indexSet, index);
+    XCTAssertIndexPosition(indexSet, index, position);
+    XCTAssertIndexPosition(indexSet, position - 1, position - 1);
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Remove Indexes
+// ------------------------------------------------------------------------------------------
+- (void)testRemoveIndex_Empty
+{
+    NSUInteger index = 0;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    
+    XCTAssertCount(indexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, index);
+    
+    XCTAssertNoThrow([indexSet removeIndex:index]);
+    
+    XCTAssertCount(indexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, index);
+}
+
+
+- (void)testRemoveIndex_NSNotFound
+{
+    NSUInteger index = NSNotFound;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    
+    XCTAssertCount(indexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, index);
+    
+    XCTAssertThrows([indexSet removeIndex:index]);
+    
+    XCTAssertCount(indexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, index);
+}
+
+
+- (void)testRemoveIndex_0
+{
+    NSUInteger index = 0;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndex:index];
+    
+    XCTAssertCount(indexSet, 1);
+    XCTAssertContainsIndex(indexSet, index);
+    
+    XCTAssertNoThrow([indexSet removeIndex:index]);
+    
+    XCTAssertCount(indexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, index);
+    
+    NSUInteger count = 10;
+    [self p_addIndexesToIndexSet:indexSet count:count isPerformanceTest:NO];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertIndexPosition(indexSet, 0, 0);
+    XCTAssertIndexPosition(indexSet, 9, 9);
+    XCTAssertNotContainsIndex(indexSet, count);
+    XCTAssertContainsIndex(indexSet, index);
+    
+    [indexSet addIndex:index];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, index);
+    XCTAssertIndexPosition(indexSet, index, 0);
+    
+    XCTAssertNoThrow([indexSet removeIndex:index]);
+    
+    XCTAssertCount(indexSet, count - 1);
+    XCTAssertIndexPosition(indexSet, 1, 0);
+    XCTAssertIndexPosition(indexSet, 9, 8);
+    XCTAssertNotContainsIndex(indexSet, count);
+    XCTAssertNotContainsIndex(indexSet, index);
+}
+
+
+- (void)testRemoveIndex_1
+{
+    NSUInteger index = 1;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndex:index];
+    
+    XCTAssertCount(indexSet, 1);
+    XCTAssertContainsIndex(indexSet, index);
+    
+    XCTAssertNoThrow([indexSet removeIndex:index]);
+    
+    XCTAssertCount(indexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, index);
+    
+    NSUInteger count = 10;
+    [self p_addIndexesToIndexSet:indexSet count:count isPerformanceTest:NO];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertIndexPosition(indexSet, 0, 0);
+    XCTAssertIndexPosition(indexSet, 9, 9);
+    XCTAssertNotContainsIndex(indexSet, count);
+    XCTAssertContainsIndex(indexSet, index);
+    
+    [indexSet addIndex:index];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, index);
+    XCTAssertIndexPosition(indexSet, index, 1);
+    
+    XCTAssertNoThrow([indexSet removeIndex:index]);
+    
+    XCTAssertCount(indexSet, count - 1);
+    XCTAssertIndexPosition(indexSet, 0, 0);
+    XCTAssertIndexPosition(indexSet, 2, 1);
+    XCTAssertIndexPosition(indexSet, 9, 8);
+    XCTAssertNotContainsIndex(indexSet, count);
+    XCTAssertNotContainsIndex(indexSet, index);
+}
+
+
+- (void)testRemoveIndex_654321
+{
+    NSUInteger index = 654321;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndex:index];
+    
+    XCTAssertCount(indexSet, 1);
+    XCTAssertContainsIndex(indexSet, index);
+    
+    XCTAssertNoThrow([indexSet removeIndex:index]);
+    
+    XCTAssertCount(indexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, index);
+    
+    NSUInteger count = 10;
+    [self p_addIndexesToIndexSet:indexSet count:count isPerformanceTest:NO];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertIndexPosition(indexSet, 0, 0);
+    XCTAssertIndexPosition(indexSet, 9, 9);
+    XCTAssertNotContainsIndex(indexSet, count);
+    XCTAssertNotContainsIndex(indexSet, index);
+    
+    [indexSet addIndex:index];
+    
+    XCTAssertCount(indexSet, count + 1);
+    XCTAssertContainsIndex(indexSet, index);
+    XCTAssertIndexPosition(indexSet, index, count);
+    
+    XCTAssertNoThrow([indexSet removeIndex:index]);
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertIndexPosition(indexSet, 0, 0);
+    XCTAssertIndexPosition(indexSet, 9, 9);
+    XCTAssertNotContainsIndex(indexSet, count);
+    XCTAssertNotContainsIndex(indexSet, index);
+}
+
+
+- (void)testRemoveIndexAtPosition_Empty
+{
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    
+    XCTAssertCount(indexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, 0);
+    
+    XCTAssertThrows([indexSet removeIndexAtPosition:0]);
+}
+
+
+- (void)testRemoveIndexAtPosition_0
+{
+    NSUInteger index = 0;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndex:index];
+    
+    XCTAssertCount(indexSet, 1);
+    XCTAssertContainsIndex(indexSet, index);
+    
+    XCTAssertNoThrow([indexSet removeIndexAtPosition:0]);
+    XCTAssertCount(indexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, index);
+}
+
+
+- (void)testRemoveIndexAtPosition_first
+{
+    NSUInteger index = 7890;
+    
+    NSUInteger indexes[] = { index, 123123423, 2, 1, 0, 1234, 43 };
+    NSUInteger count = 7;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndexes:indexes count:count];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, index);
+    XCTAssertIndexPosition(indexSet, index, 0);
+    XCTAssertIndexPosition(indexSet, indexes[1], 1);
+    XCTAssertIndexPosition(indexSet, indexes[2], 2);
+    XCTAssertIndexPosition(indexSet, indexes[3], 3);
+    XCTAssertIndexPosition(indexSet, indexes[4], 4);
+    XCTAssertIndexPosition(indexSet, indexes[5], 5);
+    XCTAssertIndexPosition(indexSet, indexes[6], 6);
+    
+    XCTAssertNoThrow([indexSet removeIndexAtPosition:0]);
+    
+    XCTAssertCount(indexSet, count - 1);
+    XCTAssertNotContainsIndex(indexSet, index);
+    
+    XCTAssertIndexPosition(indexSet, indexes[1], 0);
+    XCTAssertIndexPosition(indexSet, indexes[2], 1);
+    XCTAssertIndexPosition(indexSet, indexes[3], 2);
+    XCTAssertIndexPosition(indexSet, indexes[4], 3);
+    XCTAssertIndexPosition(indexSet, indexes[5], 4);
+    XCTAssertIndexPosition(indexSet, indexes[6], 5);
+}
+
+
+- (void)testRemoveIndexAtPosition_last
+{
+    NSUInteger index = 7890;
+    
+    NSUInteger indexes[] = { 123123423, 2, 1, 0, 1234, 43, index };
+    NSUInteger count = 7;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndexes:indexes count:count];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, index);
+    XCTAssertIndexPosition(indexSet, indexes[0], 0);
+    XCTAssertIndexPosition(indexSet, indexes[1], 1);
+    XCTAssertIndexPosition(indexSet, indexes[2], 2);
+    XCTAssertIndexPosition(indexSet, indexes[3], 3);
+    XCTAssertIndexPosition(indexSet, indexes[4], 4);
+    XCTAssertIndexPosition(indexSet, indexes[5], 5);
+    XCTAssertIndexPosition(indexSet, index, 6);
+    
+    XCTAssertNoThrow([indexSet removeIndexAtPosition:(count - 1)]);
+    
+    XCTAssertCount(indexSet, count - 1);
+    XCTAssertNotContainsIndex(indexSet, index);
+    
+    XCTAssertIndexPosition(indexSet, indexes[0], 0);
+    XCTAssertIndexPosition(indexSet, indexes[1], 1);
+    XCTAssertIndexPosition(indexSet, indexes[2], 2);
+    XCTAssertIndexPosition(indexSet, indexes[3], 3);
+    XCTAssertIndexPosition(indexSet, indexes[4], 4);
+    XCTAssertIndexPosition(indexSet, indexes[5], 5);
+}
+
+
+- (void)testRemoveIndexAtPosition_middle
+{
+    NSUInteger index = 7890;
+    
+    NSUInteger indexes[] = { 123123423, 2, 1, index, 0, 1234, 43 };
+    NSUInteger count = 7;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndexes:indexes count:count];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, index);
+    XCTAssertIndexPosition(indexSet, indexes[0], 0);
+    XCTAssertIndexPosition(indexSet, indexes[1], 1);
+    XCTAssertIndexPosition(indexSet, indexes[2], 2);
+    XCTAssertIndexPosition(indexSet, index, 3);
+    XCTAssertIndexPosition(indexSet, indexes[4], 4);
+    XCTAssertIndexPosition(indexSet, indexes[5], 5);
+    XCTAssertIndexPosition(indexSet, indexes[6], 6);
+    
+    XCTAssertNoThrow([indexSet removeIndexAtPosition:3]);
+    
+    XCTAssertCount(indexSet, count - 1);
+    XCTAssertNotContainsIndex(indexSet, index);
+    
+    XCTAssertIndexPosition(indexSet, indexes[0], 0);
+    XCTAssertIndexPosition(indexSet, indexes[1], 1);
+    XCTAssertIndexPosition(indexSet, indexes[2], 2);
+    XCTAssertIndexPosition(indexSet, indexes[4], 3);
+    XCTAssertIndexPosition(indexSet, indexes[5], 4);
+    XCTAssertIndexPosition(indexSet, indexes[6], 5);
 }
 
 
@@ -963,9 +1524,9 @@ static const NSUInteger kPerformanceTestIterations = 10000;
         {
             XCTAssertCount(indexSet, i + 1);
             XCTAssertContainsIndex(indexSet, i);
-            XCTAssertIndexPosition(i, i);
+            XCTAssertIndexPosition(indexSet, i, i);
             NSUInteger previousIndex = (i > 0) ? (i - 1) : 0;
-            XCTAssertIndexPosition(previousIndex, previousIndex);
+            XCTAssertIndexPosition(indexSet, previousIndex, previousIndex);
         }
     }
     

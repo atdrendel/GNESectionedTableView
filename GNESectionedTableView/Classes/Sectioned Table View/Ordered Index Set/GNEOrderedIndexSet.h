@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 Gone East LLC. All rights reserved.
 //
 
-@interface GNEOrderedIndexSet : NSObject
+@interface GNEOrderedIndexSet : NSObject <NSCopying>
 
 @property (nonatomic, assign, readonly) NSUInteger count;
 
@@ -31,7 +31,11 @@
 /// does not already contain it. Throws an exception if position is greater than
 /// the receiver's count. O(n)
 - (void)addIndex:(NSUInteger)index atPosition:(NSUInteger)position;
+/// Removes the specified index from the receiver, if the receiver contains it. Throws an
+/// exception if the specified index is greater than or equal to NSNotFound. O(n)
 - (void)removeIndex:(NSUInteger)index;
+/// Removes the index located at the specified position. Throws an exception if the specified
+/// position is greater than the receiver's count - 1. O(lg n)
 - (void)removeIndexAtPosition:(NSUInteger)position;
 
 #pragma mark - Finding Indexes
@@ -50,7 +54,7 @@
 /// Executes a given block using each object in the receiver using the specified options (currently,
 /// NSEnumerationReverse is the only option supported).
 - (void)enumerateIndexesWithOptions:(NSEnumerationOptions)options
-                         usingBlock:(void (^)(NSUInteger, NSUInteger, BOOL *))block;
+                         usingBlock:(void (^)(NSUInteger index, NSUInteger position, BOOL *stop))block;
 
 #pragma mark - Equality
 /// Returns YES if the receiver is equal to the specified index set, otherwise NO.
