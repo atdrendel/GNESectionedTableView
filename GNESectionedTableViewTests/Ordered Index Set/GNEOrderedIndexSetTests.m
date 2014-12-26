@@ -109,6 +109,172 @@ static const NSUInteger kPerformanceTestIterations = 10000;
 }
 
 
+- (void)testInitialization_WithNSIndexSet_Nil
+{
+    NSIndexSet *nsIndexSet = [NSIndexSet indexSet];
+    
+    XCTAssertCount(nsIndexSet, 0);
+    
+    GNEOrderedIndexSet *indexSet = nil;
+    
+    XCTAssertNoThrow(indexSet = [[GNEOrderedIndexSet alloc] initWithNSIndexSet:nsIndexSet]);
+    
+    XCTAssertNotNil(indexSet);
+    XCTAssertCount(indexSet, 0);
+}
+
+
+- (void)testInitialization_Class_WithNSIndexSet_Nil
+{
+    NSIndexSet *nsIndexSet = [NSIndexSet indexSet];
+    
+    XCTAssertCount(nsIndexSet, 0);
+    
+    GNEOrderedIndexSet *indexSet = nil;
+    
+    XCTAssertNoThrow(indexSet = [GNEOrderedIndexSet indexSetWithNSIndexSet:nsIndexSet]);
+    
+    XCTAssertNotNil(indexSet);
+    XCTAssertCount(indexSet, 0);
+}
+
+
+- (void)testInitialization_WithNSIndexSet_Empty
+{
+    NSIndexSet *nsIndexSet = [NSIndexSet indexSet];
+    
+    XCTAssertCount(nsIndexSet, 0);
+    
+    GNEOrderedIndexSet *indexSet = nil;
+    
+    XCTAssertNoThrow(indexSet = [[GNEOrderedIndexSet alloc] initWithNSIndexSet:nsIndexSet]);
+    
+    XCTAssertNotNil(indexSet);
+    XCTAssertCount(indexSet, 0);
+}
+
+
+- (void)testInitialization_Class_WithNSIndexSet_Empty
+{
+    NSIndexSet *nsIndexSet = [NSIndexSet indexSet];
+    
+    XCTAssertCount(nsIndexSet, 0);
+    
+    GNEOrderedIndexSet *indexSet = nil;
+    
+    XCTAssertNoThrow(indexSet = [GNEOrderedIndexSet indexSetWithNSIndexSet:nsIndexSet]);
+    
+    XCTAssertNotNil(indexSet);
+    XCTAssertCount(indexSet, 0);
+}
+
+
+- (void)testInitialization_WithNSIndexSet_1
+{
+    NSUInteger count = 1;
+    NSUInteger index = 432;
+    
+    NSIndexSet *nsIndexSet = [NSIndexSet indexSetWithIndex:index];
+    
+    XCTAssertCount(nsIndexSet, count);
+    XCTAssertContainsIndex(nsIndexSet, index);
+    
+    GNEOrderedIndexSet *indexSet = nil;
+    
+    XCTAssertNoThrow(indexSet = [[GNEOrderedIndexSet alloc] initWithNSIndexSet:nsIndexSet]);
+    
+    XCTAssertNotNil(indexSet);
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, index);
+}
+
+
+- (void)testInitialization_Class_WithNSIndexSet_1
+{
+    NSUInteger count = 1;
+    NSUInteger index = 432;
+    
+    NSIndexSet *nsIndexSet = [NSIndexSet indexSetWithIndex:index];
+    
+    XCTAssertCount(nsIndexSet, count);
+    XCTAssertContainsIndex(nsIndexSet, index);
+    
+    GNEOrderedIndexSet *indexSet = nil;
+    
+    XCTAssertNoThrow(indexSet = [GNEOrderedIndexSet indexSetWithNSIndexSet:nsIndexSet]);
+    
+    XCTAssertNotNil(indexSet);
+    XCTAssertCount(indexSet, count);
+    XCTAssertContainsIndex(indexSet, index);
+}
+
+
+- (void)testInitialization_WithNSIndexSet_10
+{
+    NSUInteger count = 10;
+    NSUInteger indexes[] = { 432, 23, 43, 64, 8329743, 323, 57656, 6434, 654, 843 };
+    
+    NSMutableIndexSet *mutableNSIndexSet = [NSMutableIndexSet indexSet];
+    for (NSUInteger i = 0; i < count; i++)
+    {
+        [mutableNSIndexSet addIndex:indexes[i]];
+    }
+    NSIndexSet *nsIndexSet = [[NSIndexSet alloc] initWithIndexSet:mutableNSIndexSet];
+    
+    XCTAssertCount(nsIndexSet, count);
+    
+    for (NSUInteger i = 0; i < count; i++)
+    {
+        XCTAssertContainsIndex(nsIndexSet, indexes[i]);
+    }
+    
+    GNEOrderedIndexSet *indexSet = nil;
+    
+    XCTAssertNoThrow(indexSet = [[GNEOrderedIndexSet alloc] initWithNSIndexSet:nsIndexSet]);
+    
+    XCTAssertNotNil(indexSet);
+    XCTAssertCount(indexSet, count);
+    
+    for (NSUInteger i = 0; i < count; i++)
+    {
+        XCTAssertContainsIndex(indexSet, indexes[i]);
+    }
+}
+
+
+- (void)testInitialization_Class_WithNSIndexSet_10
+{
+    NSUInteger count = 10;
+    NSUInteger indexes[] = { 432, 23, 43, 64, 8329743, 323, 57656, 6434, 654, 843 };
+    
+    NSMutableIndexSet *mutableNSIndexSet = [NSMutableIndexSet indexSet];
+    for (NSUInteger i = 0; i < count; i++)
+    {
+        [mutableNSIndexSet addIndex:indexes[i]];
+    }
+    NSIndexSet *nsIndexSet = [[NSIndexSet alloc] initWithIndexSet:mutableNSIndexSet];
+    
+    XCTAssertCount(nsIndexSet, count);
+    
+    for (NSUInteger i = 0; i < count; i++)
+    {
+        XCTAssertContainsIndex(nsIndexSet, indexes[i]);
+    }
+    
+    GNEOrderedIndexSet *indexSet = nil;
+    
+    XCTAssertNoThrow(indexSet = [GNEOrderedIndexSet indexSetWithNSIndexSet:nsIndexSet]);
+    
+    XCTAssertNotNil(indexSet);
+    XCTAssertCount(indexSet, count);
+    
+    for (NSUInteger i = 0; i < count; i++)
+    {
+        XCTAssertContainsIndex(indexSet, indexes[i]);
+    }
+}
+
+
 - (void)testInitialization_WithIndexes
 {
     NSUInteger indexes[] = { 0, 1, 2, 3, 4 };
