@@ -90,6 +90,8 @@ static NSString * const kMemoryAllocationAssertionReason = @"Calloc failed";
 
 - (instancetype)initWithNSIndexSet:(NSIndexSet *)indexSet
 {
+    NSParameterAssert(indexSet == nil || [indexSet isKindOfClass:[NSIndexSet class]]);
+    
     NSUInteger count = indexSet.count;
     
     NSUInteger indexes[count];
