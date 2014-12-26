@@ -14,8 +14,11 @@
 
 
 static const NSUInteger kTestIndexSetMaxIndex = 10000;
-static const NSUInteger kPerformanceTestIterations = 1000;
+static const NSUInteger kPerformanceTestIterations = 10000;
 
+#ifndef GNEOrderedIndexSet_FoundationPerformanceTestsEnabled
+    #define GNEOrderedIndexSet_FoundationPerformanceTestsEnabled 0
+#endif
 
 #define XCTAssertCount(indexSet, c) \
     XCTAssertEqual(indexSet.count, c)
@@ -625,7 +628,9 @@ static const NSUInteger kPerformanceTestIterations = 1000;
     
     GNEOrderedIndexSet *indexSet = [self p_indexSetContainingEvenIndexes];
     
-    XCTAssertCount(indexSet, kTestIndexSetMaxIndex / 2);
+    BOOL isLastIndexEven = (kTestIndexSetMaxIndex % 2) == 0;
+    NSUInteger countModifier = (isLastIndexEven) ? 1 : 0;
+    XCTAssertCount(indexSet, ((kTestIndexSetMaxIndex + 1) / 2) + countModifier);
     
     for (NSUInteger i = 0; i < count; i++)
     {
@@ -643,7 +648,7 @@ static const NSUInteger kPerformanceTestIterations = 1000;
     
     GNEOrderedIndexSet *indexSet = [self p_indexSetContainingOddIndexes];
     
-    XCTAssertCount(indexSet, kTestIndexSetMaxIndex / 2);
+    XCTAssertCount(indexSet, ((kTestIndexSetMaxIndex + 1) / 2));
     
     for (NSUInteger i = 0; i < count; i++)
     {
@@ -1518,6 +1523,8 @@ static const NSUInteger kPerformanceTestIterations = 1000;
 // ------------------------------------------------------------------------------------------
 #pragma mark - Performance - Foundation
 // ------------------------------------------------------------------------------------------
+#if GNEOrderedIndexSet_FoundationPerformanceTestsEnabled
+
 - (void)testPerformance_NSMutableIndexSet_AddIndexes
 {
     NSUInteger count = kPerformanceTestIterations;
@@ -1575,17 +1582,32 @@ static const NSUInteger kPerformanceTestIterations = 1000;
     }];
 }
 
+#endif
+
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Helpers
 // ------------------------------------------------------------------------------------------
+/// Returns an index set containing all indexes from 0 through kTestIndexSetMaxIndex.
+- (GNEOrderedIndexSet *)p_indexSetContainingAllIndexes
+{
+    NSUInteger max = kTestIndexSetMaxIndex;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    [self p_addIndexesToIndexSet:indexSet count:(max + 1) isPerformanceTest:NO];
+    
+    return indexSet;
+}
+
+
+/// Returns an index set containing all even indexes from 0 through kTestIndexSetMaxIndex.
 - (GNEOrderedIndexSet *)p_indexSetContainingEvenIndexes
 {
     NSUInteger max = kTestIndexSetMaxIndex;
     
     GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
     
-    for (NSUInteger i = 0; i < max; i += 2)
+    for (NSUInteger i = 0; i <= max; i += 2)
     {
         XCTAssertTrue((i % 2) == 0);
         [indexSet addIndex:i];
@@ -1595,13 +1617,14 @@ static const NSUInteger kPerformanceTestIterations = 1000;
 }
 
 
+/// Returns an index set containing all odd indexes from 0 through kTestIndexSetMaxIndex.
 - (GNEOrderedIndexSet *)p_indexSetContainingOddIndexes
 {
     NSUInteger max = kTestIndexSetMaxIndex;
     
     GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
     
-    for (NSUInteger i = 1; i < max; i += 2)
+    for (NSUInteger i = 1; i <= max; i += 2)
     {
         XCTAssertTrue((i % 2) == 1);
         [indexSet addIndex:i];
