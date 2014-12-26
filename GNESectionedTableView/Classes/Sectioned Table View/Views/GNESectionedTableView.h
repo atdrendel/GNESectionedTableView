@@ -31,6 +31,7 @@
 
 #import "GNEOutlineViewItem.h"
 #import "GNEOutlineViewParentItem.h"
+#import "GNEOrderedIndexSet.h"
 #import "NSMutableArray+GNESectionedTableView.h"
 #import "NSIndexPath+GNESectionedTableView.h"
 #import "NSOutlineView+GNE_Additions.h"
@@ -92,16 +93,6 @@ static const CGFloat GNESectionedTableViewInvisibleRowHeight = 0.00001f;
 #else
 static const CGFloat GNESectionedTableViewInvisibleRowHeight = 1.0f;
 #endif
-
-
-// ------------------------------------------------------------------------------------------
-
-
-typedef struct
-{
-    NSUInteger *indexes;
-    NSUInteger count;
-} GNESections;
 
 
 // ------------------------------------------------------------------------------------------
@@ -403,7 +394,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 - (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)deleteSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)moveSection:(NSUInteger)fromSection toSection:(NSUInteger)toSection;
-- (void)moveSections:(GNESections)fromSections toSections:(GNESections)toSections;
+- (void)moveSections:(GNEOrderedIndexSet *)fromSections toSections:(GNEOrderedIndexSet *)toSections;
 /**
  Moves the specified sections to the specified section index. The order of the from sections is maintained.
  

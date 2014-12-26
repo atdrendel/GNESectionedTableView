@@ -638,4 +638,16 @@ static NSString * const kMemoryAllocationAssertionReason = @"Calloc failed";
 }
 
 
+- (NSIndexSet *)ns_indexSet
+{
+    NSMutableIndexSet *mutableIndexSet = [NSMutableIndexSet indexSet];
+    [self enumerateIndexesUsingBlock:^(NSUInteger index, NSUInteger position __unused, BOOL *stop __unused)
+    {
+        [mutableIndexSet addIndex:index];
+    }];
+    
+    return [mutableIndexSet copy];
+}
+
+
 @end

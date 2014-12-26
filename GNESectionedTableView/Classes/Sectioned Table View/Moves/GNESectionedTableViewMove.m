@@ -9,6 +9,7 @@
 #import "GNESectionedTableViewMove.h"
 #import "GNESectionedTableView.h"
 #import "GNESectionedTableViewDraggingItem.h"
+#import "GNEOrderedIndexSet.h"
 
 
 // ------------------------------------------------------------------------------------------
@@ -68,12 +69,12 @@ typedef void(^CompletionBlock)();
 // ------------------------------------------------------------------------------------------
 #pragma mark - Public - Move
 // ------------------------------------------------------------------------------------------
-- (void)moveSections:(GNESections)fromSections toSections:(GNESections)toSections
+- (void)moveSections:(GNEOrderedIndexSet *)fromSections toSections:(GNEOrderedIndexSet *)toSections
 {
     GNEParameterAssert(fromSections.count == toSections.count);
     
-    NSIndexSet *deletedSections = [self p_indexSetForSections:fromSections];
-    NSIndexSet *insertedSections = [self p_indexSetForSections:toSections];
+    NSIndexSet *deletedSections = fromSections.ns_indexSet;
+    NSIndexSet *insertedSections = toSections.ns_indexSet;
     
     [self p_animateDeletionOfSections:deletedSections insertionOfSections:insertedSections];
     
@@ -139,8 +140,8 @@ typedef void(^CompletionBlock)();
 }
 
 
-- (void)p_animateMoveOfDraggingItemsInSections:(GNESections)fromSections
-                                    toSections:(GNESections)toSections
+- (void)p_animateMoveOfDraggingItemsInSections:(GNEOrderedIndexSet *)fromSections
+                                    toSections:(GNEOrderedIndexSet *)toSections
 {
     GNEParameterAssert(fromSections.count == toSections.count);
     
@@ -152,7 +153,7 @@ typedef void(^CompletionBlock)();
     NSArray *fromIndexPaths = [self p_indexPathsForSections:fromSections];
     NSArray *toIndexPaths = [self p_indexPathsForSections:toSections];
     
-    
+    [self p_animateMoveOfDraggingItemsAtIndexPaths:fromIndexPaths toIndexPaths:toIndexPaths];
 }
 
 
@@ -303,26 +304,9 @@ typedef void(^CompletionBlock)();
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESections
 // ------------------------------------------------------------------------------------------
-- (NSIndexSet *)p_indexSetForSections:(GNESections)sections
-{
-    NSMutableIndexSet *mutableIndexSet = [NSMutableIndexSet indexSet];
-    
-    for (NSUInteger i = 0; i < sections.count; i++)
-    {
-        NSUInteger section = sections.indexes[i];
-        if (section < (NSNotFound - 1))
-        {
-            [mutableIndexSet addIndex:section];
-        }
-    }
-    
-    return [mutableIndexSet copy];
-}
-
-
 /// Returns an array of properly-formatted section header index paths for the
 /// specified sections.
-- (NSArray *)p_indexPathsForSections:(GNESections)sections
+- (NSArray *)p_indexPathsForSections:(GNEOrderedIndexSet *)sections
 {
     NSMutableArray *mutableIndexPaths = [NSMutableArray array];
     
@@ -330,9 +314,9 @@ typedef void(^CompletionBlock)();
     
     for (NSUInteger i = 0; i < sections.count; i++)
     {
-        NSUInteger section = sections.indexes[i];
+        NSUInteger section = [sections indexAtPosition:i];
         NSIndexPath *indexPath = [tableView indexPathForHeaderInSection:section];
-        if (indexPath)
+        if (section != NSNotFound && indexPath)
         {
             [mutableIndexPaths addObject:indexPath];
         }

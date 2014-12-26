@@ -700,7 +700,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)moveSections:(GNESections)fromSections toSections:(GNESections)toSections
+- (void)moveSections:(GNEOrderedIndexSet *)fromSections
+          toSections:(GNEOrderedIndexSet *)toSections
 {
     
 }
@@ -714,81 +715,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     GNEParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
     
-    NSMutableIndexSet *validSections = [[self p_indexSetByRemovingInvalidSectionsFromIndexSet:fromSections]
-                                        mutableCopy];
-    
-    /**
-     If the target section is the first section in the fromSections parameter, remove it and insert all of the
-     other sections above it.
-     */
-    while (validSections.firstIndex == toSection)
-    {
-        [validSections removeIndex:toSection];
-        toSection += 1;
-    }
-    
-    __block NSUInteger sectionsAbove = 0;
-    __block NSUInteger sectionsBelow = 0;
-    
-    /**
-     If the target section is contained in the fromSections parameter, remove it, insert the sections greater than
-     it above it, and insert all of the sections less than it below it.
-     */
-    while ([validSections containsIndex:toSection])
-    {
-        [validSections removeIndex:toSection];
-        toSection += 1;
-        sectionsBelow += 1;
-    }
-    
-    [self beginUpdates];
-    [validSections enumerateIndexesWithOptions:NSEnumerationReverse usingBlock:^(NSUInteger fromSection,
-                                                                                 BOOL *stop __unused)
-    {
-        // Set defaults.
-        NSUInteger convertedFromSection = fromSection;
-        NSUInteger convertedToSection = toSection;
         
-        if (fromSection > toSection)
-        {
-            sectionsAbove += 1;
-            convertedFromSection = fromSection + (sectionsAbove - 1);
-        }
-        else if (fromSection < toSection)
-        {
-            sectionsBelow += 1;
-            convertedToSection = toSection - sectionsBelow;
-        }
-        
-        GNEOutlineViewParentItem *parentItem = [self p_outlineViewParentItemForSection:convertedFromSection];
-        NSUInteger parentItemIndex = [self p_sectionForOutlineViewParentItem:parentItem];
-        
-        GNEParameterAssert(parentItemIndex != NSNotFound && parentItemIndex < self.outlineViewItems.count);
-        
-        if (parentItemIndex == NSNotFound || parentItemIndex >= self.outlineViewItems.count)
-        {
-            return;
-        }
-        
-        NSMutableArray *rows = self.outlineViewItems[parentItemIndex];
-        
-        [self.outlineViewParentItems removeObjectAtIndex:parentItemIndex];
-        [self.outlineViewItems removeObjectAtIndex:parentItemIndex];
-        
-        [self.outlineViewParentItems gne_insertObject:parentItem atIndex:convertedToSection];
-        [self.outlineViewItems gne_insertObject:rows atIndex:convertedToSection];
-        
-        [self moveItemAtIndex:(NSInteger)parentItemIndex
-                     inParent:nil
-                      toIndex:(NSInteger)convertedToSection
-                     inParent:nil];
-    }];
-    [self endUpdates];
-    
-    [self beginUpdates];
-    
-    [self endUpdates];
-    
     [self p_checkDataSourceIntegrity];
 }
 

@@ -6,9 +6,7 @@
 //  Copyright (c) 2014 Gone East LLC. All rights reserved.
 //
 
-#import "GNESectionedTableView.h"
-
-@class GNESectionedTableViewDraggingItem;
+@class GNESectionedTableView, GNESectionedTableViewDraggingItem, GNEOrderedIndexSet;
 
 
 // ------------------------------------------------------------------------------------------
@@ -24,7 +22,7 @@
 
 - (void)addDraggingItem:(GNESectionedTableViewDraggingItem *)draggingItem;
 
-- (void)moveSections:(GNESections)fromSections toSections:(GNESections)toSections;
+- (void)moveSections:(GNEOrderedIndexSet *)fromSections toSections:(GNEOrderedIndexSet *)toSections;
 
 - (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPaths:(NSArray *)toIndexPaths;
 

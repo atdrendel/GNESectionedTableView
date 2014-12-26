@@ -353,6 +353,125 @@ static const NSUInteger kPerformanceTestIterations = 10000;
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - NSIndexSet
+// ------------------------------------------------------------------------------------------
+- (void)testNSIndexSet_Empty
+{
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    
+    XCTAssertCount(indexSet, 0);
+    
+    NSIndexSet *nsIndexSet = indexSet.ns_indexSet;
+    
+    XCTAssertNotNil(nsIndexSet);
+    XCTAssertTrue([nsIndexSet isKindOfClass:[NSIndexSet class]]);
+    
+    XCTAssertCount(indexSet, 0);
+    XCTAssertEqual(indexSet.count, nsIndexSet.count);
+    
+    XCTAssertNotContainsIndex(indexSet, 0);
+    XCTAssertNotContainsIndex(nsIndexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, 1);
+    XCTAssertNotContainsIndex(nsIndexSet, 1);
+    XCTAssertNotContainsIndex(indexSet, 1234);
+    XCTAssertNotContainsIndex(nsIndexSet, 1234);
+    XCTAssertNotContainsIndex(indexSet, NSNotFound);
+    XCTAssertNotContainsIndex(nsIndexSet, NSNotFound);
+}
+
+
+- (void)testNSIndexSet_0
+{
+    NSUInteger count = 1;
+    NSUInteger index = 0;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndex:index];
+    
+    XCTAssertCount(indexSet, count);
+    
+    NSIndexSet *nsIndexSet = indexSet.ns_indexSet;
+    
+    XCTAssertNotNil(nsIndexSet);
+    XCTAssertTrue([nsIndexSet isKindOfClass:[NSIndexSet class]]);
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertEqual(indexSet.count, nsIndexSet.count);
+ 
+    XCTAssertContainsIndex(indexSet, index);
+    XCTAssertContainsIndex(nsIndexSet, index);
+    
+    XCTAssertNotContainsIndex(indexSet, 1);
+    XCTAssertNotContainsIndex(nsIndexSet, 1);
+    XCTAssertNotContainsIndex(indexSet, 1234);
+    XCTAssertNotContainsIndex(nsIndexSet, 1234);
+    XCTAssertNotContainsIndex(indexSet, NSNotFound);
+    XCTAssertNotContainsIndex(nsIndexSet, NSNotFound);
+}
+
+
+- (void)testNSIndexSet_1
+{
+    NSUInteger count = 1;
+    NSUInteger index = 1;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndex:index];
+    
+    XCTAssertCount(indexSet, count);
+    
+    NSIndexSet *nsIndexSet = indexSet.ns_indexSet;
+    
+    XCTAssertNotNil(nsIndexSet);
+    XCTAssertTrue([nsIndexSet isKindOfClass:[NSIndexSet class]]);
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertEqual(indexSet.count, nsIndexSet.count);
+    
+    XCTAssertContainsIndex(indexSet, index);
+    XCTAssertContainsIndex(nsIndexSet, index);
+    
+    XCTAssertNotContainsIndex(indexSet, 0);
+    XCTAssertNotContainsIndex(nsIndexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, 1234);
+    XCTAssertNotContainsIndex(nsIndexSet, 1234);
+    XCTAssertNotContainsIndex(indexSet, NSNotFound);
+    XCTAssertNotContainsIndex(nsIndexSet, NSNotFound);
+}
+
+
+- (void)testNSIndexSet_10
+{
+    NSUInteger count = 10;
+    NSUInteger indexes[] = { 2, 1, 54, 45, 44, 46, 432, 100001, 201, 200 };
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndexes:indexes
+                                                                     count:count];
+    
+    XCTAssertCount(indexSet, count);
+    
+    NSIndexSet *nsIndexSet = indexSet.ns_indexSet;
+    
+    XCTAssertNotNil(nsIndexSet);
+    XCTAssertTrue([nsIndexSet isKindOfClass:[NSIndexSet class]]);
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertEqual(indexSet.count, nsIndexSet.count);
+    
+    for (NSUInteger i = 0; i < count; i++)
+    {
+        XCTAssertContainsIndex(indexSet, indexes[i]);
+        XCTAssertContainsIndex(nsIndexSet, indexes[i]);
+    }
+    
+    XCTAssertNotContainsIndex(indexSet, 0);
+    XCTAssertNotContainsIndex(nsIndexSet, 0);
+    XCTAssertNotContainsIndex(indexSet, 1234);
+    XCTAssertNotContainsIndex(nsIndexSet, 1234);
+    XCTAssertNotContainsIndex(indexSet, NSNotFound);
+    XCTAssertNotContainsIndex(nsIndexSet, NSNotFound);
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Equality
 // ------------------------------------------------------------------------------------------
 - (void)testEqual_Empty

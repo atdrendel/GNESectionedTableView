@@ -17,6 +17,9 @@
 /// Returns the largest index in the set or NSNotFound if there are no indexes in the set. O(1)
 @property (nonatomic, assign, readonly) NSUInteger largestIndex;
 
+/// Returns an unordered index set (NSIndexSet) representation of the receiver.
+@property (nonatomic, assign, readonly) NSIndexSet *ns_indexSet;
+
 #pragma mark - Class initializers
 + (instancetype)indexSet;
 + (instancetype)indexSetWithIndex:(NSUInteger)index;
