@@ -15,6 +15,9 @@
 static const NSUInteger kMinimumCount = 100;
 static const NSUInteger kCountIncrementLength = 50;
 
+static NSString * const kMemoryAllocationAssertionName = @"Memory Allocation Failure";
+static NSString * const kMemoryAllocationAssertionReason = @"Calloc failed";
+
 
 // ------------------------------------------------------------------------------------------
 
@@ -556,8 +559,15 @@ static const NSUInteger kCountIncrementLength = 50;
         
         return newIndexes;
     }
-    
-    return indexes;
+    else
+    {
+        NSException *exception = [NSException exceptionWithName:kMemoryAllocationAssertionName
+                                                         reason:kMemoryAllocationAssertionReason
+                                                       userInfo:nil];
+        [exception raise];
+        
+        return indexes;
+    }
 }
 
 
