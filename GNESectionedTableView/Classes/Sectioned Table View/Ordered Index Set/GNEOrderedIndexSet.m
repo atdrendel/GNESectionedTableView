@@ -424,7 +424,6 @@ static NSString * const kMemoryAllocationAssertionReason = @"Calloc failed";
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private - Finding Indexes
 // ------------------------------------------------------------------------------------------
-/// Returns the smallest index in the set or NSNotFound if there are no indexes in the set.
 - (NSUInteger)p_smallestIndex
 {
     if (self.indexesCount > 0)
@@ -436,7 +435,6 @@ static NSString * const kMemoryAllocationAssertionReason = @"Calloc failed";
 }
 
 
-/// Returns the largest index in the set or NSNotFound if there are no indexes in the set.
 - (NSUInteger)p_largestIndex
 {
     if (self.indexesCount > 0)
@@ -625,6 +623,18 @@ static NSString * const kMemoryAllocationAssertionReason = @"Calloc failed";
 - (NSUInteger)count
 {
     return self.indexesCount;
+}
+
+
+- (NSUInteger)smallestIndex
+{
+    return [self p_smallestIndex];
+}
+
+
+- (NSUInteger)largestIndex
+{
+    return [self p_largestIndex];
 }
 
 

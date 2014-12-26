@@ -232,6 +232,124 @@ static const NSUInteger kPerformanceTestIterations = 1000;
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Count
+// ------------------------------------------------------------------------------------------
+- (void)testCount_Empty
+{
+    NSUInteger count = 0;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertEqual(indexSet.count, count);
+}
+
+
+- (void)testCount_1
+{
+    NSUInteger count = 1;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndex:1324212];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertEqual(indexSet.count, count);
+}
+
+
+- (void)testCount_10
+{
+    NSUInteger count = 10;
+    NSUInteger indexes[] = { 2334, 3232, 6542, 5343433, 2, 43, 97, 4823821, 12, 21 };
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndexes:indexes count:count];
+    
+    XCTAssertCount(indexSet, count);
+    XCTAssertEqual(indexSet.count, count);
+}
+
+
+- (void)testCount_10_Duplicates
+{
+    NSUInteger count = 20;
+    NSUInteger indexes[] = { 2334, 3232, 6542, 5343433, 2, 43, 97, 4823821, 12, 21,
+                             2334, 3232, 6542, 5343433, 2, 43, 97, 4823821, 12, 21 };
+    
+    NSUInteger expectedCount = 10;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndexes:indexes count:count];
+    
+    XCTAssertCount(indexSet, expectedCount);
+    XCTAssertEqual(indexSet.count, expectedCount);
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Smallest/Largest Index
+// ------------------------------------------------------------------------------------------
+- (void)testSmallestLargestIndex_Empty
+{
+    NSUInteger count = 0;
+    NSUInteger smallestIndex = NSNotFound;
+    NSUInteger largestIndex = NSNotFound;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    
+    XCTAssertCount(indexSet, count);
+    
+    XCTAssertEqual(indexSet.smallestIndex, smallestIndex);
+    XCTAssertEqual(indexSet.largestIndex, largestIndex);
+}
+
+
+- (void)testSmallestLargestIndex_1
+{
+    NSUInteger count = 1;
+    NSUInteger index = 53;
+    NSUInteger smallestIndex = index;
+    NSUInteger largestIndex = index;
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndex:index];
+    
+    XCTAssertCount(indexSet, count);
+    
+    XCTAssertEqual(indexSet.smallestIndex, smallestIndex);
+    XCTAssertEqual(indexSet.largestIndex, largestIndex);
+}
+
+
+- (void)testSmallestLargestIndex_2
+{
+    NSUInteger count = 2;
+    NSUInteger indexes[] = { 54, 53 };
+    NSUInteger smallestIndex = indexes[1];
+    NSUInteger largestIndex = indexes[0];
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndexes:indexes count:count];
+    
+    XCTAssertCount(indexSet, count);
+    
+    XCTAssertEqual(indexSet.smallestIndex, smallestIndex);
+    XCTAssertEqual(indexSet.largestIndex, largestIndex);
+}
+
+
+- (void)testSmallestLargestIndex_10
+{
+    NSUInteger count = 10;
+    NSUInteger indexes[] = { 54, 53, 52, 55, 51, 56, 50, 123443224, 48, 49 };
+    NSUInteger smallestIndex = indexes[8];
+    NSUInteger largestIndex = indexes[7];
+    
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndexes:indexes count:count];
+    
+    XCTAssertCount(indexSet, count);
+    
+    XCTAssertEqual(indexSet.smallestIndex, smallestIndex);
+    XCTAssertEqual(indexSet.largestIndex, largestIndex);
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Equality
 // ------------------------------------------------------------------------------------------
 - (void)testEqual_Empty

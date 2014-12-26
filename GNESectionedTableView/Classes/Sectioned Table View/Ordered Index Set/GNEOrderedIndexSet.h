@@ -8,7 +8,14 @@
 
 @interface GNEOrderedIndexSet : NSObject <NSCopying>
 
+/// Returns the number of indexes contained in the receiver.
 @property (nonatomic, assign, readonly) NSUInteger count;
+
+/// Returns the smallest index in the set or NSNotFound if there are no indexes in the set. O(1)
+@property (nonatomic, assign, readonly) NSUInteger smallestIndex;
+
+/// Returns the largest index in the set or NSNotFound if there are no indexes in the set. O(1)
+@property (nonatomic, assign, readonly) NSUInteger largestIndex;
 
 #pragma mark - Class initializers
 + (instancetype)indexSet;
