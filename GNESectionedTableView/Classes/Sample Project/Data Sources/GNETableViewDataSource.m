@@ -531,15 +531,17 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
     
     NSUInteger sectionsBelowToSection = [fromSections countOfIndexesInRange:NSMakeRange(0, toSection)];
     
-    NSRange sectionInsertionRange = NSMakeRange(toSection - sectionsBelowToSection, sections.count);
+    NSRange sectionInsertionRange = NSMakeRange(toSection /* - sectionsBelowToSection */, sections.count);
     NSIndexSet *sectionInsertionIndexes = [NSIndexSet indexSetWithIndexesInRange:sectionInsertionRange];
     [self.sections insertObjects:sections atIndexes:sectionInsertionIndexes];
     
-    NSRange rowInsertionRange = NSMakeRange(toSection - sectionsBelowToSection, rows.count);
+    NSRange rowInsertionRange = NSMakeRange(toSection /* - sectionsBelowToSection */, rows.count);
     NSIndexSet *rowInsertionIndexes = [NSIndexSet indexSetWithIndexesInRange:rowInsertionRange];
     [self.rows insertObjects:rows atIndexes:rowInsertionIndexes];
     
-    [self.tableView moveSections:fromSections toSection:toSection];
+    GNEOrderedIndexSet *orderedFromSections = [GNEOrderedIndexSet indexSetWithNSIndexSet:fromSections];
+    
+    [self.tableView moveSections:orderedFromSections toSection:toSection];
 }
 
 
@@ -696,10 +698,6 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
             toIndexPath:(NSIndexPath *)toIndexPath
 {
     NSLog(@"canDragRowAtIndexPath: (%lu, %lu) toIndexPath: (%lu, %lu)", fromIndexPath.gne_section, fromIndexPath.gne_row, toIndexPath.gne_section, toIndexPath.gne_row);
-    if (toIndexPath.gne_row == 5)
-    {
-        return NO;
-    }
     
     return YES;
 }
@@ -893,9 +891,24 @@ shouldSelectHeaderInSection:(NSUInteger __unused)section
 }
 
 
-- (void)tableView:(GNESectionedTableView * __unused)tableView didDoubleClickHeaderInSection:(NSUInteger)section
+- (void)tableView:(GNESectionedTableView *)tableView didDoubleClickHeaderInSection:(NSUInteger)section
 {
     NSLog(@"didDoubleClickHeaderInSection: %lu", section);
+    
+    NSUInteger numberOfSections = tableView.numberOfSections;
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    for (NSUInteger i = 0; i < numberOfSections; i++)
+    {
+        if (i != section && (i != (section + 1)))
+        {
+            [indexSet addIndex:i];
+        }
+    }
+    
+    NSUInteger position = (NSUInteger)arc4random_uniform((u_int32_t)(indexSet.count));
+    NSUInteger toSection = [indexSet indexAtPosition:position];
+    
+    [self p_moveSections:[NSIndexSet indexSetWithIndex:section] toSection:toSection];
 }
 
 

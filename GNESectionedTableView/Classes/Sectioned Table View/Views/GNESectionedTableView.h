@@ -404,7 +404,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  @param fromSections Indexes of sections to be moved.
  @param toSection Index of section to move the specified sections to.
  */
-- (void)moveSections:(NSIndexSet *)fromSections toSection:(NSUInteger)toSection;
+- (void)moveSections:(GNEOrderedIndexSet *)fromSections toSection:(NSUInteger)toSection;
 
 - (void)reloadSections:(NSIndexSet *)sections;
 

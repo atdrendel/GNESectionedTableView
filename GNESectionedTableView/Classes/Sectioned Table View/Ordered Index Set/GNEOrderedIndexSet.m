@@ -58,6 +58,12 @@ static NSString * const kMemoryAllocationAssertionReason = @"Calloc failed";
 }
 
 
++ (instancetype)indexSetWithNSIndexSet:(NSIndexSet *)indexSet
+{
+    return [[[self class] alloc] initWithNSIndexSet:indexSet];
+}
+
+
 + (instancetype)indexSetWithIndexes:(NSUInteger *)indexes
                               count:(NSUInteger)count
 {
@@ -79,6 +85,17 @@ static NSString * const kMemoryAllocationAssertionReason = @"Calloc failed";
     NSUInteger indexes[] = {index};
     
     return [self initWithIndexes:indexes count:1];
+}
+
+
+- (instancetype)initWithNSIndexSet:(NSIndexSet *)indexSet
+{
+    NSUInteger count = indexSet.count;
+    
+    NSUInteger indexes[count];
+    [indexSet getIndexes:indexes maxCount:count inIndexRange:NULL];
+    
+    return [self initWithIndexes:indexes count:count];
 }
 
 

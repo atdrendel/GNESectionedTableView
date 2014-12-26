@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 Gone East LLC. All rights reserved.
 //
 
-@class GNESectionedTableView, GNESectionedTableViewDraggingItem, GNEOrderedIndexSet;
+@class GNESectionedTableView, GNESectionedTableViewMovingItem, GNEOrderedIndexSet;
 
 
 // ------------------------------------------------------------------------------------------
@@ -15,12 +15,12 @@
 @interface GNESectionedTableViewMove : NSObject
 
 @property (nonatomic, weak, readonly) GNESectionedTableView *tableView;
-@property (nonatomic, copy, readonly) NSArray *draggingItems;
+@property (nonatomic, copy, readonly) NSArray *movingItems;
 
 /// Returns an instance of GNESectionedTableViewMove or one of its subclasses.
-- (instancetype)initWithTableView:(GNESectionedTableView *)tableView;
+- (instancetype)initWithTableView:(GNESectionedTableView *)tableView NS_DESIGNATED_INITIALIZER;
 
-- (void)addDraggingItem:(GNESectionedTableViewDraggingItem *)draggingItem;
+- (void)addMovingItem:(GNESectionedTableViewMovingItem *)movingItem;
 
 - (void)moveSections:(GNEOrderedIndexSet *)fromSections toSections:(GNEOrderedIndexSet *)toSections;
 

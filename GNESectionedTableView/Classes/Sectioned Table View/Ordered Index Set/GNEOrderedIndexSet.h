@@ -23,11 +23,13 @@
 #pragma mark - Class initializers
 + (instancetype)indexSet;
 + (instancetype)indexSetWithIndex:(NSUInteger)index;
++ (instancetype)indexSetWithNSIndexSet:(NSIndexSet *)indexSet;
 + (instancetype)indexSetWithIndexes:(NSUInteger *)indexes count:(NSUInteger)count;
 
 #pragma mark - Initializers
 - (instancetype)init;
 - (instancetype)initWithIndex:(NSUInteger)index;
+- (instancetype)initWithNSIndexSet:(NSIndexSet *)indexSet;
 - (instancetype)initWithIndexes:(NSUInteger *)indexes count:(NSUInteger)count NS_DESIGNATED_INITIALIZER;
 
 #pragma mark - Add/Remove Indexes

@@ -8,16 +8,18 @@
 
 #import "GNESectionedTableViewMove.h"
 #import "GNESectionedTableView.h"
-#import "GNESectionedTableViewDraggingItem.h"
+#import "GNESectionedTableViewMovingItem.h"
 #import "GNEOrderedIndexSet.h"
 
 
 // ------------------------------------------------------------------------------------------
 
 
-typedef BOOL(^TestPredicate)(GNESectionedTableViewDraggingItem *draggingItem, NSUInteger index __unused, BOOL *stop __unused);
+typedef BOOL(^TestPredicate)(GNESectionedTableViewMovingItem *movingItem, NSUInteger index __unused, BOOL *stop __unused);
 
-typedef void(^RowAnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIndex, BOOL *stop __unused);
+typedef void(^MovingItemAnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIndex, BOOL *stop __unused);
+
+typedef void(^IndexPathsAnimationBlock)(NSArray *fromIndexPaths, MovingItemAnimationBlock block);
 
 typedef void(^CompletionBlock)();
 
@@ -28,7 +30,7 @@ typedef void(^CompletionBlock)();
 @interface GNESectionedTableViewMove ()
 
 @property (nonatomic, weak, readwrite) GNESectionedTableView *tableView;
-@property (nonatomic, strong) NSMutableSet *mutableDraggingItems;
+@property (nonatomic, strong) NSMutableSet *mutableMovingItems;
 
 @end
 
@@ -42,12 +44,26 @@ typedef void(^CompletionBlock)();
 // ------------------------------------------------------------------------------------------
 #pragma mark - Initialization
 // ------------------------------------------------------------------------------------------
+- (instancetype)init
+{
+    NSAssert(NO, @"Use -[GNESectionedTableViewMove initWithTableView:]");
+    
+    return [self initWithTableView:nil];
+}
+
+
 - (instancetype)initWithTableView:(GNESectionedTableView *)tableView
 {
+    NSParameterAssert(tableView);
+    if (tableView == nil)
+    {
+        return nil;
+    }
+    
     if ((self = [super init]))
     {
         _tableView = tableView;
-        _mutableDraggingItems = [NSMutableSet set];
+        _mutableMovingItems = [NSMutableSet set];
     }
     
     return self;
@@ -55,13 +71,25 @@ typedef void(^CompletionBlock)();
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Dealloc
+// ------------------------------------------------------------------------------------------
+- (void)dealloc
+{
+    _tableView = nil;
+    
+    [_mutableMovingItems removeAllObjects];
+    _mutableMovingItems = nil;
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Public - Adding Dragging Items
 // ------------------------------------------------------------------------------------------
-- (void)addDraggingItem:(GNESectionedTableViewDraggingItem *)draggingItem
+- (void)addMovingItem:(GNESectionedTableViewMovingItem *)movingItem
 {
-    if (draggingItem)
+    if (movingItem)
     {
-        [self.mutableDraggingItems addObject:draggingItem];
+        [self.mutableMovingItems addObject:movingItem];
     }
 }
 
@@ -72,12 +100,12 @@ typedef void(^CompletionBlock)();
 - (void)moveSections:(GNEOrderedIndexSet *)fromSections toSections:(GNEOrderedIndexSet *)toSections
 {
     GNEParameterAssert(fromSections.count == toSections.count);
+
+    [self p_animateDeletionOfSections:fromSections.ns_indexSet
+                  insertionOfSections:toSections.ns_indexSet];
     
-    NSIndexSet *deletedSections = fromSections.ns_indexSet;
-    NSIndexSet *insertedSections = toSections.ns_indexSet;
-    
-    [self p_animateDeletionOfSections:deletedSections insertionOfSections:insertedSections];
-    
+    [self p_animateMoveOfMovingItemsInSections:fromSections
+                                    toSections:toSections];
 }
 
 
@@ -94,8 +122,8 @@ typedef void(^CompletionBlock)();
     [self p_animateDeletionOfRowsAtIndexPaths:fromIndexPaths
                   insertionOfRowsAtIndexPaths:toIndexPaths];
 
-    [self p_animateMoveOfDraggingItemsAtIndexPaths:fromIndexPaths
-                                      toIndexPaths:toIndexPaths];
+    [self p_animateMoveOfMovingItemsAtIndexPaths:fromIndexPaths
+                                    toIndexPaths:toIndexPaths];
 }
 
 
@@ -140,8 +168,8 @@ typedef void(^CompletionBlock)();
 }
 
 
-- (void)p_animateMoveOfDraggingItemsInSections:(GNEOrderedIndexSet *)fromSections
-                                    toSections:(GNEOrderedIndexSet *)toSections
+- (void)p_animateMoveOfMovingItemsInSections:(GNEOrderedIndexSet *)fromSections
+                                  toSections:(GNEOrderedIndexSet *)toSections
 {
     GNEParameterAssert(fromSections.count == toSections.count);
     
@@ -153,12 +181,13 @@ typedef void(^CompletionBlock)();
     NSArray *fromIndexPaths = [self p_indexPathsForSections:fromSections];
     NSArray *toIndexPaths = [self p_indexPathsForSections:toSections];
     
-    [self p_animateMoveOfDraggingItemsAtIndexPaths:fromIndexPaths toIndexPaths:toIndexPaths];
+    MovingItemAnimationBlock block = [self p_sectionAnimationBlockWithTargetIndexPaths:toIndexPaths];
+    [self p_animateMoveFromIndexPaths:fromIndexPaths animationBlock:block];
 }
 
 
-- (void)p_animateMoveOfDraggingItemsAtIndexPaths:(NSArray *)fromIndexPaths
-                                    toIndexPaths:(NSArray *)toIndexPaths
+- (void)p_animateMoveOfMovingItemsAtIndexPaths:(NSArray *)fromIndexPaths
+                                  toIndexPaths:(NSArray *)toIndexPaths
 {
     GNESectionedTableView *tableView = self.tableView;
     
@@ -170,20 +199,27 @@ typedef void(^CompletionBlock)();
         return;
     }
     
-    RowAnimationBlock block = [self p_rowAnimationBlockWithTargetIndexPaths:toIndexPaths];
-    NSArray *draggingItems = self.draggingItems;
+    MovingItemAnimationBlock block = [self p_rowAnimationBlockWithTargetIndexPaths:toIndexPaths];
+    [self p_animateMoveFromIndexPaths:fromIndexPaths animationBlock:block];
+}
+
+
+- (void)p_animateMoveFromIndexPaths:(NSArray *)fromIndexPaths
+                     animationBlock:(MovingItemAnimationBlock)block
+{
+    NSArray *movingItems = self.movingItems;
     
     [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context)
-    {
-        context.duration = 0.19;
-        [fromIndexPaths enumerateObjectsUsingBlock:block];
-    } completionHandler:^()
-    {
-        for (GNESectionedTableViewDraggingItem *draggingItem in draggingItems)
-        {
-            [draggingItem.view removeFromSuperview];
-        }
-    }];
+     {
+         context.duration = 0.24;
+         [fromIndexPaths enumerateObjectsUsingBlock:block];
+     } completionHandler:^()
+     {
+         for (GNESectionedTableViewMovingItem *movingItem in movingItems)
+         {
+             [movingItem.view removeFromSuperview];
+         }
+     }];
 }
 
 
@@ -245,15 +281,15 @@ typedef void(^CompletionBlock)();
 
 
 // ------------------------------------------------------------------------------------------
-#pragma mark - Private - Dragging Items
+#pragma mark - Private - Moving Items
 // ------------------------------------------------------------------------------------------
-- (TestPredicate)p_draggingItemPredicateWithIndexPath:(NSIndexPath *)indexPath
+- (TestPredicate)p_movingItemPredicateWithIndexPath:(NSIndexPath *)indexPath
 {
-    TestPredicate predicate = ^BOOL(GNESectionedTableViewDraggingItem *draggingItem,
+    TestPredicate predicate = ^BOOL(GNESectionedTableViewMovingItem *movingItem,
                                     NSUInteger index __unused,
                                     BOOL *stop __unused)
     {
-        NSIndexPath *itemIndexPath = draggingItem.indexPath;
+        NSIndexPath *itemIndexPath = movingItem.indexPath;
         
         return (indexPath && itemIndexPath &&
                 [indexPath compare:itemIndexPath] == NSOrderedSame);
@@ -263,15 +299,15 @@ typedef void(^CompletionBlock)();
 }
 
 
-- (RowAnimationBlock)p_rowAnimationBlockWithTargetIndexPaths:(NSArray *)toIndexPaths
+- (MovingItemAnimationBlock)p_rowAnimationBlockWithTargetIndexPaths:(NSArray *)toIndexPaths
 {
     GNESectionedTableView *tableView = self.tableView;
-    NSArray *draggingItems = self.draggingItems;
+    NSArray *movingItems = self.movingItems;
     
     __weak typeof(self) weakSelf = self;
-    RowAnimationBlock block = ^(NSIndexPath *fromIndexPath,
-                                NSUInteger indexPathIndex,
-                                BOOL *stop __unused)
+    MovingItemAnimationBlock block = ^(NSIndexPath *fromIndexPath,
+                                       NSUInteger indexPathIndex,
+                                       BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         if (strongSelf == nil)
@@ -279,22 +315,60 @@ typedef void(^CompletionBlock)();
             return;
         }
         
-        TestPredicate predicate = [strongSelf p_draggingItemPredicateWithIndexPath:fromIndexPath];
-        NSUInteger draggingItemIndex = [draggingItems indexOfObjectPassingTest:predicate];
+        TestPredicate predicate = [strongSelf p_movingItemPredicateWithIndexPath:fromIndexPath];
+        NSUInteger movingItemIndex = [movingItems indexOfObjectPassingTest:predicate];
         
-        if (draggingItemIndex == NSNotFound)
+        if (movingItemIndex == NSNotFound)
         {
             return;
         }
         
-        GNESectionedTableViewDraggingItem *draggingItem = draggingItems[draggingItemIndex];
+        GNESectionedTableViewMovingItem *movingItem = movingItems[movingItemIndex];
         NSIndexPath *toIndexPath = toIndexPaths[indexPathIndex];
         CGRect toFrame = [tableView frameOfViewAtIndexPath:toIndexPath];
         toFrame.size.height =   (toFrame.size.height <= GNESectionedTableViewInvisibleRowHeight) ?
-                                    draggingItem.view.bounds.size.height : toFrame.size.height;
+                                    movingItem.view.bounds.size.height : toFrame.size.height;
         
-        [tableView addSubview:draggingItem.view];
-        draggingItem.view.animator.frame = toFrame;
+        [tableView addSubview:movingItem.view];
+        movingItem.view.animator.frame = toFrame;
+    };
+    
+    return block;
+}
+
+
+- (MovingItemAnimationBlock)p_sectionAnimationBlockWithTargetIndexPaths:(NSArray *)toIndexPaths
+{
+    GNESectionedTableView *tableView = self.tableView;
+    NSArray *movingItems = self.movingItems;
+    
+    __weak typeof(self) weakSelf = self;
+    MovingItemAnimationBlock block = ^(NSIndexPath *fromIndexPath,
+                                       NSUInteger indexPathIndex,
+                                       BOOL *stop __unused)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf == nil)
+        {
+            return;
+        }
+        
+        TestPredicate predicate = [strongSelf p_movingItemPredicateWithIndexPath:fromIndexPath];
+        NSUInteger movingItemIndex = [movingItems indexOfObjectPassingTest:predicate];
+        
+        if (movingItemIndex == NSNotFound)
+        {
+            return;
+        }
+        
+        GNESectionedTableViewMovingItem *movingItem = movingItems[movingItemIndex];
+        NSIndexPath *toIndexPath = toIndexPaths[indexPathIndex];
+        CGRect toFrame = [tableView frameOfSection:toIndexPath.gne_section];
+        toFrame.size.height =   (toFrame.size.height < movingItem.view.bounds.size.height) ?
+                                    movingItem.view.bounds.size.height : toFrame.size.height;
+        
+        [tableView addSubview:movingItem.view];
+        movingItem.view.animator.frame = toFrame;
     };
     
     return block;
@@ -304,23 +378,23 @@ typedef void(^CompletionBlock)();
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESections
 // ------------------------------------------------------------------------------------------
-/// Returns an array of properly-formatted section header index paths for the
-/// specified sections.
+/// Returns an array of properly-formatted section header index paths for the specified sections.
 - (NSArray *)p_indexPathsForSections:(GNEOrderedIndexSet *)sections
 {
     NSMutableArray *mutableIndexPaths = [NSMutableArray array];
     
     GNESectionedTableView *tableView = self.tableView;
     
-    for (NSUInteger i = 0; i < sections.count; i++)
+    [sections enumerateIndexesUsingBlock:^(NSUInteger section,
+                                           NSUInteger position __unused,
+                                           BOOL *stop __unused)
     {
-        NSUInteger section = [sections indexAtPosition:i];
         NSIndexPath *indexPath = [tableView indexPathForHeaderInSection:section];
-        if (section != NSNotFound && indexPath)
+        if (indexPath)
         {
             [mutableIndexPaths addObject:indexPath];
         }
-    }
+    }];
     
     return [NSArray arrayWithArray:mutableIndexPaths];
 }
@@ -329,9 +403,9 @@ typedef void(^CompletionBlock)();
 // ------------------------------------------------------------------------------------------
 #pragma mark - Accessors
 // ------------------------------------------------------------------------------------------
-- (NSArray *)draggingItems
+- (NSArray *)movingItems
 {
-    return self.mutableDraggingItems.allObjects;
+    return self.mutableMovingItems.allObjects;
 }
 
 

@@ -36,7 +36,7 @@
 #import "GNEOutlineViewParentItem.h"
 
 #import "GNESectionedTableViewMove.h"
-#import "GNESectionedTableViewDraggingItem.h"
+#import "GNESectionedTableViewMovingItem.h"
 
 // ------------------------------------------------------------------------------------------
 
@@ -521,11 +521,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     GNEParameterAssert(fromIndexPath);
     GNEParameterAssert(toIndexPath);
     
-    if (self.currentMove)
-    {
-        [self.currentMove moveRowsAtIndexPaths:@[fromIndexPath]
-                                  toIndexPaths:@[toIndexPath]];
-    }
+    [self moveRowsAtIndexPaths:@[fromIndexPath] toIndexPaths:@[toIndexPath]];
 }
 
 
@@ -539,6 +535,43 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     if (self.currentMove)
     {
         [self.currentMove moveRowsAtIndexPaths:fromIndexPaths toIndexPaths:toIndexPaths];
+    }
+    else
+    {
+        NSInteger column = self.numberOfColumns - 1;
+        if (column < 0)
+        {
+            return;
+        }
+        
+        GNESectionedTableViewMove *move = [[GNESectionedTableViewMove alloc] initWithTableView:self];
+        
+        for (NSIndexPath *indexPath in fromIndexPaths)
+        {
+            NSInteger tableViewRow = [self tableViewRowForIndexPath:indexPath];
+            
+            if (tableViewRow == -1 || tableViewRow >= self.numberOfRows)
+            {
+                continue;
+            }
+            
+            NSTableCellView *cellView = [self viewAtColumn:column row:tableViewRow makeIfNecessary:NO];
+            CGRect frame = [self frameOfViewAtIndexPath:indexPath];
+            
+            if (cellView == nil)
+            {
+                continue;
+            }
+            
+            GNESectionedTableViewMovingItem *movingItem = [[GNESectionedTableViewMovingItem alloc]
+                                                           initWithTableCellView:cellView
+                                                           frame:frame
+                                                           indexPath:indexPath];
+            
+            [move addMovingItem:movingItem];
+        }
+        
+        [move moveRowsAtIndexPaths:fromIndexPaths toIndexPaths:toIndexPaths];
     }
 }
 
@@ -696,26 +729,126 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)moveSection:(NSUInteger)fromSection toSection:(NSUInteger)toSection
 {
-    [self moveSections:[NSIndexSet indexSetWithIndex:fromSection] toSection:toSection];
+    [self moveSections:[GNEOrderedIndexSet indexSetWithIndex:fromSection]
+            toSections:[GNEOrderedIndexSet indexSetWithIndex:toSection]];
 }
 
 
 - (void)moveSections:(GNEOrderedIndexSet *)fromSections
           toSections:(GNEOrderedIndexSet *)toSections
 {
-    
-}
-
-
-- (void)moveSections:(NSIndexSet *)fromSections toSection:(NSUInteger)toSection
-{
 #if GNE_CRUD_LOGGING_ENABLED
-    NSLog(@"%@\nFrom: %@ To: %lu", NSStringFromSelector(_cmd), fromSections, toSection);
+    NSLog(@"%@\nFrom: %@ To: %@", NSStringFromSelector(_cmd), fromSections, toSections);
 #endif
     
     GNEParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
     
+    if (self.currentMove)
+    {
+        [self.currentMove moveSections:fromSections toSections:toSections];
+    }
+    else
+    {
+        NSInteger column = self.numberOfColumns - 1;
+        if (column < 0)
+        {
+            return;
+        }
         
+        GNESectionedTableViewMove *move = [[GNESectionedTableViewMove alloc] initWithTableView:self];
+        
+        __weak typeof(self) weakSelf = self;
+        [fromSections enumerateIndexesUsingBlock:^(NSUInteger section,
+                                                   NSUInteger position __unused,
+                                                   BOOL *stop __unused)
+        {
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (strongSelf == nil)
+            {
+                return;
+            }
+            
+            NSIndexPath *headerIndexPath = [strongSelf indexPathForHeaderInSection:section];
+            CGRect sectionFrame = [strongSelf frameOfSection:section];
+            
+            BOOL isExpanded = [strongSelf isSectionExpanded:section];
+            
+            NSInteger headerRow = [strongSelf tableViewRowForIndexPath:headerIndexPath];
+            if (headerRow == -1 || headerRow >= strongSelf.numberOfRows)
+            {
+                return;
+            }
+            
+            NSTableCellView *headerCellView = [strongSelf viewAtColumn:column
+                                                                   row:headerRow
+                                                       makeIfNecessary:NO];
+            
+            if (headerCellView == nil)
+            {
+                return;
+            }
+            
+            NSMutableArray *cellViews = [NSMutableArray arrayWithObject:headerCellView];
+            
+            if (isExpanded)
+            {
+                NSUInteger rowCount = [self numberOfRowsInSection:section];
+                
+                if (rowCount == NSNotFound || (NSInteger)rowCount >= self.numberOfRows)
+                {
+                    return;
+                }
+                
+                for (NSUInteger row = 0; row < rowCount; row++)
+                {
+                    NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
+                    
+                    NSInteger tableViewRow = [strongSelf tableViewRowForIndexPath:indexPath];
+                    
+                    if (tableViewRow == -1 || tableViewRow >= self.numberOfRows)
+                    {
+                        return;
+                    }
+                    
+                    NSTableCellView *cellView = [strongSelf viewAtColumn:column
+                                                                     row:tableViewRow
+                                                         makeIfNecessary:NO];
+                    
+                    if (cellView)
+                    {
+                        [cellViews addObject:cellView];
+                    }
+                }
+            }
+            
+            GNESectionedTableViewMovingItem *movingItem = [[GNESectionedTableViewMovingItem alloc]
+                                                           initForSectionWithTableCellViews:cellViews
+                                                           frame:sectionFrame
+                                                           headerIndexPath:headerIndexPath];
+            [move addMovingItem:movingItem];
+        }];
+        
+        [move moveSections:fromSections toSections:toSections];
+        
+    }
+    
+    [self p_checkDataSourceIntegrity];
+}
+
+
+- (void)moveSections:(GNEOrderedIndexSet *)fromSections toSection:(NSUInteger)toSection
+{
+    GNEParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
+    
+    GNEOrderedIndexSet *toSections = [GNEOrderedIndexSet indexSet];
+    NSUInteger count = fromSections.count;
+    for (NSUInteger i = 0; i < count; i++)
+    {
+        [toSections addIndex:(toSection + i)];
+    }
+    
+    [self moveSections:fromSections toSections:toSections];
+    
     [self p_checkDataSourceIntegrity];
 }
 
@@ -3278,11 +3411,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             NSTableCellView *cellView = [outlineView viewAtColumn:column row:row makeIfNecessary:YES];
             
             // Create the custom move dragging item.
-            GNESectionedTableViewDraggingItem *tableViewDraggingItem = [[GNESectionedTableViewDraggingItem alloc]
-                                                                        initWithTableCellView:cellView
-                                                                        frame:rowView.frame
-                                                                        indexPath:indexPath];
-            [strongSelf.currentMove addDraggingItem:tableViewDraggingItem];
+            GNESectionedTableViewMovingItem *movingItem = [[GNESectionedTableViewMovingItem alloc]
+                                                           initWithTableCellView:cellView
+                                                           frame:rowView.frame
+                                                           indexPath:indexPath];
+            [strongSelf.currentMove addMovingItem:movingItem];
             
             // Give the system dragging items the correct appearance.
             draggingItem.imageComponentsProvider = ^ NSArray * ()
