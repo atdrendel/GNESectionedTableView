@@ -40,11 +40,7 @@
 
 typedef BOOL(^TestPredicate)(GNESectionedTableViewMovingItem *movingItem, NSUInteger index __unused, BOOL *stop __unused);
 
-typedef void(^MovingItemAnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIndex, BOOL *stop __unused);
-
-typedef void(^IndexPathsAnimationBlock)(NSArray *fromIndexPaths, MovingItemAnimationBlock block);
-
-typedef void(^CompletionBlock)();
+typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIndex, BOOL *stop __unused);
 
 
 // ------------------------------------------------------------------------------------------
@@ -52,7 +48,6 @@ typedef void(^CompletionBlock)();
 
 @interface GNESectionedTableViewMove ()
 
-@property (nonatomic, weak, readwrite) GNESectionedTableView *tableView;
 @property (nonatomic, strong) NSMutableSet *mutableMovingItems;
 
 @end
@@ -180,7 +175,7 @@ typedef void(^CompletionBlock)();
     GNEParameterAssert(tableView);
     GNEParameterAssert(deletedIndexPaths.count == insertedIndexPaths.count);
     
-    NSIndexSet *selectedIndexPathIndexes = [self p_indexSetOfSelectedRowInFromIndexPaths:deletedIndexPaths];
+    NSIndexSet *selectedIndexPathIndexes = [self p_indexSetOfSelectedRowsInFromIndexPaths:deletedIndexPaths];
     
     [tableView beginUpdates];
     [tableView deleteRowsAtIndexPaths:deletedIndexPaths withAnimation:NSTableViewAnimationEffectGap];
@@ -204,7 +199,7 @@ typedef void(^CompletionBlock)();
     NSArray *fromIndexPaths = [self p_indexPathsForSections:fromSections];
     NSArray *toIndexPaths = [self p_indexPathsForSections:toSections];
     
-    MovingItemAnimationBlock block = [self p_sectionAnimationBlockWithTargetIndexPaths:toIndexPaths];
+    AnimationBlock block = [self p_sectionAnimationBlockWithTargetIndexPaths:toIndexPaths];
     [self p_animateMoveFromIndexPaths:fromIndexPaths animationBlock:block];
 }
 
@@ -219,13 +214,13 @@ typedef void(^CompletionBlock)();
         return;
     }
     
-    MovingItemAnimationBlock block = [self p_rowAnimationBlockWithTargetIndexPaths:toIndexPaths];
+    AnimationBlock block = [self p_rowAnimationBlockWithTargetIndexPaths:toIndexPaths];
     [self p_animateMoveFromIndexPaths:fromIndexPaths animationBlock:block];
 }
 
 
 - (void)p_animateMoveFromIndexPaths:(NSArray *)fromIndexPaths
-                     animationBlock:(MovingItemAnimationBlock)block
+                     animationBlock:(AnimationBlock)block
 {
     NSArray *movingItems = self.movingItems;
     
@@ -270,7 +265,7 @@ typedef void(^CompletionBlock)();
 }
 
 
-- (NSIndexSet *)p_indexSetOfSelectedRowInFromIndexPaths:(NSArray *)fromIndexPaths
+- (NSIndexSet *)p_indexSetOfSelectedRowsInFromIndexPaths:(NSArray *)fromIndexPaths
 {
     GNESectionedTableView *tableView = self.tableView;
     NSMutableIndexSet *mutableIndexSet = [NSMutableIndexSet indexSet];
@@ -319,15 +314,15 @@ typedef void(^CompletionBlock)();
 }
 
 
-- (MovingItemAnimationBlock)p_rowAnimationBlockWithTargetIndexPaths:(NSArray *)toIndexPaths
+- (AnimationBlock)p_rowAnimationBlockWithTargetIndexPaths:(NSArray *)toIndexPaths
 {
     GNESectionedTableView *tableView = self.tableView;
     NSArray *movingItems = self.movingItems;
     
     __weak typeof(self) weakSelf = self;
-    MovingItemAnimationBlock block = ^(NSIndexPath *fromIndexPath,
-                                       NSUInteger indexPathIndex,
-                                       BOOL *stop __unused)
+    AnimationBlock block = ^(NSIndexPath *fromIndexPath,
+                             NSUInteger indexPathIndex,
+                             BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         if (strongSelf == nil)
@@ -357,15 +352,15 @@ typedef void(^CompletionBlock)();
 }
 
 
-- (MovingItemAnimationBlock)p_sectionAnimationBlockWithTargetIndexPaths:(NSArray *)toIndexPaths
+- (AnimationBlock)p_sectionAnimationBlockWithTargetIndexPaths:(NSArray *)toIndexPaths
 {
     GNESectionedTableView *tableView = self.tableView;
     NSArray *movingItems = self.movingItems;
     
     __weak typeof(self) weakSelf = self;
-    MovingItemAnimationBlock block = ^(NSIndexPath *fromIndexPath,
-                                       NSUInteger indexPathIndex,
-                                       BOOL *stop __unused)
+    AnimationBlock block = ^(NSIndexPath *fromIndexPath,
+                             NSUInteger indexPathIndex,
+                             BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         if (strongSelf == nil)
