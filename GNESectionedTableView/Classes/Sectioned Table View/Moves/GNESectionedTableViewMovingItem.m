@@ -147,7 +147,7 @@
     }
     
     
-    NSImage *image = [NSImage imageWithSize:frame.size flipped:NO drawingHandler:^BOOL(NSRect dstRect)
+    NSImage *image = [NSImage imageWithSize:frame.size flipped:YES drawingHandler:^BOOL(NSRect dstRect)
     {
         CGFloat originYOffset = 0.0f;
         
