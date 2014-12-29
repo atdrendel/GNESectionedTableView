@@ -80,7 +80,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 /// Array of arrays of outline view items that map to the table view's rows.
 @property (nonatomic, strong) NSMutableArray *outlineViewItems;
 
-@property (nonatomic, strong) NSMutableArray *autoCollapsedOutlineViewParentItems;
+@property (nonatomic, strong) NSMutableIndexSet *autoCollapsedSections;
 
 /// Move that is initialized in -outlineView:draggingSession:willBeginAtPoint:forItems:
 /// and cleared in -outlineView:draggingSession:endedAtPoint:operation:.
@@ -135,7 +135,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     _outlineViewParentItems = [NSMutableArray array];
     _outlineViewItems = [NSMutableArray array];
     
-    _autoCollapsedOutlineViewParentItems = [NSMutableArray array];
+    _autoCollapsedSections = [NSMutableIndexSet indexSet];
     
     self.dataSource = self;
     self.delegate = self;
@@ -677,6 +677,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     self.outlineViewItems = outlineViewItemsCopy;
     
     [self insertItemsAtIndexes:insertedSections inParent:nil withAnimation:animationOptions];
+    
+    // Only expand sections that aren't being moved.
+    [insertedSections removeIndexes:self.autoCollapsedSections];
     [self expandSections:insertedSections animated:YES];
     
     [self p_checkDataSourceIntegrity];
@@ -742,6 +745,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 #endif
     
     GNEParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
+    
+    [self.autoCollapsedSections removeIndexes:fromSections.ns_indexSet];
+    [self.autoCollapsedSections addIndexes:toSections.ns_indexSet];
     
     if (self.currentMove)
     {
@@ -3363,6 +3369,12 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         
         NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
         canDrag = [self.tableViewDataSource tableView:self canDragSection:section];
+        
+        if (canDrag && [self isSectionExpanded:section])
+        {
+            [self.autoCollapsedSections addIndex:section];
+            [self collapseSection:section animated:YES];
+        }
     }
     else if (parentItem &&
              [self.tableViewDataSource respondsToSelector:@selector(tableView:canDragRowAtIndexPath:)])
@@ -3564,18 +3576,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         [self.tableViewDataSource tableViewDraggingSessionDidEnd:self];
     }
     
-    if (self.autoCollapsedOutlineViewParentItems.count > 0)
-    {
-        for (GNEOutlineViewParentItem *parentItem in self.autoCollapsedOutlineViewParentItems)
-        {
-            NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
-            if (section != NSNotFound)
-            {
-                [self expandSection:section animated:YES];
-            }
-        }
-    }
-    [self.autoCollapsedOutlineViewParentItems removeAllObjects];
+    [self expandSections:self.autoCollapsedSections animated:YES];
+    [self.autoCollapsedSections removeAllIndexes];
     
     self.currentMove = nil;
 }
