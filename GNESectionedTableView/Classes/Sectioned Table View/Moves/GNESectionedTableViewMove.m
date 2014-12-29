@@ -210,16 +210,16 @@ typedef void(^CompletionBlock)();
     NSArray *movingItems = self.movingItems;
     
     [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context)
-     {
-         context.duration = 0.24;
-         [fromIndexPaths enumerateObjectsUsingBlock:block];
-     } completionHandler:^()
-     {
-         for (GNESectionedTableViewMovingItem *movingItem in movingItems)
-         {
-             [movingItem.view removeFromSuperview];
-         }
-     }];
+    {
+        context.duration = 0.24;
+        [fromIndexPaths enumerateObjectsUsingBlock:block];
+    } completionHandler:^()
+    {
+        for (GNESectionedTableViewMovingItem *movingItem in movingItems)
+        {
+            [movingItem.view removeFromSuperview];
+        }
+    }];
 }
 
 
