@@ -558,14 +558,12 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
     SEL sortingSelector = NSSelectorFromString(@"gne_reverseCompare:");
     NSArray *sortedFromIndexPaths = [fromIndexPaths sortedArrayUsingSelector:sortingSelector];
     
-    NSUInteger sectionCount = self.rows.count;
-    
     [sortedFromIndexPaths enumerateObjectsWithOptions:0
                                            usingBlock:^(NSIndexPath *indexPath,
                                                         NSUInteger idx __unused,
                                                         BOOL *stop __unused)
     {
-        NSParameterAssert(indexPath.gne_section < sectionCount);
+        NSParameterAssert(indexPath.gne_section < self.rows.count);
         NSMutableArray *mutableRowsArray = self.rows[indexPath.gne_section];
         NSParameterAssert(indexPath.gne_row < mutableRowsArray.count);
         NSString *rowString = mutableRowsArray[indexPath.gne_row];

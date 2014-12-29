@@ -189,9 +189,6 @@ typedef void(^CompletionBlock)();
 - (void)p_animateMoveOfMovingItemsAtIndexPaths:(NSArray *)fromIndexPaths
                                   toIndexPaths:(NSArray *)toIndexPaths
 {
-    GNESectionedTableView *tableView = self.tableView;
-    
-    GNEParameterAssert(tableView);
     GNEParameterAssert(fromIndexPaths.count == toIndexPaths.count);
     
     if (fromIndexPaths.count != toIndexPaths.count)
