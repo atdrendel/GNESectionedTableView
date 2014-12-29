@@ -126,11 +126,13 @@ static NSString * const kMemoryAllocationAssertionReason = @"Calloc failed";
     {
         free(_indexes);
     }
+    _indexes = NULL;
     
     if (_sortedIndexes)
     {
         free(_sortedIndexes);
     }
+    _sortedIndexes = NULL;
 }
 
 
@@ -573,6 +575,7 @@ static NSString * const kMemoryAllocationAssertionReason = @"Calloc failed";
         }
         
         free(indexes);
+        indexes = NULL;
         
         return newIndexes;
     }
