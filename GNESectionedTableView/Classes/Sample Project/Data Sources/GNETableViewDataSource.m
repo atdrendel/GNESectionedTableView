@@ -529,13 +529,11 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
         [self.rows removeObjectAtIndex:section];
     }];
     
-    NSUInteger sectionsBelowToSection = [fromSections countOfIndexesInRange:NSMakeRange(0, toSection)];
-    
-    NSRange sectionInsertionRange = NSMakeRange(toSection /* - sectionsBelowToSection */, sections.count);
+    NSRange sectionInsertionRange = NSMakeRange(toSection, sections.count);
     NSIndexSet *sectionInsertionIndexes = [NSIndexSet indexSetWithIndexesInRange:sectionInsertionRange];
     [self.sections insertObjects:sections atIndexes:sectionInsertionIndexes];
     
-    NSRange rowInsertionRange = NSMakeRange(toSection /* - sectionsBelowToSection */, rows.count);
+    NSRange rowInsertionRange = NSMakeRange(toSection, rows.count);
     NSIndexSet *rowInsertionIndexes = [NSIndexSet indexSetWithIndexesInRange:rowInsertionRange];
     [self.rows insertObjects:rows atIndexes:rowInsertionIndexes];
     
@@ -724,6 +722,10 @@ didDropRowsAtIndexPaths:(NSArray *)fromIndexPaths
               toSection:(NSUInteger)toSection
 {
     NSLog(@"didDragSections: %@ toSection: %lu", fromSections, toSection);
+    
+    NSRange belowTargetRange = NSMakeRange(0, toSection);
+    NSUInteger sectionsBelowTarget = [fromSections countOfIndexesInRange:belowTargetRange];
+    toSection -= sectionsBelowTarget;
     
     [self p_moveSections:fromSections toSection:toSection];
 }
