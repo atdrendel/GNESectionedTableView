@@ -677,7 +677,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     self.outlineViewItems = outlineViewItemsCopy;
     
     [self insertItemsAtIndexes:insertedSections inParent:nil withAnimation:animationOptions];
-    [self expandSections:insertedSections animated:NO];
+    [self expandSections:insertedSections animated:YES];
     
     [self p_checkDataSourceIntegrity];
 }
@@ -749,12 +749,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }
     else
     {
-        NSInteger column = self.numberOfColumns - 1;
-        if (column < 0)
-        {
-            return;
-        }
-        
         GNESectionedTableViewMove *move = [[GNESectionedTableViewMove alloc] initWithTableView:self];
         
         __weak typeof(self) weakSelf = self;
@@ -770,66 +764,19 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             
             NSIndexPath *headerIndexPath = [strongSelf indexPathForHeaderInSection:section];
             CGRect sectionFrame = [strongSelf frameOfSection:section];
+            NSArray *cellViews = [strongSelf p_availableCellViewsForSection:section];
             
-            BOOL isExpanded = [strongSelf isSectionExpanded:section];
-            
-            NSInteger headerRow = [strongSelf tableViewRowForIndexPath:headerIndexPath];
-            if (headerRow == -1 || headerRow >= strongSelf.numberOfRows)
+            if (headerIndexPath && cellViews.count > 0)
             {
-                return;
+                GNESectionedTableViewMovingItem *movingItem = [[GNESectionedTableViewMovingItem alloc]
+                                                               initForSectionWithTableCellViews:cellViews
+                                                               frame:sectionFrame
+                                                               headerIndexPath:headerIndexPath];
+                [move addMovingItem:movingItem];
             }
-            
-            NSTableCellView *headerCellView = [strongSelf viewAtColumn:column
-                                                                   row:headerRow
-                                                       makeIfNecessary:NO];
-            
-            if (headerCellView == nil)
-            {
-                return;
-            }
-            
-            NSMutableArray *cellViews = [NSMutableArray arrayWithObject:headerCellView];
-            
-            if (isExpanded)
-            {
-                NSUInteger rowCount = [self numberOfRowsInSection:section];
-                
-                if (rowCount == NSNotFound || (NSInteger)rowCount >= self.numberOfRows)
-                {
-                    return;
-                }
-                
-                for (NSUInteger row = 0; row < rowCount; row++)
-                {
-                    NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
-                    
-                    NSInteger tableViewRow = [strongSelf tableViewRowForIndexPath:indexPath];
-                    
-                    if (tableViewRow == -1 || tableViewRow >= self.numberOfRows)
-                    {
-                        return;
-                    }
-                    
-                    NSTableCellView *cellView = [strongSelf viewAtColumn:column
-                                                                     row:tableViewRow
-                                                         makeIfNecessary:NO];
-                    
-                    if (cellView)
-                    {
-                        [cellViews addObject:cellView];
-                    }
-                }
-            }
-            
-            GNESectionedTableViewMovingItem *movingItem = [[GNESectionedTableViewMovingItem alloc]
-                                                           initForSectionWithTableCellViews:cellViews
-                                                           frame:sectionFrame
-                                                           headerIndexPath:headerIndexPath];
-            [move addMovingItem:movingItem];
         }];
-        
+    
         [move moveSections:fromSections toSections:toSections];
-        
     }
     
     [self p_checkDataSourceIntegrity];
@@ -2730,6 +2677,75 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - GNESectionedTableView - Internal - View
+// ------------------------------------------------------------------------------------------
+/// Returns an array containing all of the available (makeIfNecessary == NO) cell views
+/// for the specified section, including the section header and section footer.
+- (NSArray *)p_availableCellViewsForSection:(NSUInteger)section
+{
+    NSInteger column = self.numberOfColumns - 1;
+    if (column < 0)
+    {
+        return @[];
+    }
+    
+    NSIndexPath *headerIndexPath = [self indexPathForHeaderInSection:section];
+    
+    BOOL isExpanded = [self isSectionExpanded:section];
+    
+    NSInteger headerRow = [self tableViewRowForIndexPath:headerIndexPath];
+    if (headerRow == -1 || headerRow >= self.numberOfRows)
+    {
+        return @[];
+    }
+    
+    NSTableCellView *headerCellView = [self viewAtColumn:column
+                                                     row:headerRow
+                                         makeIfNecessary:NO];
+    
+    if (headerCellView == nil)
+    {
+        return @[];
+    }
+    
+    NSMutableArray *cellViews = [NSMutableArray arrayWithObject:headerCellView];
+    
+    if (isExpanded)
+    {
+        NSUInteger rowCount = [self numberOfRowsInSection:section];
+        
+        if (rowCount == NSNotFound || (NSInteger)rowCount >= self.numberOfRows)
+        {
+            return [NSArray arrayWithArray:cellViews];
+        }
+        
+        for (NSUInteger row = 0; row < rowCount; row++)
+        {
+            NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
+            
+            NSInteger tableViewRow = [self tableViewRowForIndexPath:indexPath];
+            
+            if (tableViewRow == -1 || tableViewRow >= self.numberOfRows)
+            {
+                return [NSArray arrayWithArray:cellViews];
+            }
+            
+            NSTableCellView *cellView = [self viewAtColumn:column
+                                                       row:tableViewRow
+                                           makeIfNecessary:NO];
+            
+            if (cellView)
+            {
+                [cellViews addObject:cellView];
+            }
+        }
+    }
+    
+    return [NSArray arrayWithArray:cellViews];
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Internal - Debug Checks
 // ------------------------------------------------------------------------------------------
 #ifdef DEBUG
@@ -3347,11 +3363,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         
         NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
         canDrag = [self.tableViewDataSource tableView:self canDragSection:section];
-        if (canDrag && [self isItemExpanded:item])
-        {
-            [self.autoCollapsedOutlineViewParentItems addObject:item];
-            [self collapseSection:section animated:YES];
-        }
     }
     else if (parentItem &&
              [self.tableViewDataSource respondsToSelector:@selector(tableView:canDragRowAtIndexPath:)])
