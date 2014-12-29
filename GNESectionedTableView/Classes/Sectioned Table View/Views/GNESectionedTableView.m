@@ -2874,7 +2874,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         }
     }
     
-    // root item has all of the parent items (sections) as children.
+    // Root item has all of the parent items (sections) as children.
     return (NSInteger)self.outlineViewParentItems.count;
 }
 
