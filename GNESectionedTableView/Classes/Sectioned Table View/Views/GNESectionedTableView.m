@@ -746,11 +746,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     GNEParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
     
-    [self.autoCollapsedSections removeIndexes:fromSections.ns_indexSet];
-    [self.autoCollapsedSections addIndexes:toSections.ns_indexSet];
-    
     if (self.currentMove)
     {
+        [self.autoCollapsedSections removeIndexes:fromSections.ns_indexSet];
+        [self.autoCollapsedSections addIndexes:toSections.ns_indexSet];
+        
         [self.currentMove moveSections:fromSections toSections:toSections];
     }
     else
@@ -2933,7 +2933,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (BOOL)outlineView:(NSOutlineView * __unused)outlineView isGroupItem:(GNEOutlineViewItem *)item
+- (BOOL)outlineView:(NSOutlineView * __unused)outlineView isGroupItem:(GNEOutlineViewItem * __unused)item
 {
     GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
     
