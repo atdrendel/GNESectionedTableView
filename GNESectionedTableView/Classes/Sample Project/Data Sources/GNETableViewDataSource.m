@@ -847,6 +847,20 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 }
 
 
+- (void)tableView:(GNESectionedTableView * __unused)tableView
+ didExpandSection:(NSUInteger)section
+{
+    NSLog(@"didExpandSection: %llu", (unsigned long long)section);
+}
+
+
+-   (void)tableView:(GNESectionedTableView * __unused)tableView
+ didCollapseSection:(NSUInteger)section
+{
+    NSLog(@"didCollapseSection: %llu", (unsigned long long)section);
+}
+
+
 -           (BOOL)tableView:(GNESectionedTableView * __unused)tableView
 shouldSelectHeaderInSection:(NSUInteger __unused)section
 {
