@@ -119,8 +119,8 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
 {
     GNEParameterAssert(fromSections.count == toSections.count);
 
-    [self p_animateDeletionOfSections:fromSections.ns_indexSet
-                  insertionOfSections:toSections.ns_indexSet];
+    [self p_animateDeletionOfSections:fromSections
+                  insertionOfSections:toSections];
     
     [self p_animateMoveOfMovingItemsInSections:fromSections
                                     toSections:toSections];
@@ -148,8 +148,8 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private - Moving
 // ------------------------------------------------------------------------------------------
-- (void)p_animateDeletionOfSections:(NSIndexSet *)deletedIndexes
-                insertionOfSections:(NSIndexSet *)insertedIndexes
+- (void)p_animateDeletionOfSections:(GNEOrderedIndexSet *)deletedIndexes
+                insertionOfSections:(GNEOrderedIndexSet *)insertedIndexes
 {
     GNESectionedTableView *tableView = self.tableView;
     
@@ -159,11 +159,15 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     NSArray *indexPathsToSelect = [self p_indexPathsOfSelectedRowsInSections:deletedIndexes];
     
     [tableView beginUpdates];
-    [tableView deleteSections:deletedIndexes withAnimation:NSTableViewAnimationEffectGap];
-    [tableView insertSections:insertedIndexes withAnimation:NSTableViewAnimationEffectGap];
+    [tableView deleteSections:deletedIndexes.ns_indexSet
+                withAnimation:NSTableViewAnimationEffectFade];
+    [tableView insertSections:insertedIndexes.ns_indexSet
+                withAnimation:NSTableViewAnimationEffectFade];
     [tableView endUpdates];
     
-    [tableView selectRowsAtIndexPaths:indexPathsToSelect byExtendingSelection:YES];
+    [self p_selectRowsAtIndexPaths:indexPathsToSelect
+                 movedFromSections:deletedIndexes
+                        toSections:insertedIndexes];
 }
 
 
@@ -178,8 +182,8 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     NSIndexSet *selectedIndexPathIndexes = [self p_indexSetOfSelectedRowsInFromIndexPaths:deletedIndexPaths];
     
     [tableView beginUpdates];
-    [tableView deleteRowsAtIndexPaths:deletedIndexPaths withAnimation:NSTableViewAnimationEffectGap];
-    [tableView insertRowsAtIndexPaths:insertedIndexPaths withAnimation:NSTableViewAnimationEffectGap];
+    [tableView deleteRowsAtIndexPaths:deletedIndexPaths withAnimation:NSTableViewAnimationEffectFade];
+    [tableView insertRowsAtIndexPaths:insertedIndexPaths withAnimation:NSTableViewAnimationEffectFade];
     [tableView endUpdates];
     
     [self p_selectRowsMovedToIndexPaths:insertedIndexPaths atIndexes:selectedIndexPathIndexes];
@@ -226,7 +230,7 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     
     [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context)
     {
-        context.duration = 0.24;
+        context.duration = 0.2;
         [fromIndexPaths enumerateObjectsUsingBlock:block];
     } completionHandler:^()
     {
@@ -241,7 +245,7 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private - Selection
 // ------------------------------------------------------------------------------------------
-- (NSArray *)p_indexPathsOfSelectedRowsInSections:(NSIndexSet *)sections
+- (NSArray *)p_indexPathsOfSelectedRowsInSections:(GNEOrderedIndexSet *)sections
 {
     GNESectionedTableView *tableView = self.tableView;
     
@@ -262,6 +266,25 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     }
     
     return @[];
+}
+
+
+- (void)p_selectRowsAtIndexPaths:(NSArray *)indexPaths
+               movedFromSections:(GNEOrderedIndexSet *)fromSections
+                      toSections:(GNEOrderedIndexSet *)toSections
+{
+    for (NSIndexPath *indexPath in indexPaths)
+    {
+        NSUInteger fromSection = indexPath.gne_section;
+        NSUInteger position = [fromSections positionOfIndex:fromSection];
+        NSUInteger toSection = [toSections indexAtPosition:position];
+        if (toSection != NSNotFound)
+        {
+            NSIndexPath *newIndexPath = [NSIndexPath gne_indexPathForRow:indexPath.gne_row
+                                                               inSection:toSection];
+            [self.tableView selectRowAtIndexPath:newIndexPath byExtendingSelection:YES];
+        }
+    }
 }
 
 
@@ -345,7 +368,18 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
                                     movingItem.view.bounds.size.height : toFrame.size.height;
         
         [tableView addSubview:movingItem.view];
+        
+        CABasicAnimation *frameAnimation = [CABasicAnimation animation];
+        frameAnimation.fromValue = [NSValue valueWithRect:movingItem.view.frame];
+        frameAnimation.toValue = [NSValue valueWithRect:toFrame];
+        
+        CAKeyframeAnimation *alphaAnimation = [CAKeyframeAnimation animation];
+        alphaAnimation.values = @[@1, @1, @1, @1, @1, @1, @1, @0.8, @0.3, @0];
+        
+        movingItem.view.animations = @{ @"frame" : frameAnimation,
+                                        @"alphaValue" : alphaAnimation };
         movingItem.view.animator.frame = toFrame;
+        movingItem.view.animator.alphaValue = 0.0f;
     };
     
     return block;
@@ -383,7 +417,19 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
                                     movingItem.view.bounds.size.height : toFrame.size.height;
         
         [tableView addSubview:movingItem.view];
+        
+        
+        CABasicAnimation *frameAnimation = [CABasicAnimation animation];
+        frameAnimation.fromValue = [NSValue valueWithRect:movingItem.view.frame];
+        frameAnimation.toValue = [NSValue valueWithRect:toFrame];
+        
+        CAKeyframeAnimation *alphaAnimation = [CAKeyframeAnimation animation];
+        alphaAnimation.values = @[@1, @1, @1, @1, @1, @1, @1, @0.8, @0.3, @0];
+        
+        movingItem.view.animations = @{ @"frame" : frameAnimation,
+                                        @"alphaValue" : alphaAnimation };
         movingItem.view.animator.frame = toFrame;
+        movingItem.view.animator.alphaValue = 0.0f;
     };
     
     return block;

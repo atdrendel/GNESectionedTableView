@@ -748,8 +748,27 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     if (self.currentMove)
     {
-        [self.autoCollapsedSections removeIndexes:fromSections.ns_indexSet];
-        [self.autoCollapsedSections addIndexes:toSections.ns_indexSet];
+        if (self.autoCollapsedSections.count > 0)
+        {
+            __weak typeof(self) weakSelf = self;
+            [fromSections enumerateIndexesUsingBlock:^(NSUInteger index,
+                                                       NSUInteger position,
+                                                       BOOL *stop __unused)
+            {
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                if (strongSelf == nil)
+                {
+                    return;
+                }
+                
+                if ([strongSelf.autoCollapsedSections containsIndex:index])
+                {
+                    [strongSelf.autoCollapsedSections removeIndex:index];
+                    NSUInteger toSection = [toSections indexAtPosition:position];
+                    [strongSelf.autoCollapsedSections addIndex:toSection];
+                }
+            }];
+        }
         
         [self.currentMove moveSections:fromSections toSections:toSections];
     }
@@ -3683,7 +3702,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     [super setDelegate:self];
 }
-
 
 
 @end
