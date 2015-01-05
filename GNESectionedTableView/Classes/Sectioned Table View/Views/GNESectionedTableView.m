@@ -880,6 +880,18 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     NSOutlineView *outlineView = (animated) ? self.animator : self;
     [outlineView expandItem:nil expandChildren:YES];
+    
+    if ([self.tableViewDelegate
+         respondsToSelector:@selector(tableView:didExpandSection:)] == NO)
+    {
+        return;
+    }
+    
+    NSUInteger sectionCount = self.numberOfSections;
+    for (NSUInteger section = 0; section < sectionCount; section++)
+    {
+        [self.tableViewDelegate tableView:self didExpandSection:section];
+    }
 }
 
 
@@ -921,6 +933,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                 {
                     [outlineView expandItem:parentItem];
                 }
+                
+                if ([strongSelf.tableViewDelegate
+                     respondsToSelector:@selector(tableView:didExpandSection:)])
+                {
+                    [strongSelf.tableViewDelegate tableView:strongSelf
+                                           didExpandSection:index];
+                }
             }
         }
     }];
@@ -931,6 +950,18 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     NSOutlineView *outlineView = (animated) ? self.animator : self;
     [outlineView collapseItem:nil collapseChildren:YES];
+    
+    if ([self.tableViewDelegate
+         respondsToSelector:@selector(tableView:didCollapseSection:)] == NO)
+    {
+        return;
+    }
+    
+    NSUInteger sectionCount = self.numberOfSections;
+    for (NSUInteger section = 0; section < sectionCount; section++)
+    {
+        [self.tableViewDelegate tableView:self didCollapseSection:section];
+    }
 }
 
 
@@ -971,6 +1002,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                 if ([strongSelf isItemExpanded:parentItem])
                 {
                     [outlineView collapseItem:parentItem];
+                    
+                    if ([strongSelf.tableViewDelegate
+                         respondsToSelector:@selector(tableView:didCollapseSection:)])
+                    {
+                        [strongSelf.tableViewDelegate tableView:strongSelf
+                                             didCollapseSection:index];
+                    }
                 }
             }
         }

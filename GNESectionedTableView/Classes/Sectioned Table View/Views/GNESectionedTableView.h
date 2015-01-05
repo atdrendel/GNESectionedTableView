@@ -217,6 +217,10 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 - (BOOL)tableView:(GNESectionedTableView *)tableView shouldExpandSection:(NSUInteger)section;
 @optional
 - (BOOL)tableView:(GNESectionedTableView *)tableView shouldCollapseSection:(NSUInteger)section;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didExpandSection:(NSUInteger)section;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didCollapseSection:(NSUInteger)section;
 
 /* Selection */
 @optional
