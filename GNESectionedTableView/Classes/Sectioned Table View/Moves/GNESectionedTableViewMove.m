@@ -230,7 +230,7 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     
     [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context)
     {
-        context.duration = 0.2;
+        context.duration = 0.4;
         [fromIndexPaths enumerateObjectsUsingBlock:block];
     } completionHandler:^()
     {
@@ -374,7 +374,9 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
         frameAnimation.toValue = [NSValue valueWithRect:toFrame];
         
         CAKeyframeAnimation *alphaAnimation = [CAKeyframeAnimation animation];
-        alphaAnimation.values = @[@1, @1, @1, @1, @1, @1, @1, @0.8, @0.3, @0];
+        alphaAnimation.timingFunction = [CAMediaTimingFunction
+                                         functionWithName:kCAMediaTimingFunctionLinear];
+        alphaAnimation.values = @[@1, @1, @0.3, @0.0, @0];
         
         movingItem.view.animations = @{ @"frame" : frameAnimation,
                                         @"alphaValue" : alphaAnimation };
@@ -424,7 +426,9 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
         frameAnimation.toValue = [NSValue valueWithRect:toFrame];
         
         CAKeyframeAnimation *alphaAnimation = [CAKeyframeAnimation animation];
-        alphaAnimation.values = @[@1, @1, @1, @1, @1, @1, @1, @0.8, @0.3, @0];
+        alphaAnimation.timingFunction = [CAMediaTimingFunction
+                                         functionWithName:kCAMediaTimingFunctionLinear];
+        alphaAnimation.values = @[@1, @1, @0.3, @0.0, @0];
         
         movingItem.view.animations = @{ @"frame" : frameAnimation,
                                         @"alphaValue" : alphaAnimation };
