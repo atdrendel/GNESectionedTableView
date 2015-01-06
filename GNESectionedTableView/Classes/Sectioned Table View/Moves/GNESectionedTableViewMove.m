@@ -376,7 +376,7 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
         CAKeyframeAnimation *alphaAnimation = [CAKeyframeAnimation animation];
         alphaAnimation.timingFunction = [CAMediaTimingFunction
                                          functionWithName:kCAMediaTimingFunctionLinear];
-        alphaAnimation.values = @[@1, @1, @0.3, @0.0, @0];
+        alphaAnimation.values = @[@1, @1, @0.3, @0.05, @0, @0];
         
         movingItem.view.animations = @{ @"frame" : frameAnimation,
                                         @"alphaValue" : alphaAnimation };
@@ -428,7 +428,7 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
         CAKeyframeAnimation *alphaAnimation = [CAKeyframeAnimation animation];
         alphaAnimation.timingFunction = [CAMediaTimingFunction
                                          functionWithName:kCAMediaTimingFunctionLinear];
-        alphaAnimation.values = @[@1, @1, @0.3, @0.0, @0];
+        alphaAnimation.values = @[@1, @1, @0.3, @0.05, @0, @0];
         
         movingItem.view.animations = @{ @"frame" : frameAnimation,
                                         @"alphaValue" : alphaAnimation };
