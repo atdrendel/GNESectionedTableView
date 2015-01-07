@@ -80,6 +80,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 /// Array of arrays of outline view items that map to the table view's rows.
 @property (nonatomic, strong) NSMutableArray *outlineViewItems;
 
+@property (nonatomic, strong) NSMutableArray *selectedAutoCollapsedIndexPaths;
 @property (nonatomic, strong) NSMutableIndexSet *autoCollapsedSections;
 
 /// Move that is initialized in -outlineView:draggingSession:willBeginAtPoint:forItems:
@@ -135,6 +136,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     _outlineViewParentItems = [NSMutableArray array];
     _outlineViewItems = [NSMutableArray array];
     
+    _selectedAutoCollapsedIndexPaths = [NSMutableArray array];
     _autoCollapsedSections = [NSMutableIndexSet indexSet];
     
     self.dataSource = self;
@@ -750,8 +752,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         if (self.autoCollapsedSections.count > 0)
         {
-            NSMutableIndexSet *sectionsToExpand = [NSMutableIndexSet indexSet];
-            
             __weak typeof(self) weakSelf = self;
             [fromSections enumerateIndexesUsingBlock:^(NSUInteger index,
                                                        NSUInteger position,
@@ -767,20 +767,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                 {
                     [strongSelf.autoCollapsedSections removeIndex:index];
                     NSUInteger toSection = [toSections indexAtPosition:position];
-                    [sectionsToExpand addIndex:toSection];
+                    [strongSelf.autoCollapsedSections addIndex:toSection];
                 }
             }];
             
-            self.currentMove.completion = ^()
-            {
-                __strong typeof(weakSelf) strongSelf = weakSelf;
-                if (strongSelf == nil)
-                {
-                    return;
-                }
-                
-                [strongSelf expandSections:sectionsToExpand animated:YES];
-            };
+            self.currentMove.sectionsToExpand = self.autoCollapsedSections;
         }
         
         [self.currentMove moveSections:fromSections toSections:toSections];
@@ -891,20 +882,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)expandAllSections:(BOOL)animated
 {
-    NSOutlineView *outlineView = (animated) ? self.animator : self;
-    [outlineView expandItem:nil expandChildren:YES];
+    NSUInteger count = self.numberOfSections;
+    NSRange range = NSMakeRange(0, count);
+    NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:range];
     
-    if ([self.tableViewDelegate
-         respondsToSelector:@selector(tableView:didExpandSection:)] == NO)
-    {
-        return;
-    }
+    [self expandItem:nil expandChildren:NO];
+    [self expandSections:indexSet animated:animated];
     
-    NSUInteger sectionCount = self.numberOfSections;
-    for (NSUInteger section = 0; section < sectionCount; section++)
-    {
-        [self.tableViewDelegate tableView:self didExpandSection:section];
-    }
 }
 
 
@@ -924,7 +908,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     NSUInteger count = self.outlineViewParentItems.count;
     __weak typeof(self) weakSelf = self;
-    [sections enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop __unused)
+    [sections enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
 
@@ -933,24 +917,31 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         if ([strongSelf.tableViewDelegate respondsToSelector:selector])
         {
             canExpandSection = [strongSelf.tableViewDelegate tableView:strongSelf
-                                                   shouldExpandSection:index];
+                                                   shouldExpandSection:section];
         }
 
         if (canExpandSection)
         {
             id outlineView = (animated) ? strongSelf.animator : strongSelf;
-            if (index < count)
+            if (section < count)
             {
-                GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[index];
+                GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[section];
                 if ([strongSelf isItemExpanded:parentItem] == NO)
                 {
+                    if ([strongSelf.tableViewDelegate
+                         respondsToSelector:@selector(tableView:willExpandSection:)])
+                    {
+                        [strongSelf.tableViewDelegate tableView:self
+                                              willExpandSection:section];
+                    }
+                    
                     [outlineView expandItem:parentItem];
                     
                     if ([strongSelf.tableViewDelegate
                          respondsToSelector:@selector(tableView:didExpandSection:)])
                     {
                         [strongSelf.tableViewDelegate tableView:strongSelf
-                                               didExpandSection:index];
+                                               didExpandSection:section];
                     }
                 }
             }
@@ -961,20 +952,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)collapseAllSections:(BOOL)animated
 {
-    NSOutlineView *outlineView = (animated) ? self.animator : self;
-    [outlineView collapseItem:nil collapseChildren:YES];
+    NSUInteger count = self.numberOfSections;
+    NSRange range = NSMakeRange(0, count);
+    NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:range];
     
-    if ([self.tableViewDelegate
-         respondsToSelector:@selector(tableView:didCollapseSection:)] == NO)
-    {
-        return;
-    }
-    
-    NSUInteger sectionCount = self.numberOfSections;
-    for (NSUInteger section = 0; section < sectionCount; section++)
-    {
-        [self.tableViewDelegate tableView:self didCollapseSection:section];
-    }
+    [self collapseSections:indexSet animated:animated];
 }
 
 
@@ -994,7 +976,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     NSUInteger count = self.outlineViewParentItems.count;
     __weak typeof(self) weakSelf = self;
-    [sections enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop __unused)
+    [sections enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
 
@@ -1003,24 +985,31 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         if ([strongSelf.tableViewDelegate respondsToSelector:selector])
         {
             canCollapseSection = [strongSelf.tableViewDelegate tableView:strongSelf
-                                                   shouldCollapseSection:index];
+                                                   shouldCollapseSection:section];
         }
 
         if (canCollapseSection)
         {
             id outlineView = (animated) ? strongSelf.animator : strongSelf;
-            if (index < count)
+            if (section < count)
             {
-                GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[index];
+                GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[section];
                 if ([strongSelf isItemExpanded:parentItem])
                 {
+                    if ([strongSelf.tableViewDelegate
+                         respondsToSelector:@selector(tableView:willCollapseSection:)])
+                    {
+                        [strongSelf.tableViewDelegate tableView:strongSelf
+                                            willCollapseSection:section];
+                    }
+                    
                     [outlineView collapseItem:parentItem];
                     
                     if ([strongSelf.tableViewDelegate
                          respondsToSelector:@selector(tableView:didCollapseSection:)])
                     {
                         [strongSelf.tableViewDelegate tableView:strongSelf
-                                             didCollapseSection:index];
+                                             didCollapseSection:section];
                     }
                 }
             }
@@ -1074,7 +1063,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         }
     }
     
-    return nil;
+    return @[];
 }
 
 
@@ -2035,8 +2024,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     GNEOutlineViewItem *item = items[rowCount - 1];
     
-    NSLog(@"Footer in section %lu: %@", section, item);
-    
     return item;
 }
 
@@ -2210,6 +2197,21 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             }
         }
     }
+}
+
+
+- (NSArray *)p_selectedIndexPathsInSection:(NSUInteger)section
+{
+    NSArray *selectedIndexPaths = self.selectedIndexPaths;
+    
+    NSIndexSet *matchingIndexes = [selectedIndexPaths indexesOfObjectsPassingTest:^BOOL(NSIndexPath *indexPath,
+                                                                                        NSUInteger idx __unused,
+                                                                                        BOOL *stop __unused)
+    {
+        return (section == indexPath.gne_section);
+    }];
+    
+    return [selectedIndexPaths objectsAtIndexes:matchingIndexes];
 }
 
 
@@ -3443,6 +3445,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         if (canDrag && [self isSectionExpanded:section])
         {
             [self.autoCollapsedSections addIndex:section];
+            NSArray *indexPaths = [self p_selectedIndexPathsInSection:section];
+            [self.selectedAutoCollapsedIndexPaths addObjectsFromArray:indexPaths];
             [self collapseSection:section animated:YES];
         }
     }
@@ -3469,6 +3473,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }
     
     self.currentMove = [[GNESectionedTableViewMove alloc] initWithTableView:self];
+    self.currentMove.indexPathsToSelect = self.selectedAutoCollapsedIndexPaths;
     
     session.draggingFormation = NSDraggingFormationNone;
     CGPoint draggingLocation = session.draggingLocation;
@@ -3541,13 +3546,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         return dragOperation;
     }
-    
-#if DEBUG
-    NSLog(@"Parent: %@ (%@)  Index: %ld",
-          proposedParentItem,
-          [self p_indexPathOfOutlineViewItem:proposedParentItem],
-          proposedChildIndex);
-#endif
     
     if (dragType == GNEDragTypeSections)
     {
@@ -3646,7 +3644,17 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         [self.tableViewDataSource tableViewDraggingSessionDidEnd:self];
     }
     
+    [self.autoCollapsedSections removeIndexes:self.currentMove.sectionsToExpand];
     [self expandSections:self.autoCollapsedSections animated:YES];
+    // Only reselect the index paths if the move was cancelled.
+    if (operation == NSDragOperationNone)
+    {
+        [self selectRowsAtIndexPaths:self.selectedAutoCollapsedIndexPaths
+                byExtendingSelection:YES];
+    }
+    
+    
+    [self.selectedAutoCollapsedIndexPaths removeAllObjects];
     [self.autoCollapsedSections removeAllIndexes];
     
     self.currentMove = nil;

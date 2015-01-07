@@ -118,6 +118,9 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
 - (void)moveSections:(GNEOrderedIndexSet *)fromSections toSections:(GNEOrderedIndexSet *)toSections
 {
     GNEParameterAssert(fromSections.count == toSections.count);
+    
+    [self p_updateIndexPathsToSelectForMovesFromSections:fromSections
+                                              toSections:toSections];
 
     [self p_animateDeletionOfSections:fromSections
                   insertionOfSections:toSections];
@@ -156,18 +159,12 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     GNEParameterAssert(tableView);
     GNEParameterAssert(deletedIndexes.count == insertedIndexes.count);
     
-    NSArray *indexPathsToSelect = [self p_indexPathsOfSelectedRowsInSections:deletedIndexes];
-    
     [tableView beginUpdates];
     [tableView deleteSections:deletedIndexes.ns_indexSet
                 withAnimation:NSTableViewAnimationEffectFade];
     [tableView insertSections:insertedIndexes.ns_indexSet
                 withAnimation:NSTableViewAnimationEffectFade];
     [tableView endUpdates];
-    
-    [self p_selectRowsAtIndexPaths:indexPathsToSelect
-                 movedFromSections:deletedIndexes
-                        toSections:insertedIndexes];
 }
 
 
@@ -204,7 +201,8 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     NSArray *toIndexPaths = [self p_indexPathsForSections:toSections];
     
     AnimationBlock block = [self p_sectionAnimationBlockWithTargetIndexPaths:toIndexPaths];
-    [self p_animateMoveFromIndexPaths:fromIndexPaths animationBlock:block];
+    [self p_animateMoveFromIndexPaths:fromIndexPaths
+                       animationBlock:block];
 }
 
 
@@ -219,7 +217,8 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     }
     
     AnimationBlock block = [self p_rowAnimationBlockWithTargetIndexPaths:toIndexPaths];
-    [self p_animateMoveFromIndexPaths:fromIndexPaths animationBlock:block];
+    [self p_animateMoveFromIndexPaths:fromIndexPaths
+                       animationBlock:block];
 }
 
 
@@ -227,7 +226,9 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
                      animationBlock:(AnimationBlock)block
 {
     NSArray *movingItems = self.movingItems;
-    
+    GNESectionedTableView *tableView = self.tableView;
+    NSArray *indexPathsToSelect = [self.indexPathsToSelect copy];
+    NSIndexSet *sectionsToExpand = [self.sectionsToExpand copy];
     GNESectionedTableViewMoveCompletion completionBlock = [self.completion copy];
     
     [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context)
@@ -241,6 +242,10 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
             [movingItem.view removeFromSuperview];
         }
         
+        [tableView expandSections:sectionsToExpand animated:YES];
+        [tableView selectRowsAtIndexPaths:indexPathsToSelect
+                     byExtendingSelection:YES];
+        
         if (completionBlock)
         {
             completionBlock();
@@ -252,11 +257,24 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
 // ------------------------------------------------------------------------------------------
 #pragma mark - Private - Selection
 // ------------------------------------------------------------------------------------------
+- (void)p_updateIndexPathsToSelectForMovesFromSections:(GNEOrderedIndexSet *)fromSections
+                                            toSections:(GNEOrderedIndexSet *)toSections
+{
+    NSArray *selectedFromIndexPaths = [self p_indexPathsOfSelectedRowsInSections:fromSections];
+    NSArray *selectedToIndexPaths = [self p_indexPathsByConvertingIndexPaths:selectedFromIndexPaths
+                                                           movedFromSections:fromSections
+                                                                  toSections:toSections];
+    
+    self.indexPathsToSelect = selectedToIndexPaths;
+}
+
+
 - (NSArray *)p_indexPathsOfSelectedRowsInSections:(GNEOrderedIndexSet *)sections
 {
     GNESectionedTableView *tableView = self.tableView;
     
     NSArray *selectedIndexPaths = tableView.selectedIndexPaths;
+    selectedIndexPaths = [selectedIndexPaths arrayByAddingObjectsFromArray:self.indexPathsToSelect];
     
     NSIndexSet *indexes = [selectedIndexPaths indexesOfObjectsPassingTest:^BOOL(NSIndexPath *indexPath,
                                                                                 NSUInteger idx __unused,
@@ -276,10 +294,12 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
 }
 
 
-- (void)p_selectRowsAtIndexPaths:(NSArray *)indexPaths
-               movedFromSections:(GNEOrderedIndexSet *)fromSections
-                      toSections:(GNEOrderedIndexSet *)toSections
+- (NSArray *)p_indexPathsByConvertingIndexPaths:(NSArray *)indexPaths
+                              movedFromSections:(GNEOrderedIndexSet *)fromSections
+                                     toSections:(GNEOrderedIndexSet *)toSections
 {
+    NSMutableArray *convertedIndexPaths = [NSMutableArray array];
+    
     for (NSIndexPath *indexPath in indexPaths)
     {
         NSUInteger fromSection = indexPath.gne_section;
@@ -289,9 +309,11 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
         {
             NSIndexPath *newIndexPath = [NSIndexPath gne_indexPathForRow:indexPath.gne_row
                                                                inSection:toSection];
-            [self.tableView selectRowAtIndexPath:newIndexPath byExtendingSelection:YES];
+            [convertedIndexPaths addObject:newIndexPath];
         }
     }
+    
+    return convertedIndexPaths;
 }
 
 
