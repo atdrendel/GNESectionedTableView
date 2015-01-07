@@ -228,6 +228,8 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
 {
     NSArray *movingItems = self.movingItems;
     
+    GNESectionedTableViewMoveCompletion completionBlock = [self.completion copy];
+    
     [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context)
     {
         context.duration = 0.4;
@@ -237,6 +239,11 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
         for (GNESectionedTableViewMovingItem *movingItem in movingItems)
         {
             [movingItem.view removeFromSuperview];
+        }
+        
+        if (completionBlock)
+        {
+            completionBlock();
         }
     }];
 }

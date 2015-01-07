@@ -34,11 +34,16 @@
 
 // ------------------------------------------------------------------------------------------
 
+typedef void(^GNESectionedTableViewMoveCompletion)();
+
+// ------------------------------------------------------------------------------------------
+
 
 @interface GNESectionedTableViewMove : NSObject
 
 @property (nonatomic, weak, readonly) GNESectionedTableView *tableView;
 @property (nonatomic, copy, readonly) NSArray *movingItems;
+@property (nonatomic, copy) GNESectionedTableViewMoveCompletion completion;
 
 /// Returns an instance of GNESectionedTableViewMove or one of its subclasses.
 - (instancetype)initWithTableView:(GNESectionedTableView *)tableView NS_DESIGNATED_INITIALIZER;

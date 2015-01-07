@@ -750,6 +750,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         if (self.autoCollapsedSections.count > 0)
         {
+            NSMutableIndexSet *sectionsToExpand = [NSMutableIndexSet indexSet];
+            
             __weak typeof(self) weakSelf = self;
             [fromSections enumerateIndexesUsingBlock:^(NSUInteger index,
                                                        NSUInteger position,
@@ -765,9 +767,20 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                 {
                     [strongSelf.autoCollapsedSections removeIndex:index];
                     NSUInteger toSection = [toSections indexAtPosition:position];
-                    [strongSelf.autoCollapsedSections addIndex:toSection];
+                    [sectionsToExpand addIndex:toSection];
                 }
             }];
+            
+            self.currentMove.completion = ^()
+            {
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                if (strongSelf == nil)
+                {
+                    return;
+                }
+                
+                [strongSelf expandSections:sectionsToExpand animated:YES];
+            };
         }
         
         [self.currentMove moveSections:fromSections toSections:toSections];
