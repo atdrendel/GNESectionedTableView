@@ -161,7 +161,7 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     
     [tableView beginUpdates];
     [tableView deleteSections:deletedIndexes.ns_indexSet
-                withAnimation:NSTableViewAnimationEffectFade];
+                withAnimation:NSTableViewAnimationEffectNone];
     [tableView insertSections:insertedIndexes.ns_indexSet
                 withAnimation:NSTableViewAnimationEffectFade];
     [tableView endUpdates];
@@ -179,7 +179,7 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     NSIndexSet *selectedIndexPathIndexes = [self p_indexSetOfSelectedRowsInFromIndexPaths:deletedIndexPaths];
     
     [tableView beginUpdates];
-    [tableView deleteRowsAtIndexPaths:deletedIndexPaths withAnimation:NSTableViewAnimationEffectFade];
+    [tableView deleteRowsAtIndexPaths:deletedIndexPaths withAnimation:NSTableViewAnimationEffectNone];
     [tableView insertRowsAtIndexPaths:insertedIndexPaths withAnimation:NSTableViewAnimationEffectFade];
     [tableView endUpdates];
     
