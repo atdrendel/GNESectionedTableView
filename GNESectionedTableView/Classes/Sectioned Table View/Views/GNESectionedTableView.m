@@ -945,13 +945,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                 if ([strongSelf isItemExpanded:parentItem] == NO)
                 {
                     [outlineView expandItem:parentItem];
-                }
-                
-                if ([strongSelf.tableViewDelegate
-                     respondsToSelector:@selector(tableView:didExpandSection:)])
-                {
-                    [strongSelf.tableViewDelegate tableView:strongSelf
-                                           didExpandSection:index];
+                    
+                    if ([strongSelf.tableViewDelegate
+                         respondsToSelector:@selector(tableView:didExpandSection:)])
+                    {
+                        [strongSelf.tableViewDelegate tableView:strongSelf
+                                               didExpandSection:index];
+                    }
                 }
             }
         }
