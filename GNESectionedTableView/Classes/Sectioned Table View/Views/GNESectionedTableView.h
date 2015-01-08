@@ -399,7 +399,12 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 - (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPath:(NSIndexPath *)toIndexPath;
 - (void)reloadRowsAtIndexPaths:(NSArray *)indexPaths;
 
+/// Inserts the specified sections with the specified animation and expands them.
 - (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
+/// Inserts the specified sections with the specified animation and expands or collapses them as specified.
+- (void)insertSections:(NSIndexSet *)sections
+         withAnimation:(NSTableViewAnimationOptions)animationOptions
+             expanded:(BOOL)expanded;
 - (void)deleteSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)moveSection:(NSUInteger)fromSection toSection:(NSUInteger)toSection;
 - (void)moveSections:(GNEOrderedIndexSet *)fromSections toSections:(GNEOrderedIndexSet *)toSections;

@@ -82,7 +82,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 @property (nonatomic, strong) NSMutableArray *selectedAutoCollapsedIndexPaths;
 @property (nonatomic, strong) NSMutableIndexSet *autoCollapsedSections;
-@property (nonatomic, strong) NSMutableIndexSet *movedSections;
 
 /// Move that is initialized in -outlineView:draggingSession:willBeginAtPoint:forItems:
 /// and cleared in -outlineView:draggingSession:endedAtPoint:operation:.
@@ -139,7 +138,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     _selectedAutoCollapsedIndexPaths = [NSMutableArray array];
     _autoCollapsedSections = [NSMutableIndexSet indexSet];
-    _movedSections = [NSMutableIndexSet indexSet];
     
     self.dataSource = self;
     self.delegate = self;
@@ -634,6 +632,14 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
+    [self insertSections:sections withAnimation:animationOptions expanded:YES];
+}
+
+
+- (void)insertSections:(NSIndexSet *)sections
+         withAnimation:(NSTableViewAnimationOptions)animationOptions
+              expanded:(BOOL)expanded
+{
 #if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), sections);
 #endif
@@ -682,9 +688,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     [self insertItemsAtIndexes:insertedSections inParent:nil withAnimation:animationOptions];
     
-    // Only expand sections that aren't being moved.
-    [insertedSections removeIndexes:self.movedSections];
-    [self expandSections:insertedSections animated:YES];
+    if (expanded)
+    {
+        [self expandSections:insertedSections animated:NO];
+    }
     
     [self p_checkDataSourceIntegrity];
 }
@@ -752,8 +759,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     if (self.currentMove)
     {
-        [self p_updateMovedSectionsForMoveFromSections:fromSections
-                                            toSections:toSections];
         [self p_updateAutoCollapsedSectionsForMoveFromSections:fromSections
                                                     toSections:toSections];
         self.currentMove.sectionsToExpand = self.autoCollapsedSections;
@@ -1376,29 +1381,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)p_updateMovedSectionsForMoveFromSections:(GNEOrderedIndexSet *)fromSections
-                                      toSections:(GNEOrderedIndexSet *)toSections
-{
-    [self p_updateSectionsMutableIndexSet:self.movedSections
-                      forMoveFromSections:fromSections
-                               toSections:toSections];
-}
-
-
 - (void)p_updateAutoCollapsedSectionsForMoveFromSections:(GNEOrderedIndexSet *)fromSections
                                               toSections:(GNEOrderedIndexSet *)toSections
 {
-    [self p_updateSectionsMutableIndexSet:self.autoCollapsedSections
-                      forMoveFromSections:fromSections
-                               toSections:toSections];
-}
-        
-        
-- (void)p_updateSectionsMutableIndexSet:(NSMutableIndexSet *)mutableIndexSet
-                    forMoveFromSections:(GNEOrderedIndexSet *)fromSections
-                             toSections:(GNEOrderedIndexSet *)toSections
-{
-    if (mutableIndexSet.count == 0)
+    if (self.autoCollapsedSections.count == 0)
     {
         return;
     }
@@ -1414,7 +1400,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             return;
         }
         
-        if ([mutableIndexSet containsIndex:section])
+        if ([strongSelf.autoCollapsedSections containsIndex:section])
         {
             NSUInteger toSection = [toSections indexAtPosition:position];
             if (toSection != NSNotFound)
@@ -1424,8 +1410,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         }
     }];
     
-    [mutableIndexSet removeAllIndexes];
-    [mutableIndexSet addIndexes:updatedIndexSet];
+    [self.autoCollapsedSections removeAllIndexes];
+    [self.autoCollapsedSections addIndexes:updatedIndexSet];
 }
 
 
@@ -2111,8 +2097,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         {
             continue;
         }
-        
-        [self.movedSections addIndex:section];
         
         if ([self isSectionExpanded:section])
         {
@@ -3535,7 +3519,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     [self.selectedAutoCollapsedIndexPaths removeAllObjects];
     [self.autoCollapsedSections removeAllIndexes];
-    [self.movedSections removeAllIndexes];
     
     self.currentMove = nil;
 }

@@ -163,7 +163,8 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     [tableView deleteSections:deletedIndexes.ns_indexSet
                 withAnimation:NSTableViewAnimationEffectNone];
     [tableView insertSections:insertedIndexes.ns_indexSet
-                withAnimation:NSTableViewAnimationEffectFade];
+                withAnimation:NSTableViewAnimationEffectFade
+                     expanded:NO];
     [tableView endUpdates];
 }
 
