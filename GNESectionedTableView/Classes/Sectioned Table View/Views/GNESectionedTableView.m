@@ -2705,12 +2705,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                                                      row:headerRow
                                          makeIfNecessary:NO];
     
-    if (headerCellView == nil)
+    NSMutableArray *cellViews = [NSMutableArray array];
+    if (headerCellView)
     {
-        return @[];
+        [cellViews addObject:headerCellView];
     }
-    
-    NSMutableArray *cellViews = [NSMutableArray arrayWithObject:headerCellView];
     
     if (isExpanded)
     {
