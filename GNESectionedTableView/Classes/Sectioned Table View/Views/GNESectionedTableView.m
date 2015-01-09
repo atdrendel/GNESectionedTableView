@@ -1969,6 +1969,75 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }
     
     NSInteger clickedRow = self.clickedRow;
+    GNEOutlineViewItem *item = nil;
+    if (clickedRow >= 0 && (item = [self itemAtRow:clickedRow]))
+    {
+        BOOL shouldDelay = [self p_shouldDelayClickActionForOutlineViewItem:item];
+        if (shouldDelay)
+        {
+            SEL selector = @selector(p_performClickActionForRowNumber:);
+            [self performSelector:selector
+                       withObject:@(clickedRow)
+                       afterDelay:[NSEvent doubleClickInterval]];
+        }
+        else
+        {
+            [self p_performClickActionForRowNumber:@(clickedRow)];
+        }
+    }
+}
+
+
+- (void)p_didDoubleClickRow:(id)sender
+{
+    if ([self isEqual:sender] == NO)
+    {
+        return;
+    }
+    
+    NSInteger clickedRow = self.clickedRow;
+    
+    GNEOutlineViewItem *item = nil;
+    if (clickedRow >= 0 && (item = [self itemAtRow:clickedRow]))
+    {
+        [NSObject cancelPreviousPerformRequestsWithTarget:self
+                                                 selector:@selector(p_performClickActionForRowNumber:)
+                                                   object:@(clickedRow)];
+        
+        GNEOutlineViewParentItem *parentItem = item.parentItem;
+        
+        SEL headerSelector = @selector(tableView:didDoubleClickHeaderInSection:);
+        if (parentItem == nil && [self.tableViewDelegate respondsToSelector:headerSelector])
+        {
+            NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+            [self.tableViewDelegate tableView:self didDoubleClickHeaderInSection:section];
+        }
+        
+        if (parentItem)
+        {
+            SEL footerSelector = @selector(tableView:didDoubleClickFooterInSection:);
+            SEL rowSelector = @selector(tableView:didDoubleClickRowAtIndexPath:);
+            
+            BOOL isFooter = [self p_isOutlineViewItemFooter:item];
+            NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
+            
+            if (isFooter && [self.tableViewDelegate respondsToSelector:footerSelector])
+            {
+                [self.tableViewDelegate tableView:self
+                    didDoubleClickFooterInSection:indexPath.gne_section];
+            }
+            else if (isFooter == NO && [self.tableViewDelegate respondsToSelector:rowSelector])
+            {
+                [self.tableViewDelegate tableView:self didDoubleClickRowAtIndexPath:indexPath];
+            }
+        }
+    }
+}
+
+
+- (void)p_performClickActionForRowNumber:(NSNumber *)rowNumber
+{
+    NSInteger clickedRow = rowNumber.integerValue;
     
     GNEOutlineViewItem *item = nil;
     if (clickedRow >= 0 && (item = [self itemAtRow:clickedRow]))
@@ -2004,46 +2073,32 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)p_didDoubleClickRow:(id)sender
+- (BOOL)p_shouldDelayClickActionForOutlineViewItem:(GNEOutlineViewItem *)item
 {
-    if ([self isEqual:sender] == NO)
+    if (item == nil)
     {
-        return;
+        return NO;
     }
     
-    NSInteger clickedRow = self.clickedRow;
+    SEL headerSelector = @selector(tableView:didDoubleClickHeaderInSection:);
+    SEL footerSelector = @selector(tableView:didDoubleClickFooterInSection:);
+    SEL rowSelector = @selector(tableView:didDoubleClickRowAtIndexPath:);
     
-    GNEOutlineViewItem *item = nil;
-    if (clickedRow >= 0 && (item = [self itemAtRow:clickedRow]))
+    NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
+    if ([self isIndexPathHeader:indexPath])
     {
-        GNEOutlineViewParentItem *parentItem = item.parentItem;
-        
-        SEL headerSelector = @selector(tableView:didDoubleClickHeaderInSection:);
-        if (parentItem == nil && [self.tableViewDelegate respondsToSelector:headerSelector])
-        {
-            NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
-            [self.tableViewDelegate tableView:self didDoubleClickHeaderInSection:section];
-        }
-        
-        if (parentItem)
-        {
-            SEL footerSelector = @selector(tableView:didDoubleClickFooterInSection:);
-            SEL rowSelector = @selector(tableView:didDoubleClickRowAtIndexPath:);
-            
-            BOOL isFooter = [self p_isOutlineViewItemFooter:item];
-            NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
-            
-            if (isFooter && [self.tableViewDelegate respondsToSelector:footerSelector])
-            {
-                [self.tableViewDelegate tableView:self
-                    didDoubleClickFooterInSection:indexPath.gne_section];
-            }
-            else if (isFooter == NO && [self.tableViewDelegate respondsToSelector:rowSelector])
-            {
-                [self.tableViewDelegate tableView:self didDoubleClickRowAtIndexPath:indexPath];
-            }
-        }
+        return ([self.tableViewDelegate respondsToSelector:headerSelector]);
     }
+    else if ([self isIndexPathFooter:indexPath])
+    {
+        return ([self.tableViewDelegate respondsToSelector:footerSelector]);
+    }
+    else if ([self.tableViewDelegate respondsToSelector:rowSelector])
+    {
+        return YES;
+    }
+    
+    return NO;
 }
 
 
