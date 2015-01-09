@@ -82,6 +82,7 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     {
         _tableView = tableView;
         _mutableMovingItems = [NSMutableSet set];
+        _expandSectionsImmediately = NO;
     }
     
     return self;
@@ -164,7 +165,7 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
                 withAnimation:NSTableViewAnimationEffectNone];
     [tableView insertSections:insertedIndexes.ns_indexSet
                 withAnimation:NSTableViewAnimationEffectFade
-                     expanded:NO];
+                     expanded:self.expandSectionsImmediately];
     [tableView endUpdates];
 }
 
@@ -229,7 +230,7 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     NSArray *movingItems = self.movingItems;
     GNESectionedTableView *tableView = self.tableView;
     NSArray *indexPathsToSelect = [self.indexPathsToSelect copy];
-    NSIndexSet *sectionsToExpand = [self.sectionsToExpand copy];
+    NSIndexSet *sectionsToExpand = [self.autoCollapsedSections copy];
     GNESectionedTableViewMoveCompletion completionBlock = [self.completion copy];
     
     [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context)

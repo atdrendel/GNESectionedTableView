@@ -761,7 +761,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         [self p_updateAutoCollapsedSectionsForMoveFromSections:fromSections
                                                     toSections:toSections];
-        self.currentMove.sectionsToExpand = self.autoCollapsedSections;
+        self.currentMove.autoCollapsedSections = self.autoCollapsedSections;
         
         [self.currentMove moveSections:fromSections toSections:toSections];
     }
@@ -793,7 +793,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                 [move addMovingItem:movingItem];
             }
         }];
-    
+        
+        move.expandSectionsImmediately = YES;
         [move moveSections:fromSections toSections:toSections];
     }
     
@@ -1392,7 +1393,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     NSMutableIndexSet *updatedIndexSet = [NSMutableIndexSet indexSet];
     
     __weak typeof(self) weakSelf = self;
-    [fromSections enumerateIndexesUsingBlock:^(NSUInteger section, NSUInteger position, BOOL *stop)
+    [fromSections enumerateIndexesUsingBlock:^(NSUInteger section,
+                                               NSUInteger position,
+                                               BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         if (strongSelf == nil)
@@ -3561,7 +3564,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         [self.tableViewDataSource tableViewDraggingSessionDidEnd:self];
     }
     
-    [self.autoCollapsedSections removeIndexes:self.currentMove.sectionsToExpand];
+    [self.autoCollapsedSections removeIndexes:self.currentMove.autoCollapsedSections];
     [self expandSections:self.autoCollapsedSections animated:YES];
     // Only reselect the index paths if the move was cancelled.
     if (operation == NSDragOperationNone)

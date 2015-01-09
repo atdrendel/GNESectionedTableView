@@ -44,8 +44,10 @@ typedef void(^GNESectionedTableViewMoveCompletion)();
 @property (nonatomic, weak, readonly) GNESectionedTableView *tableView;
 @property (nonatomic, copy, readonly) NSArray *movingItems;
 
+@property (nonatomic, assign) BOOL expandSectionsImmediately;
+
 @property (nonatomic, copy) NSArray *indexPathsToSelect;
-@property (nonatomic, copy) NSIndexSet *sectionsToExpand;
+@property (nonatomic, copy) NSIndexSet *autoCollapsedSections;
 
 @property (nonatomic, copy) GNESectionedTableViewMoveCompletion completion;
 
