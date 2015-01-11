@@ -162,11 +162,14 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     
     [tableView beginUpdates];
     [tableView deleteSections:deletedIndexes.ns_indexSet
-                withAnimation:NSTableViewAnimationEffectNone];
+                withAnimation:NSTableViewAnimationEffectFade];
     [tableView insertSections:insertedIndexes.ns_indexSet
                 withAnimation:NSTableViewAnimationEffectFade
                      expanded:self.expandSectionsImmediately];
     [tableView endUpdates];
+    
+    [tableView selectRowsAtIndexPaths:self.indexPathsToSelect
+                 byExtendingSelection:YES];
 }
 
 
@@ -181,7 +184,7 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     NSIndexSet *selectedIndexPathIndexes = [self p_indexSetOfSelectedRowsInFromIndexPaths:deletedIndexPaths];
     
     [tableView beginUpdates];
-    [tableView deleteRowsAtIndexPaths:deletedIndexPaths withAnimation:NSTableViewAnimationEffectNone];
+    [tableView deleteRowsAtIndexPaths:deletedIndexPaths withAnimation:NSTableViewAnimationEffectFade];
     [tableView insertRowsAtIndexPaths:insertedIndexPaths withAnimation:NSTableViewAnimationEffectFade];
     [tableView endUpdates];
     
