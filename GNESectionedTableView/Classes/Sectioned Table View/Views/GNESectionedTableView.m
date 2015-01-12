@@ -3127,6 +3127,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     NSString *key = [self p_mapKeyForRowView:rowView];
     NSIndexPath *indexPath = self.rowViewToIndexPathMap[key];
+    [self.rowViewToIndexPathMap removeObjectForKey:key];
     
     if (indexPath == nil)
     {
