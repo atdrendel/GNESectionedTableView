@@ -83,6 +83,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 @property (nonatomic, strong) NSMutableArray *selectedAutoCollapsedIndexPaths;
 @property (nonatomic, strong) NSMutableIndexSet *autoCollapsedSections;
 
+@property (nonatomic, strong) NSMutableDictionary *rowViewToIndexPathMap;
+
 /// Move that is initialized in -outlineView:draggingSession:willBeginAtPoint:forItems:
 /// and cleared in -outlineView:draggingSession:endedAtPoint:operation:.
 @property (nonatomic, strong) GNESectionedTableViewMove *currentMove;
@@ -139,6 +141,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     _selectedAutoCollapsedIndexPaths = [NSMutableArray array];
     _autoCollapsedSections = [NSMutableIndexSet indexSet];
     
+    _rowViewToIndexPathMap = [NSMutableDictionary dictionary];
+    
     self.dataSource = self;
     self.delegate = self;
     
@@ -177,6 +181,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 - (void)dealloc
 {
+    [_rowViewToIndexPathMap removeAllObjects];
+    _rowViewToIndexPathMap = nil;
+    
     _tableViewDataSource = nil;
     _tableViewDelegate = nil;
 }
@@ -2749,6 +2756,17 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
+- (NSString *)p_mapKeyForRowView:(NSTableRowView *)rowView
+{
+    if (rowView)
+    {
+        return [NSString stringWithFormat:@"%p", rowView];
+    }
+    
+    return nil;
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Internal - Debug Checks
 // ------------------------------------------------------------------------------------------
@@ -3056,12 +3074,18 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
       didAddRowView:(NSTableRowView *)rowView
              forRow:(NSInteger)row
 {
+    GNEParameterAssert([NSThread isMainThread]); // NSDictionary isn't threadsafe.
+    
     NSIndexPath *indexPath = [self indexPathForTableViewRow:row];
     
     if (indexPath == nil)
     {
         return;
     }
+    
+    NSString *key = [self p_mapKeyForRowView:rowView];
+    NSIndexPath *value = [indexPath copy];
+    self.rowViewToIndexPathMap[key] = value;
     
     SEL headerSelector = @selector(tableView:didDisplayRowView:forHeaderInSection:);
     SEL footerSelector = @selector(tableView:didDisplayRowView:forFooterInSection:);
@@ -3097,9 +3121,12 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)outlineView:(NSOutlineView * __unused)outlineView
    didRemoveRowView:(NSTableRowView *)rowView
-             forRow:(NSInteger)row
+             forRow:(NSInteger __unused)row
 {
-    NSIndexPath *indexPath = [self indexPathForTableViewRow:row];
+    GNEParameterAssert([NSThread isMainThread]);
+    
+    NSString *key = [self p_mapKeyForRowView:rowView];
+    NSIndexPath *indexPath = self.rowViewToIndexPathMap[key];
     
     if (indexPath == nil)
     {
