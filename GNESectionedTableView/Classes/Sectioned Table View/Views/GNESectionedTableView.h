@@ -339,7 +339,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  path's section is less than the total number of sections in the table view and the row is less
  than the total number of rows in the section, otherwise NO.
  */
-- (BOOL)isValidIndexPath:(NSIndexPath *)indexPath;
+- (BOOL)isIndexPathValid:(NSIndexPath *)indexPath;
 
 /// Returns YES if the specified index path belongs to a section header, otherwise NO.
 - (BOOL)isIndexPathHeader:(NSIndexPath *)indexPath;

@@ -300,7 +300,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Public - Index Paths / NSTableView Rows
 // ------------------------------------------------------------------------------------------
-- (BOOL)isValidIndexPath:(NSIndexPath *)indexPath
+- (BOOL)isIndexPathValid:(NSIndexPath *)indexPath
 {
     if (indexPath == nil)
     {
@@ -398,7 +398,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (NSInteger)tableViewRowForIndexPath:(NSIndexPath *)indexPath
 {
-    if ([self isValidIndexPath:indexPath] == NO)
+    if ([self isIndexPathValid:indexPath] == NO)
     {
         return -1;
     }
