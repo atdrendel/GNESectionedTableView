@@ -650,6 +650,12 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
 }
 
 
+- (void)tableView:(GNESectionedTableView * __unused)tableView didUpdateDrag:(id<NSDraggingInfo>)info
+{
+    NSLog(@"%@", info);
+}
+
+
 - (BOOL)tableView:(GNESectionedTableView * __unused)tableView
    canDragSection:(NSUInteger __unused)section
 {

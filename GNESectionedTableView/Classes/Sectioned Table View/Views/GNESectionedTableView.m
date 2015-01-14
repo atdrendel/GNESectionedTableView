@@ -2142,6 +2142,16 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
+- (void)p_updateDataSourceForDrag:(id <NSDraggingInfo>)info
+{
+    SEL selector = @selector(tableView:didUpdateDrag:);
+    if ([self.tableViewDataSource respondsToSelector:selector])
+    {
+        [self.tableViewDataSource tableView:self didUpdateDrag:info];
+    }
+}
+
+
 - (void)p_collapseDraggedSectionsForOutlineViewItems:(NSArray *)items
 {
     for (GNEOutlineViewItem *item in items)
@@ -3551,6 +3561,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                                      proposedParentItem:proposedParentItem
                                      proposedChildIndex:proposedChildIndex];
     }
+    
+    [self p_updateDataSourceForDrag:info];
     
     return dragOperation;
 }
