@@ -925,21 +925,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                 GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[section];
                 if ([strongSelf isItemExpanded:parentItem] == NO)
                 {
-                    if ([strongSelf.tableViewDelegate
-                         respondsToSelector:@selector(tableView:willExpandSection:)])
-                    {
-                        [strongSelf.tableViewDelegate tableView:self
-                                              willExpandSection:section];
-                    }
-                    
                     [outlineView expandItem:parentItem];
-                    
-                    if ([strongSelf.tableViewDelegate
-                         respondsToSelector:@selector(tableView:didExpandSection:)])
-                    {
-                        [strongSelf.tableViewDelegate tableView:strongSelf
-                                               didExpandSection:section];
-                    }
                 }
             }
         }
@@ -993,21 +979,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                 GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[section];
                 if ([strongSelf isItemExpanded:parentItem])
                 {
-                    if ([strongSelf.tableViewDelegate
-                         respondsToSelector:@selector(tableView:willCollapseSection:)])
-                    {
-                        [strongSelf.tableViewDelegate tableView:strongSelf
-                                            willCollapseSection:section];
-                    }
-                    
                     [outlineView collapseItem:parentItem];
-                    
-                    if ([strongSelf.tableViewDelegate
-                         respondsToSelector:@selector(tableView:didCollapseSection:)])
-                    {
-                        [strongSelf.tableViewDelegate tableView:strongSelf
-                                             didCollapseSection:section];
-                    }
                 }
             }
         }
@@ -1965,6 +1937,24 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }
     
     return 0;
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - GNESectionedTableView - Internal - Expand/Collapse
+// ------------------------------------------------------------------------------------------
+- (NSUInteger)p_sectionForExpandCollapseNotification:(NSNotification *)notification
+{
+    NSString * const kItemKey = @"NSObject";
+    GNEOutlineViewParentItem *parentItem = notification.userInfo[kItemKey];
+    
+    if ([notification.object isEqual:self] == NO ||
+        [parentItem isKindOfClass:[GNEOutlineViewParentItem class]] == NO)
+    {
+        return NSNotFound;
+    }
+    
+    return [self p_sectionForOutlineViewParentItem:parentItem];
 }
 
 
@@ -3208,6 +3198,54 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }
     
     return YES;
+}
+
+
+- (void)outlineViewItemWillExpand:(NSNotification *)notification
+{
+    NSUInteger section = [self p_sectionForExpandCollapseNotification:notification];
+    
+    SEL selector = @selector(tableView:willExpandSection:);
+    if (section != NSNotFound && [self.tableViewDelegate respondsToSelector:selector])
+    {
+        [self.tableViewDelegate tableView:self willExpandSection:section];
+    }
+}
+
+
+- (void)outlineViewItemWillCollapse:(NSNotification *)notification
+{
+    NSUInteger section = [self p_sectionForExpandCollapseNotification:notification];
+    
+    SEL selector = @selector(tableView:willCollapseSection:);
+    if (section != NSNotFound && [self.tableViewDelegate respondsToSelector:selector])
+    {
+        [self.tableViewDelegate tableView:self willCollapseSection:section];
+    }
+}
+
+
+- (void)outlineViewItemDidExpand:(NSNotification *)notification
+{
+    NSUInteger section = [self p_sectionForExpandCollapseNotification:notification];
+    
+    SEL selector = @selector(tableView:didExpandSection:);
+    if (section != NSNotFound && [self.tableViewDelegate respondsToSelector:selector])
+    {
+        [self.tableViewDelegate tableView:self didExpandSection:section];
+    }
+}
+
+
+- (void)outlineViewItemDidCollapse:(NSNotification *)notification
+{
+    NSUInteger section = [self p_sectionForExpandCollapseNotification:notification];
+    
+    SEL selector = @selector(tableView:didCollapseSection:);
+    if (section != NSNotFound && [self.tableViewDelegate respondsToSelector:selector])
+    {
+        [self.tableViewDelegate tableView:self didCollapseSection:section];
+    }
 }
 
 
