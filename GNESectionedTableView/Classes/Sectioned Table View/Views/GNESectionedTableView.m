@@ -1063,6 +1063,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)selectRowAtIndexPath:(NSIndexPath *)indexPath byExtendingSelection:(BOOL)extend
 {
+    if (indexPath == nil && extend == NO)
+    {
+        [self deselectAll:self];
+        
+        return;
+    }
+    
     NSUInteger section = indexPath.gne_section;
     NSUInteger row = indexPath.gne_row;
     
@@ -1089,8 +1096,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)selectRowsAtIndexPaths:(NSArray *)indexPaths byExtendingSelection:(BOOL)extend
 {
-    if (indexPaths.count == 0)
+    if (indexPaths.count == 0 && extend == NO)
     {
+        [self deselectAll:self];
+        
         return;
     }
     
