@@ -903,6 +903,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)expandSections:(NSIndexSet *)sections animated:(BOOL)animated
 {
+    if (animated)
+    {
+        NSAnimationContext *context = [NSAnimationContext currentContext];
+        NSString *name = kCAMediaTimingFunctionEaseInEaseOut;
+        context.timingFunction = [CAMediaTimingFunction functionWithName:name];
+    }
+    
     NSUInteger count = self.outlineViewParentItems.count;
     __weak typeof(self) weakSelf = self;
     [sections enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stop __unused)
@@ -957,6 +964,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)collapseSections:(NSIndexSet *)sections animated:(BOOL)animated
 {
+    if (animated)
+    {
+        NSAnimationContext *context = [NSAnimationContext currentContext];
+        NSString *name = kCAMediaTimingFunctionEaseInEaseOut;
+        context.timingFunction = [CAMediaTimingFunction functionWithName:name];
+    }
+    
     NSUInteger count = self.outlineViewParentItems.count;
     __weak typeof(self) weakSelf = self;
     [sections enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stop __unused)
