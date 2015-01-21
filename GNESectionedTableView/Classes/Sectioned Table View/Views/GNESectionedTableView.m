@@ -906,7 +906,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     if (animated)
     {
         NSAnimationContext *context = [NSAnimationContext currentContext];
-        NSString *name = kCAMediaTimingFunctionEaseInEaseOut;
+        NSString *name = kCAMediaTimingFunctionEaseOut;
         context.timingFunction = [CAMediaTimingFunction functionWithName:name];
     }
     
@@ -967,7 +967,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     if (animated)
     {
         NSAnimationContext *context = [NSAnimationContext currentContext];
-        NSString *name = kCAMediaTimingFunctionEaseInEaseOut;
+        NSString *name = kCAMediaTimingFunctionEaseIn;
         context.timingFunction = [CAMediaTimingFunction functionWithName:name];
     }
     
