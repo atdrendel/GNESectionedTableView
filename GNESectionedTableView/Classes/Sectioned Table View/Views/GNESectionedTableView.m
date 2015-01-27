@@ -259,6 +259,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     [super endUpdates];
     self.updateCount--;
+    
+    if (self.updateCount == 0)
+    {
+        [self p_updateMapForAvailableRowViews];
+    }
 }
 
 
@@ -775,18 +780,18 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     else
     {
         GNESectionedTableViewMove *move = [[GNESectionedTableViewMove alloc] initWithTableView:self];
-        
         __weak typeof(self) weakSelf = self;
+        move.completion = ^()
+        {
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            [strongSelf p_updateMapForAvailableRowViews];
+        };
+        
         [fromSections enumerateIndexesUsingBlock:^(NSUInteger section,
                                                    NSUInteger position __unused,
                                                    BOOL *stop __unused)
         {
             __strong typeof(weakSelf) strongSelf = weakSelf;
-            if (strongSelf == nil)
-            {
-                return;
-            }
-            
             NSIndexPath *headerIndexPath = [strongSelf indexPathForHeaderInSection:section];
             CGRect sectionFrame = [strongSelf frameOfSection:section];
             NSArray *cellViews = [strongSelf p_availableCellViewsForSection:section];
@@ -1400,11 +1405,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                                                BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
-        if (strongSelf == nil)
-        {
-            return;
-        }
-        
         if ([strongSelf.autoCollapsedSections containsIndex:section])
         {
             NSUInteger toSection = [toSections indexAtPosition:position];
@@ -1454,13 +1454,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [rowIndexes enumerateIndexesUsingBlock:^(NSUInteger tableViewRow, BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
-        if (strongSelf == nil)
-        {
-            return;
-        }
-
         GNEOutlineViewItem *item = [strongSelf itemAtRow:(NSInteger)tableViewRow];
-        if (item.parentItem == nil)
+        if (item && item.parentItem == nil)
         {
             GNEParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
             NSUInteger section = [strongSelf p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
@@ -1491,11 +1486,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [rowIndexes enumerateIndexesUsingBlock:^(NSUInteger tableViewRow, BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
-        if (strongSelf == nil)
-        {
-            return;
-        }
-        
         GNEOutlineViewItem *item = [strongSelf itemAtRow:(NSInteger)tableViewRow];
         BOOL isFooter = [self p_isOutlineViewItemFooter:item];
         if (isFooter)
@@ -2790,6 +2780,18 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
+- (void)p_updateMapForAvailableRowViews
+{
+    __weak typeof(self) weakSelf = self;
+    [self enumerateAvailableRowViewsUsingBlock:^(NSTableRowView *rowView, NSInteger row)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        NSIndexPath *indexPath = [strongSelf indexPathForTableViewRow:row];
+        [strongSelf p_updateMapForRowView:rowView indexPath:indexPath];
+    }];
+}
+
+
 - (void)p_updateMapForRowView:(NSTableRowView *)rowView
                     indexPath:(NSIndexPath *)indexPath
 {
@@ -3526,6 +3528,12 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [self p_collapseDraggedSectionsForOutlineViewItems:draggedItems];
     
     self.currentMove = [[GNESectionedTableViewMove alloc] initWithTableView:self];
+    __weak typeof(self) weakSelf = self;
+    self.currentMove.completion = ^()
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        [strongSelf p_updateMapForAvailableRowViews];
+    };
     self.currentMove.indexPathsToSelect = self.selectedAutoCollapsedIndexPaths;
     
     session.draggingFormation = NSDraggingFormationNone;
@@ -3535,7 +3543,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     CGPoint convertedDraggingLocation = [outlineView.superview convertPoint:windowDraggingLocation.origin
                                                                    fromView:nil];
     
-    __weak typeof(self) weakSelf = self;
     [session enumerateDraggingItemsWithOptions:0
                                        forView:outlineView
                                        classes:@[[GNEOutlineViewItem class]]
