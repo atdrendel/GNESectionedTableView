@@ -2790,6 +2790,40 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
+- (void)p_updateMapForRowView:(NSTableRowView *)rowView
+                    indexPath:(NSIndexPath *)indexPath
+{
+    BOOL isRowViewValid = ([rowView isKindOfClass:[NSTableRowView class]]);
+    
+    if (isRowViewValid)
+    {
+        NSString *key = [self p_mapKeyForRowView:rowView];
+        if (indexPath)
+        {
+            NSIndexPath *value = [indexPath copy];
+            self.rowViewToIndexPathMap[key] = value;
+        }
+        else
+        {
+            [self.rowViewToIndexPathMap removeObjectForKey:key];
+        }
+    }
+}
+
+
+- (NSIndexPath *)p_indexPathForRowView:(NSTableRowView *)rowView
+{
+    if ([rowView isKindOfClass:[NSTableRowView class]])
+    {
+        NSString *key = [self p_mapKeyForRowView:rowView];
+        
+        return (NSIndexPath *)self.rowViewToIndexPathMap[key];
+    }
+    
+    return nil;
+}
+
+
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Internal - Debug Checks
 // ------------------------------------------------------------------------------------------
@@ -2985,35 +3019,38 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
     GNEParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:rowViewForRowAtIndexPath:)]);
     
+    NSTableRowView *rowView = nil;
+    NSIndexPath *indexPath = nil;
+    
     GNEOutlineViewParentItem *parentItem = item.parentItem;
     
     // Section header
     if (parentItem == nil)
     {
         NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
-        if (section != NSNotFound && [self p_requestDelegateHasHeaderInSection:section])
+        if (section != NSNotFound)
         {
-            return [self.tableViewDelegate tableView:self rowViewForHeaderInSection:section];
-        }
-        else
-        {
-            NSTableRowView *rowView = [outlineView makeViewWithIdentifier:kOutlineViewStandardHeaderRowViewIdentifier
-                                                                    owner:outlineView];
+            indexPath = [self indexPathForHeaderInSection:section];
             
-            if (rowView == nil)
+            if ([self p_requestDelegateHasHeaderInSection:section])
             {
-                rowView = [[NSTableRowView alloc] initWithFrame:CGRectZero];
-                [rowView setAutoresizingMask:NSViewWidthSizable];
-                rowView.identifier = kOutlineViewStandardHeaderRowViewIdentifier;
-                rowView.backgroundColor = [NSColor clearColor];
+                rowView = [self.tableViewDelegate tableView:self rowViewForHeaderInSection:section];
             }
-            
-            return rowView;
+            else
+            {
+                rowView = [outlineView makeViewWithIdentifier:kOutlineViewStandardHeaderRowViewIdentifier
+                                                        owner:outlineView];
+                if (rowView == nil)
+                {
+                    rowView = [[NSTableRowView alloc] initWithFrame:CGRectZero];
+                    [rowView setAutoresizingMask:NSViewWidthSizable];
+                    rowView.identifier = kOutlineViewStandardHeaderRowViewIdentifier;
+                    rowView.backgroundColor = [NSColor clearColor];
+                }
+            }
         }
     }
-    
-    // Section footer
-    if ([self p_isOutlineViewItemFooter:item])
+    else if ([self p_isOutlineViewItemFooter:item]) // Section footer
     {
         GNEParameterAssert([self.tableViewDelegate
                             respondsToSelector:@selector(tableView:rowViewForFooterInSection:)]);
@@ -3023,24 +3060,24 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         
         if (section != NSNotFound)
         {
-            NSTableRowView *rowView = [self.tableViewDelegate tableView:self
-                                              rowViewForFooterInSection:section];
+            indexPath = [self indexPathForFooterInSection:section];
+            rowView = [self.tableViewDelegate tableView:self
+                              rowViewForFooterInSection:section];
             GNEParameterAssert(rowView);
-            
-            return rowView;
         }
-        
-        return nil;
     }
-    
-    // Row
-    NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
-    if (indexPath)
+    else // Row
     {
-        return [self.tableViewDataSource tableView:self rowViewForRowAtIndexPath:indexPath];
+        indexPath = [self p_indexPathOfOutlineViewItem:item];
+        if (indexPath)
+        {
+            rowView = [self.tableViewDataSource tableView:self rowViewForRowAtIndexPath:indexPath];
+        }
     }
     
-    return nil;
+    [self p_updateMapForRowView:rowView indexPath:indexPath];
+    
+    return rowView;
 }
 
 
@@ -3106,9 +3143,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         return;
     }
     
-    NSString *key = [self p_mapKeyForRowView:rowView];
-    NSIndexPath *value = [indexPath copy];
-    self.rowViewToIndexPathMap[key] = value;
+    [self p_updateMapForRowView:rowView indexPath:indexPath];
     
     SEL headerSelector = @selector(tableView:didDisplayRowView:forHeaderInSection:);
     SEL footerSelector = @selector(tableView:didDisplayRowView:forFooterInSection:);
@@ -3148,9 +3183,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     GNEParameterAssert([NSThread isMainThread]);
     
-    NSString *key = [self p_mapKeyForRowView:rowView];
-    NSIndexPath *indexPath = self.rowViewToIndexPathMap[key];
-    [self.rowViewToIndexPathMap removeObjectForKey:key];
+    NSIndexPath *indexPath = [self p_indexPathForRowView:rowView];
+    [self p_updateMapForRowView:rowView indexPath:nil];
     
     if (indexPath == nil)
     {
