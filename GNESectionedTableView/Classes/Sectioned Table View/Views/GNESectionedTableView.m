@@ -83,6 +83,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 @property (nonatomic, strong) NSMutableArray *selectedAutoCollapsedIndexPaths;
 @property (nonatomic, strong) NSMutableIndexSet *autoCollapsedSections;
 
+@property (nonatomic, strong) NSMutableIndexSet *insertedSectionsToExpand;
+
 @property (nonatomic, strong) NSMutableDictionary *rowViewToIndexPathMap;
 
 /// Move that is initialized in -outlineView:draggingSession:willBeginAtPoint:forItems:
@@ -140,6 +142,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     _selectedAutoCollapsedIndexPaths = [NSMutableArray array];
     _autoCollapsedSections = [NSMutableIndexSet indexSet];
+    
+    _insertedSectionsToExpand = [NSMutableIndexSet indexSet];
     
     _rowViewToIndexPathMap = [NSMutableDictionary dictionary];
     
@@ -214,14 +218,15 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 - (void)reloadData
 {
+    [super reloadData];
+    
     [self selectRowIndexes:nil byExtendingSelection:NO];
     
     [self.outlineViewParentItems removeAllObjects];
     [self.outlineViewItems removeAllObjects];
-    
     [self p_buildOutlineViewItemArrays];
-    [super reloadItem:nil reloadChildren:YES];
-    [self expandAllSections:NO];
+    
+    [super reloadData];
 }
 
 
@@ -262,6 +267,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     if (self.updateCount == 0)
     {
+        [self expandSections:self.insertedSectionsToExpand animated:NO];
+        [self.insertedSectionsToExpand removeAllIndexes];
         [self p_updateMapForAvailableRowViews];
     }
 }
@@ -275,6 +282,21 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     NSInteger tableViewRow = [self rowForView:view];
     
     return [self indexPathForTableViewRow:tableViewRow];
+}
+
+
+- (NSTableCellView *)cellViewAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSInteger tableViewRow = [self tableViewRowForIndexPath:indexPath];
+    NSInteger columnCount = self.numberOfColumns;
+    if (tableViewRow < 0 || columnCount < 1)
+    {
+        return nil;
+    }
+    
+    NSTableCellView *cellView = [self viewAtColumn:0 row:tableViewRow makeIfNecessary:NO];
+    
+    return ([cellView isKindOfClass:[NSTableCellView class]]) ? cellView : nil;
 }
 
 
@@ -702,7 +724,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     if (expanded)
     {
-        [self expandSections:insertedSections animated:NO];
+        [self.insertedSectionsToExpand addIndexes:insertedSections];
     }
     
     [self p_checkDataSourceIntegrity];
@@ -787,11 +809,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             [strongSelf p_updateMapForAvailableRowViews];
         };
         
+        GNEOrderedIndexSet *sectionsToExpand = [GNEOrderedIndexSet indexSet];
         [fromSections enumerateIndexesUsingBlock:^(NSUInteger section,
-                                                   NSUInteger position __unused,
+                                                   NSUInteger position,
                                                    BOOL *stop __unused)
         {
             __strong typeof(weakSelf) strongSelf = weakSelf;
+            BOOL isExpanded = [strongSelf isSectionExpanded:section];
             NSIndexPath *headerIndexPath = [strongSelf indexPathForHeaderInSection:section];
             CGRect sectionFrame = [strongSelf frameOfSection:section];
             NSArray *cellViews = [strongSelf p_availableCellViewsForSection:section];
@@ -803,10 +827,14 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                                                                frame:sectionFrame
                                                                headerIndexPath:headerIndexPath];
                 [move addMovingItem:movingItem];
+                if (isExpanded)
+                {
+                    [sectionsToExpand addIndex:[toSections indexAtPosition:position]];
+                }
             }
         }];
         
-        move.expandSectionsImmediately = YES;
+        move.sectionsToExpand = sectionsToExpand.ns_indexSet;
         [move moveSections:fromSections toSections:toSections];
     }
     
@@ -869,7 +897,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 - (BOOL)isSectionExpanded:(NSUInteger)section
 {
-    GNEParameterAssert(section < self.outlineViewParentItems.count);
+    GNEParameterAssert(section < self.outlineViewParentItems.count + 1);
     
     if (section < self.outlineViewParentItems.count)
     {
@@ -1995,6 +2023,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         }
         else
         {
+            [self p_cancelClickActions];
             [self p_performClickActionForRowNumber:@(clickedRow)];
         }
     }
@@ -2013,15 +2042,12 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     GNEOutlineViewItem *item = nil;
     if (clickedRow >= 0 && (item = [self itemAtRow:clickedRow]))
     {
-        [NSObject cancelPreviousPerformRequestsWithTarget:self
-                                                 selector:@selector(p_performClickActionForRowNumber:)
-                                                   object:@(clickedRow)];
-        
         GNEOutlineViewParentItem *parentItem = item.parentItem;
         
         SEL headerSelector = @selector(tableView:didDoubleClickHeaderInSection:);
         if (parentItem == nil && [self.tableViewDelegate respondsToSelector:headerSelector])
         {
+            [self p_cancelClickActions];
             NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
             [self.tableViewDelegate tableView:self didDoubleClickHeaderInSection:section];
         }
@@ -2036,11 +2062,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             
             if (isFooter && [self.tableViewDelegate respondsToSelector:footerSelector])
             {
+                [self p_cancelClickActions];
                 [self.tableViewDelegate tableView:self
                     didDoubleClickFooterInSection:indexPath.gne_section];
             }
             else if (isFooter == NO && [self.tableViewDelegate respondsToSelector:rowSelector])
             {
+                [self p_cancelClickActions];
                 [self.tableViewDelegate tableView:self didDoubleClickRowAtIndexPath:indexPath];
             }
         }
@@ -2055,6 +2083,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     GNEOutlineViewItem *item = nil;
     if (clickedRow >= 0 && (item = [self itemAtRow:clickedRow]))
     {
+        [self p_cancelClickActions];
         GNEOutlineViewParentItem *parentItem = item.parentItem;
         
         SEL headerSelector = @selector(tableView:didClickHeaderInSection:);
@@ -2106,12 +2135,18 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         return ([self.tableViewDelegate respondsToSelector:footerSelector]);
     }
-    else if ([self.tableViewDelegate respondsToSelector:rowSelector])
+    else
     {
-        return YES;
+        return ([self.tableViewDelegate respondsToSelector:rowSelector]);
     }
     
     return NO;
+}
+
+
+- (void)p_cancelClickActions
+{
+    [NSObject cancelPreviousPerformRequestsWithTarget:self];
 }
 
 

@@ -322,6 +322,16 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  */
 - (NSIndexPath *)indexPathForView:(NSView *)view;
 
+/**
+ Returns the table cell view at the specified index path, if one exists.
+ 
+ @discussion The index path can correspond to a header, normal row, or footer. This method does not
+ create the view if it hasn't already been created.
+ @param indexPath Index path of a header, cell, or footer.
+ @return Cell view at the specified index path, or nil.
+ */
+- (NSTableCellView *)cellViewAtIndexPath:(NSIndexPath *)indexPath;
+
 
 #pragma mark - Counts
 /**

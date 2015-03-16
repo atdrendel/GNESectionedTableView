@@ -82,7 +82,6 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     {
         _tableView = tableView;
         _mutableMovingItems = [NSMutableSet set];
-        _expandSectionsImmediately = NO;
     }
     
     return self;
@@ -163,9 +162,15 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     [tableView beginUpdates];
     [tableView deleteSections:deletedIndexes.ns_indexSet
                 withAnimation:NSTableViewAnimationEffectFade];
-    [tableView insertSections:insertedIndexes.ns_indexSet
-                withAnimation:NSTableViewAnimationEffectFade
-                     expanded:self.expandSectionsImmediately];
+    [insertedIndexes enumerateIndexesUsingBlock:^(NSUInteger section,
+                                                  NSUInteger position,
+                                                  BOOL *stop __unused)
+    {
+        BOOL expanded = ([self.sectionsToExpand containsIndex:section]);
+        [tableView insertSections:[NSIndexSet indexSetWithIndex:section]
+                    withAnimation:NSTableViewAnimationEffectFade
+                         expanded:expanded];
+    }];
     [tableView endUpdates];
     
     [tableView selectRowsAtIndexPaths:self.indexPathsToSelect
@@ -205,9 +210,12 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     NSArray *fromIndexPaths = [self p_indexPathsForSections:fromSections];
     NSArray *toIndexPaths = [self p_indexPathsForSections:toSections];
     
-    AnimationBlock block = [self p_sectionAnimationBlockWithTargetIndexPaths:toIndexPaths];
-    [self p_animateMoveFromIndexPaths:fromIndexPaths
-                       animationBlock:block];
+    if (fromIndexPaths.count == toIndexPaths.count && fromIndexPaths.count > 0)
+    {
+        AnimationBlock block = [self p_sectionAnimationBlockWithTargetIndexPaths:toIndexPaths];
+        [self p_animateMoveFromIndexPaths:fromIndexPaths
+                           animationBlock:block];
+    }
 }
 
 
@@ -216,7 +224,7 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
 {
     GNEParameterAssert(fromIndexPaths.count == toIndexPaths.count);
     
-    if (fromIndexPaths.count != toIndexPaths.count)
+    if (fromIndexPaths.count != toIndexPaths.count || fromIndexPaths.count == 0)
     {
         return;
     }
@@ -244,7 +252,10 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     {
         for (GNESectionedTableViewMovingItem *movingItem in movingItems)
         {
-            [movingItem.view removeFromSuperview];
+            if (movingItem.view.superview)
+            {
+                [movingItem.view removeFromSuperview];
+            }
         }
         
         [tableView expandSections:sectionsToExpand animated:YES];
@@ -398,6 +409,10 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
         GNESectionedTableViewMovingItem *movingItem = movingItems[movingItemIndex];
         NSIndexPath *toIndexPath = toIndexPaths[indexPathIndex];
         CGRect toFrame = [tableView frameOfViewAtIndexPath:toIndexPath];
+        if (CGRectEqualToRect(toFrame, CGRectZero))
+        {
+            return;
+        }
         toFrame.size.height =   (toFrame.size.height <= GNESectionedTableViewInvisibleRowHeight) ?
                                     movingItem.view.bounds.size.height : toFrame.size.height;
         
@@ -449,6 +464,10 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
         GNESectionedTableViewMovingItem *movingItem = movingItems[movingItemIndex];
         NSIndexPath *toIndexPath = toIndexPaths[indexPathIndex];
         CGRect toFrame = [tableView frameOfSection:toIndexPath.gne_section];
+        if (CGRectEqualToRect(toFrame, CGRectZero))
+        {
+            return;
+        }
         toFrame.size.height =   (toFrame.size.height < movingItem.view.bounds.size.height) ?
                                     movingItem.view.bounds.size.height : toFrame.size.height;
         
