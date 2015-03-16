@@ -31,6 +31,7 @@
 
 #import "GNEOutlineViewItem.h"
 #import "GNEOutlineViewParentItem.h"
+#import "GNEOrderedIndexSet.h"
 #import "NSMutableArray+GNESectionedTableView.h"
 #import "NSIndexPath+GNESectionedTableView.h"
 #import "NSOutlineView+GNE_Additions.h"
@@ -99,7 +100,6 @@ static const CGFloat GNESectionedTableViewInvisibleRowHeight = 1.0f;
 
 @protocol GNESectionedTableViewDataSource <NSObject>
 
-
 /* Counts */
 @required
 - (NSUInteger)numberOfSectionsInTableView:(GNESectionedTableView *)tableView;
@@ -117,6 +117,8 @@ static const CGFloat GNESectionedTableViewInvisibleRowHeight = 1.0f;
 - (NSArray *)draggedTypesForTableView:(GNESectionedTableView *)tableView;
 @optional
 - (void)tableViewDraggingSessionWillBegin:(GNESectionedTableView *)tableView;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didUpdateDrag:(id <NSDraggingInfo>)info;
 @optional
 - (BOOL)tableView:(GNESectionedTableView *)tableView canDragSection:(NSUInteger)section;
 @optional
@@ -156,7 +158,6 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 @optional
 - (void)tableViewDraggingSessionDidEnd:(GNESectionedTableView *)tableView;
 
-
 @end
 
 
@@ -164,7 +165,6 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 
 
 @protocol GNESectionedTableViewDelegate <NSObject>
-
 
 /* Sizing */
 @required
@@ -219,6 +219,14 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 - (BOOL)tableView:(GNESectionedTableView *)tableView shouldExpandSection:(NSUInteger)section;
 @optional
 - (BOOL)tableView:(GNESectionedTableView *)tableView shouldCollapseSection:(NSUInteger)section;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView willExpandSection:(NSUInteger)section;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView willCollapseSection:(NSUInteger)section;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didExpandSection:(NSUInteger)section;
+@optional
+- (void)tableView:(GNESectionedTableView *)tableView didCollapseSection:(NSUInteger)section;
 
 /* Selection */
 @optional
@@ -252,15 +260,12 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 @optional
 - (void)tableView:(GNESectionedTableView *)tableView didSelectRowsAtIndexPaths:(NSArray *)indexPaths;
 
-
 @end
 
 
 // ------------------------------------------------------------------------------------------
 
-
 @interface GNESectionedTableView : NSOutlineView
-
 
 /// Table view's current data source, which must conform to GNESectionedTableViewDataSource.
 @property (nonatomic, strong) id <GNESectionedTableViewDataSource> tableViewDataSource;
@@ -280,6 +285,9 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  @discussion The index paths are returned sorted in ascending (section-first) order.
  */
 @property (nonatomic, strong, readonly) NSArray *selectedIndexPaths;
+
+/// Returns YES if the table view is in an -beginUpdate/-endUpdates block, otherwise NO.
+@property (nonatomic, assign, readonly) BOOL isUpdating;
 
 
 #pragma mark - Initialization
@@ -314,6 +322,16 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  */
 - (NSIndexPath *)indexPathForView:(NSView *)view;
 
+/**
+ Returns the table cell view at the specified index path, if one exists.
+ 
+ @discussion The index path can correspond to a header, normal row, or footer. This method does not
+ create the view if it hasn't already been created.
+ @param indexPath Index path of a header, cell, or footer.
+ @return Cell view at the specified index path, or nil.
+ */
+- (NSTableCellView *)cellViewAtIndexPath:(NSIndexPath *)indexPath;
+
 
 #pragma mark - Counts
 /**
@@ -333,7 +351,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  path's section is less than the total number of sections in the table view and the row is less
  than the total number of rows in the section, otherwise NO.
  */
-- (BOOL)isValidIndexPath:(NSIndexPath *)indexPath;
+- (BOOL)isIndexPathValid:(NSIndexPath *)indexPath;
 
 /// Returns YES if the specified index path belongs to a section header, otherwise NO.
 - (BOOL)isIndexPathHeader:(NSIndexPath *)indexPath;
@@ -393,10 +411,15 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 - (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPath:(NSIndexPath *)toIndexPath;
 - (void)reloadRowsAtIndexPaths:(NSArray *)indexPaths;
 
+/// Inserts the specified sections with the specified animation and expands them.
 - (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
+/// Inserts the specified sections with the specified animation and expands or collapses them as specified.
+- (void)insertSections:(NSIndexSet *)sections
+         withAnimation:(NSTableViewAnimationOptions)animationOptions
+             expanded:(BOOL)expanded;
 - (void)deleteSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)moveSection:(NSUInteger)fromSection toSection:(NSUInteger)toSection;
-
+- (void)moveSections:(GNEOrderedIndexSet *)fromSections toSections:(GNEOrderedIndexSet *)toSections;
 /**
  Moves the specified sections to the specified section index. The order of the from sections is maintained.
  
@@ -406,7 +429,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  @param fromSections Indexes of sections to be moved.
  @param toSection Index of section to move the specified sections to.
  */
-- (void)moveSections:(NSIndexSet *)fromSections toSection:(NSUInteger)toSection;
+- (void)moveSections:(GNEOrderedIndexSet *)fromSections toSection:(NSUInteger)toSection;
 
 - (void)reloadSections:(NSIndexSet *)sections;
 

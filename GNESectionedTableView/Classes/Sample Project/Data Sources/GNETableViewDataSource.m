@@ -529,17 +529,17 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
         [self.rows removeObjectAtIndex:section];
     }];
     
-    NSUInteger sectionsBelowToSection = [fromSections countOfIndexesInRange:NSMakeRange(0, toSection)];
-    
-    NSRange sectionInsertionRange = NSMakeRange(toSection - sectionsBelowToSection, sections.count);
+    NSRange sectionInsertionRange = NSMakeRange(toSection, sections.count);
     NSIndexSet *sectionInsertionIndexes = [NSIndexSet indexSetWithIndexesInRange:sectionInsertionRange];
     [self.sections insertObjects:sections atIndexes:sectionInsertionIndexes];
     
-    NSRange rowInsertionRange = NSMakeRange(toSection - sectionsBelowToSection, rows.count);
+    NSRange rowInsertionRange = NSMakeRange(toSection, rows.count);
     NSIndexSet *rowInsertionIndexes = [NSIndexSet indexSetWithIndexesInRange:rowInsertionRange];
     [self.rows insertObjects:rows atIndexes:rowInsertionIndexes];
     
-    [self.tableView moveSections:fromSections toSection:toSection];
+    GNEOrderedIndexSet *orderedFromSections = [GNEOrderedIndexSet indexSetWithNSIndexSet:fromSections];
+    
+    [self.tableView moveSections:orderedFromSections toSection:toSection];
 }
 
 
@@ -552,22 +552,18 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
 
 - (void)p_moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPath:(NSIndexPath *)toIndexPath
 {
-    NSLog(@"\nBEFORE:\n\n%@\n\n", self.rows);
-    
     NSMutableArray *movedRows = [NSMutableArray array];
     __block NSUInteger toRow = toIndexPath.gne_row;
     
-    SEL sortingSelector = NSSelectorFromString(@"gne_compare:");
+    SEL sortingSelector = NSSelectorFromString(@"gne_reverseCompare:");
     NSArray *sortedFromIndexPaths = [fromIndexPaths sortedArrayUsingSelector:sortingSelector];
     
-    NSUInteger sectionCount = self.rows.count;
-    
-    [sortedFromIndexPaths enumerateObjectsWithOptions:NSEnumerationReverse
+    [sortedFromIndexPaths enumerateObjectsWithOptions:0
                                            usingBlock:^(NSIndexPath *indexPath,
                                                         NSUInteger idx __unused,
                                                         BOOL *stop __unused)
     {
-        NSParameterAssert(indexPath.gne_section < sectionCount);
+        NSParameterAssert(indexPath.gne_section < self.rows.count);
         NSMutableArray *mutableRowsArray = self.rows[indexPath.gne_section];
         NSParameterAssert(indexPath.gne_row < mutableRowsArray.count);
         NSString *rowString = mutableRowsArray[indexPath.gne_row];
@@ -588,10 +584,10 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
         NSRange insertionRange = NSMakeRange(toRow, movedRows.count);
         NSIndexSet *insertionIndexSet = [NSIndexSet indexSetWithIndexesInRange:insertionRange];
         [toRowsArray insertObjects:movedRows atIndexes:insertionIndexSet];
-        [self.tableView moveRowsAtIndexPaths:fromIndexPaths toIndexPath:toIndexPath];
+        [self.tableView moveRowsAtIndexPaths:fromIndexPaths
+                                 toIndexPath:[NSIndexPath gne_indexPathForRow:toRow
+                                                                    inSection:toIndexPath.gne_section]];
     }
-    
-    NSLog(@"\nAFTER\n\n%@\n\n", self.rows);
 }
 
 
@@ -654,6 +650,12 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
 }
 
 
+- (void)tableView:(GNESectionedTableView * __unused)tableView didUpdateDrag:(id<NSDraggingInfo>)info
+{
+    NSLog(@"%@", info);
+}
+
+
 - (BOOL)tableView:(GNESectionedTableView * __unused)tableView
    canDragSection:(NSUInteger __unused)section
 {
@@ -698,10 +700,6 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
             toIndexPath:(NSIndexPath *)toIndexPath
 {
     NSLog(@"canDragRowAtIndexPath: (%lu, %lu) toIndexPath: (%lu, %lu)", fromIndexPath.gne_section, fromIndexPath.gne_row, toIndexPath.gne_section, toIndexPath.gne_row);
-    if (toIndexPath.gne_row == 5)
-    {
-        return NO;
-    }
     
     return YES;
 }
@@ -728,6 +726,10 @@ didDropRowsAtIndexPaths:(NSArray *)fromIndexPaths
               toSection:(NSUInteger)toSection
 {
     NSLog(@"didDragSections: %@ toSection: %lu", fromSections, toSection);
+    
+    NSRange belowTargetRange = NSMakeRange(0, toSection);
+    NSUInteger sectionsBelowTarget = [fromSections countOfIndexesInRange:belowTargetRange];
+    toSection -= sectionsBelowTarget;
     
     [self p_moveSections:fromSections toSection:toSection];
 }
@@ -769,7 +771,7 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 {
     NSArray *rowsArray = self.rows[section];
     
-    return ((rowsArray.count > 0) ? 22.0f : 0.0f);
+    return ((rowsArray.count > 0) ? 22.0f : GNESectionedTableViewInvisibleRowHeight);
 }
 
 
@@ -851,6 +853,20 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 }
 
 
+- (void)tableView:(GNESectionedTableView * __unused)tableView
+ didExpandSection:(NSUInteger)section
+{
+    NSLog(@"didExpandSection: %llu", (unsigned long long)section);
+}
+
+
+-   (void)tableView:(GNESectionedTableView * __unused)tableView
+ didCollapseSection:(NSUInteger)section
+{
+    NSLog(@"didCollapseSection: %llu", (unsigned long long)section);
+}
+
+
 -           (BOOL)tableView:(GNESectionedTableView * __unused)tableView
 shouldSelectHeaderInSection:(NSUInteger __unused)section
 {
@@ -895,9 +911,24 @@ shouldSelectHeaderInSection:(NSUInteger __unused)section
 }
 
 
-- (void)tableView:(GNESectionedTableView * __unused)tableView didDoubleClickHeaderInSection:(NSUInteger)section
+- (void)tableView:(GNESectionedTableView *)tableView didDoubleClickHeaderInSection:(NSUInteger)section
 {
     NSLog(@"didDoubleClickHeaderInSection: %lu", section);
+    
+    NSUInteger numberOfSections = tableView.numberOfSections;
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
+    for (NSUInteger i = 0; i < numberOfSections; i++)
+    {
+        if (i != section && (i != (section + 1)))
+        {
+            [indexSet addIndex:i];
+        }
+    }
+    
+    NSUInteger position = (NSUInteger)arc4random_uniform((u_int32_t)(indexSet.count));
+    NSUInteger toSection = [indexSet indexAtPosition:position];
+    
+    [self p_moveSections:[NSIndexSet indexSetWithIndex:section] toSection:toSection];
 }
 
 
