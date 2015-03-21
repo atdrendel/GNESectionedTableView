@@ -19,7 +19,7 @@
 {
     MockNumberOfSectionsBlock block = (__bridge MockNumberOfSectionsBlock)[self blockForSelector:_cmd];
 
-    return block();
+    return (block) ? block() : 0;
 }
 
 
@@ -27,7 +27,7 @@
 {
     MockNumberOfRowsBlock block = (__bridge MockNumberOfRowsBlock)[self blockForSelector:_cmd];
 
-    return block(section);
+    return (block) ? block(section) : 0;
 }
 
 

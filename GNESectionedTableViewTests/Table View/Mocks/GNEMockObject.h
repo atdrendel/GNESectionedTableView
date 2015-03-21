@@ -26,6 +26,8 @@ typedef void(^MockObjectUnsignedIntegerBlock)(id object, NSUInteger unsignedInte
 @interface GNEMockObject : NSObject
 
 
+@property (nonatomic, assign) BOOL didFinishSettingUp;
+
 - (void)setBlock:(void *)block forSelector:(SEL)selector;
 - (void *)blockForSelector:(SEL)selector;
 

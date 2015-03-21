@@ -32,6 +32,7 @@
 {
     if ((self = [super init]))
     {
+        _didFinishSettingUp = NO;
         _selectorToBlockMap = [[NSMapTable alloc] initWithKeyOptions:NSMapTableCopyIn
                                                         valueOptions:NSMapTableCopyIn
                                                             capacity:10];
@@ -78,6 +79,12 @@
 - (void)assertBlockExistsForSelector:(SEL)selector
 {
     NSParameterAssert(selector);
+
+    // Don't throw assertions until the view did finish setting up.
+    if (self.didFinishSettingUp == NO)
+    {
+        return;
+    }
 
     BOOL blockExists = NO;
     NSString *selectorString = NSStringFromSelector(selector);

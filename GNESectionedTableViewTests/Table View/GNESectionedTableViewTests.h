@@ -9,8 +9,8 @@
 #ifndef GNESectionedTableView_GNESectionedTableViewTests_h
 #define GNESectionedTableView_GNESectionedTableViewTests_h
 
+
 #import "GNESectionedTableView.h"
-#import "GNEMockDataSource.h"
 
 // Sections
 #define XCTSetNumberOfSections(count) \
@@ -20,9 +20,28 @@
         return count; \
     }; \
     NSString *methodName = @"numberOfSectionsInTableView:"; \
-    [self.dataSource setBlock:(__bridge void *)block forSelector:NSSelectorFromString(methodName)]; \
+    [self.dataSource setBlock:(__bridge void *)[block copy] forSelector:NSSelectorFromString(methodName)]; \
 }
 
-#define XCTAssertNumberOfSections(count) XCTAssertEqual(self.tableView.numberOfSections, count);
+#define XCTAssertNumberOfSections(count) \
+    XCTAssertEqual(self.tableView.numberOfSections, count);
+
+
+// Rows
+#define XCTSetNumberOfRowsInSections(rows) \
+{ \
+    MockNumberOfRowsBlock block = ^NSUInteger(NSUInteger section) \
+    { \
+        NSParameterAssert([rows isKindOfClass:[NSArray class]]); \
+        NSParameterAssert(section < ((NSArray *)rows).count); \
+        return [rows[section] unsignedIntegerValue]; \
+    }; \
+    NSString *methodName = @"tableView:numberOfRowsInSection:"; \
+    [self.dataSource setBlock:(__bridge void *)[block copy] forSelector:NSSelectorFromString(methodName)]; \
+}
+
+#define XCTAssertNumberOfRowsInSection(rows, section) \
+    XCTAssertEqual([self.tableView numberOfRowsInSection:section], rows);
+
 
 #endif
