@@ -163,7 +163,7 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
     [tableView deleteSections:deletedIndexes.ns_indexSet
                 withAnimation:NSTableViewAnimationEffectFade];
     [insertedIndexes enumerateIndexesUsingBlock:^(NSUInteger section,
-                                                  NSUInteger position,
+                                                  NSUInteger position __unused,
                                                   BOOL *stop __unused)
     {
         BOOL expanded = ([self.sectionsToExpand containsIndex:section]);
