@@ -29,6 +29,7 @@
 		57676F421A0DDFD400901BAD /* GNETableRowView.m in Sources */ = {isa = PBXBuildFile; fileRef = 57676F411A0DDFD400901BAD /* GNETableRowView.m */; };
 		57676F431A0DDFD400901BAD /* GNETableRowView.m in Sources */ = {isa = PBXBuildFile; fileRef = 57676F411A0DDFD400901BAD /* GNETableRowView.m */; };
 		576BD9801A49D8A400DA1211 /* GNEOrderedIndexSetTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 576BD97F1A49D8A400DA1211 /* GNEOrderedIndexSetTests.m */; };
+		576E1B321ABF13D9002069B4 /* GNEMockDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 576E1B311ABF13D9002069B4 /* GNEMockDelegate.m */; };
 		578E75791934B69E00333D86 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 578E75781934B69E00333D86 /* Cocoa.framework */; };
 		578E75831934B69E00333D86 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 578E75811934B69E00333D86 /* InfoPlist.strings */; };
 		578E75851934B69E00333D86 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 578E75841934B69E00333D86 /* main.m */; };
@@ -86,6 +87,8 @@
 		57676F401A0DDFD400901BAD /* GNETableRowView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNETableRowView.h; sourceTree = "<group>"; };
 		57676F411A0DDFD400901BAD /* GNETableRowView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNETableRowView.m; sourceTree = "<group>"; };
 		576BD97F1A49D8A400DA1211 /* GNEOrderedIndexSetTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GNEOrderedIndexSetTests.m; path = "GNESectionedTableViewTests/Ordered Index Set/GNEOrderedIndexSetTests.m"; sourceTree = SOURCE_ROOT; };
+		576E1B301ABF13D9002069B4 /* GNEMockDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEMockDelegate.h; sourceTree = "<group>"; };
+		576E1B311ABF13D9002069B4 /* GNEMockDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEMockDelegate.m; sourceTree = "<group>"; };
 		578E75751934B69E00333D86 /* GNESectionedTableView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GNESectionedTableView.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		578E75781934B69E00333D86 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		578E757B1934B69E00333D86 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -368,6 +371,8 @@
 			children = (
 				57B5FF0A1ABDF6E900F8D1F2 /* GNEMockDataSource.h */,
 				57B5FF0B1ABDF6E900F8D1F2 /* GNEMockDataSource.m */,
+				576E1B301ABF13D9002069B4 /* GNEMockDelegate.h */,
+				576E1B311ABF13D9002069B4 /* GNEMockDelegate.m */,
 				57B5FF0D1ABE030B00F8D1F2 /* GNEMockObject.h */,
 				57B5FF0E1ABE030B00F8D1F2 /* GNEMockObject.m */,
 			);
@@ -530,6 +535,7 @@
 				572E26DC1945676B000F4656 /* GNEOutlineViewParentItem.m in Sources */,
 				576BD9801A49D8A400DA1211 /* GNEOrderedIndexSetTests.m in Sources */,
 				57B5FF0C1ABDF6E900F8D1F2 /* GNEMockDataSource.m in Sources */,
+				576E1B321ABF13D9002069B4 /* GNEMockDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

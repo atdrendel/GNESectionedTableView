@@ -12,7 +12,9 @@
 
 #import "GNESectionedTableView.h"
 
-// Sections
+// ------------------------------------------------------------------------------------------
+#pragma mark - Sections
+// ------------------------------------------------------------------------------------------
 #define XCTSetNumberOfSections(count) \
 { \
     MockNumberOfSectionsBlock block = ^NSUInteger() \
@@ -27,7 +29,9 @@
     XCTAssertEqual(self.tableView.numberOfSections, count);
 
 
-// Rows
+// ------------------------------------------------------------------------------------------
+#pragma mark - Rows
+// ------------------------------------------------------------------------------------------
 #define XCTSetNumberOfRowsInSections(rows) \
 { \
     MockNumberOfRowsBlock block = ^NSUInteger(NSUInteger section) \

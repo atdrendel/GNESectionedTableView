@@ -6,7 +6,6 @@
 //  Copyright (c) 2015 Gone East LLC. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
 #import "GNEMockObject.h"
 #import "GNESectionedTableViewTests.h"
 

@@ -80,7 +80,7 @@
 {
     NSParameterAssert(selector);
 
-    // Don't throw assertions until the view did finish setting up.
+    // Don't throw assertions until the view has finished setting up.
     if (self.didFinishSettingUp == NO)
     {
         return;
