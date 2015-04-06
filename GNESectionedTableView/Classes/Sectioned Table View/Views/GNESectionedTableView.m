@@ -139,7 +139,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     _outlineViewParentItems = [NSMutableArray array];
     _outlineViewItems = [NSMutableArray array];
-    
+
+    _autoExpandSections = YES;
+
     _selectedAutoCollapsedIndexPaths = [NSMutableArray array];
     _autoCollapsedSections = [NSMutableIndexSet indexSet];
     
@@ -218,15 +220,22 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 - (void)reloadData
 {
+    __strong typeof(self) strongSelf = self;
+
     [super reloadData];
     
-    [self selectRowIndexes:nil byExtendingSelection:NO];
+    [strongSelf selectRowIndexes:nil byExtendingSelection:NO];
     
-    [self.outlineViewParentItems removeAllObjects];
-    [self.outlineViewItems removeAllObjects];
-    [self p_buildOutlineViewItemArrays];
+    [strongSelf.outlineViewParentItems removeAllObjects];
+    [strongSelf.outlineViewItems removeAllObjects];
+    [strongSelf p_buildOutlineViewItemArrays];
     
     [super reloadData];
+
+    if (strongSelf.autoExpandSections)
+    {
+        [strongSelf expandAllSections:NO];
+    }
 }
 
 
@@ -3054,7 +3063,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 - (NSTableRowView *)outlineView:(NSOutlineView *)outlineView rowViewForItem:(GNEOutlineViewItem *)item
 {
     GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
-    GNEParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:rowViewForRowAtIndexPath:)]);
+    GNEParameterAssert([self.tableViewDelegate respondsToSelector:@selector(tableView:rowViewForRowAtIndexPath:)]);
     
     NSTableRowView *rowView = nil;
     NSIndexPath *indexPath = nil;
@@ -3108,7 +3117,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         indexPath = [self p_indexPathOfOutlineViewItem:item];
         if (indexPath)
         {
-            rowView = [self.tableViewDataSource tableView:self rowViewForRowAtIndexPath:indexPath];
+            rowView = [self.tableViewDelegate tableView:self rowViewForRowAtIndexPath:indexPath];
         }
     }
     
@@ -3160,7 +3169,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
     if (indexPath)
     {
-        return [self.tableViewDataSource tableView:self cellViewForRowAtIndexPath:indexPath];
+        return [self.tableViewDelegate tableView:self cellViewForRowAtIndexPath:indexPath];
     }
     
     return nil;

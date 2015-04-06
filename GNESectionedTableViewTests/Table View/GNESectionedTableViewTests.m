@@ -35,10 +35,11 @@
 {
     [super setUp];
 
-    self.tableView = [[GNESectionedTableView alloc] initWithFrame:CGRectZero];
+    self.tableView = [[GNESectionedTableView alloc] initWithFrame:CGRectMake(0.0, 0.0, 100.0, 0.0)];
     self.dataSource = [[GNEMockDataSource alloc] init];
     self.delegate = [[GNEMockDelegate alloc] init];
 
+    self.tableView.intercellSpacing = CGSizeZero;
     self.tableView.tableViewDataSource = self.dataSource;
     self.tableView.tableViewDelegate = self.delegate;
     self.dataSource.didFinishSettingUp = YES;

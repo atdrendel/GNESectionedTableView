@@ -36,6 +36,34 @@
 #define XCTAssertNumberOfSections(count) \
     XCTAssertEqual(self.tableView.numberOfSections, count);
 
+#define XCTSetHeightOfHeader(section, height) \
+{ \
+    XCTSetHeightsOfHeaders([GNEOrderedIndexSet indexSetWithIndex:section], @[@(height)]);\
+}
+
+#define XCTSetHeightsOfHeaders(sections, heights) \
+{ \
+    NSParameterAssert([sections isKindOfClass:[GNEOrderedIndexSet class]]); \
+    NSParameterAssert([heights isKindOfClass:[NSArray class]]); \
+    MockHeightForSectionBlock block = ^CGFloat(NSUInteger s) \
+    { \
+        if ([sections containsIndex:s]) \
+        { \
+            NSUInteger position = [sections positionOfIndex:s]; \
+            return [heights[position] doubleValue]; \
+        } \
+        return 0.0; \
+    }; \
+    NSString *methodName = @"tableView:heightForHeaderInSection:"; \
+    [self.delegate setBlock:(__bridge void *)[block copy] forSelector:NSSelectorFromString(methodName)]; \
+}
+
+#define XCTAssertHeightOfHeader(s, h) \
+{ \
+    XCTAssertEqual([self.tableView frameOfViewAtIndexPath:\
+        [self.tableView indexPathForHeaderInSection:s]].size.height, h); \
+}
+
 #endif
 
 // ------------------------------------------------------------------------------------------
@@ -58,6 +86,33 @@
 
 #define XCTAssertNumberOfRowsInSection(rows, section) \
     XCTAssertEqual([self.tableView numberOfRowsInSection:section], rows);
+
+#define XCTSetHeightOfRow(ip, h) \
+{ \
+    XCTSetHeightsOfRows(@[ip], @[@(h)]);\
+}
+
+#define XCTSetHeightsOfRows(ips, hs) \
+{ \
+    NSParameterAssert([ips isKindOfClass:[NSArray class]]); \
+    NSParameterAssert([hs isKindOfClass:[NSArray class]]); \
+    MockHeightForRowBlock block = ^CGFloat(NSIndexPath *ip) \
+    { \
+        NSUInteger index = [ips indexOfObject:ip]; \
+        if (index != NSNotFound) \
+        { \
+            return [hs[index] doubleValue]; \
+        } \
+        return 0.0; \
+    }; \
+    NSString *methodName = @"tableView:heightForRowAtIndexPath:"; \
+    [self.delegate setBlock:(__bridge void *)[block copy] forSelector:NSSelectorFromString(methodName)]; \
+}
+
+#define XCTAssertHeightOfRow(ip, h) \
+{ \
+    XCTAssertEqual([self.tableView frameOfViewAtIndexPath:ip].size.height, h); \
+}
 
 #endif
 

@@ -19,7 +19,7 @@
 {
     MockHeightForRowBlock block = [self blockForSelector:_cmd];
 
-    return (block) ? block(indexPath) : 0.0;
+    return (block) ? block(indexPath) : GNESectionedTableViewInvisibleRowHeight;
 }
 
 
@@ -27,7 +27,7 @@
 {
     MockHeightForSectionBlock block = [self blockForSelector:_cmd];
 
-    return (block) ? block(section) : 0.0;
+    return (block) ? block(section) : GNESectionedTableViewInvisibleRowHeight;
 }
 
 
@@ -35,7 +35,7 @@
 {
     MockHeightForSectionBlock block = [self blockForSelector:_cmd];
 
-    return (block) ? block(section) : 0.0;
+    return (block) ? block(section) : GNESectionedTableViewInvisibleRowHeight;
 }
 
 
@@ -169,7 +169,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 {
     MockShouldExpandCollapseSectionBlock block = [self blockForSelector:_cmd];
 
-    return (block) ? block(section) : NO;
+    return (block) ? block(section) : YES;
 }
 
 
@@ -177,7 +177,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 {
     MockShouldExpandCollapseSectionBlock block = [self blockForSelector:_cmd];
 
-    return (block) ? block(section) : NO;
+    return (block) ? block(section) : YES;
 }
 
 

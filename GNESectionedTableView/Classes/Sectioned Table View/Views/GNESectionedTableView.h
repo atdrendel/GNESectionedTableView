@@ -106,12 +106,6 @@ static const CGFloat GNESectionedTableViewInvisibleRowHeight = 1.0f;
 @required
 - (NSUInteger)tableView:(GNESectionedTableView *)tableView numberOfRowsInSection:(NSUInteger)section;
 
-/* Views */
-@required
-- (NSTableRowView *)tableView:(GNESectionedTableView *)tableView rowViewForRowAtIndexPath:(NSIndexPath *)indexPath;
-@required
-- (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForRowAtIndexPath:(NSIndexPath *)indexPath;
-
 /* Drag-and-drop */
 @optional
 - (NSArray *)draggedTypesForTableView:(GNESectionedTableView *)tableView;
@@ -177,6 +171,10 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 - (CGFloat)tableView:(GNESectionedTableView *)tableView heightForFooterInSection:(NSUInteger)section;
 
 /* Views */
+@required
+- (NSTableRowView *)tableView:(GNESectionedTableView *)tableView rowViewForRowAtIndexPath:(NSIndexPath *)indexPath;
+@required
+- (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForRowAtIndexPath:(NSIndexPath *)indexPath;
 @optional
 /// Required if the table view includes headers.
 - (NSTableRowView *)tableView:(GNESectionedTableView *)tableView rowViewForHeaderInSection:(NSUInteger)section;
@@ -272,6 +270,10 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 
 /// Table view's current delegate, which must conform to GNESectionedTableViewDelegate.
 @property (nonatomic, strong) id <GNESectionedTableViewDelegate> tableViewDelegate;
+
+/// YES if the table view automatically expands sections when reloading data, otherwise NO.
+/// Default: YES.
+@property (nonatomic, assign) BOOL autoExpandSections;
 
 /// Returns the number of sections in the table view.
 @property (nonatomic, assign, readonly) NSUInteger numberOfSections;
