@@ -7,17 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "GNESectionedTableViewTests.h"
-
-
-// ------------------------------------------------------------------------------------------
-
-
-typedef void(^MockVoidBlock)();
-typedef NSArray *(^MockReturnArrayBlock)();
-typedef void(^MockObjectBlock)(id object);
-typedef void(^MockObjectObjectBlock)(id object1, id object2);
-typedef void(^MockObjectUnsignedIntegerBlock)(id object, NSUInteger unsignedInteger);
+#import "GNESectionedTableView.h"
+#import "GNEMockBlocks.h"
 
 
 // ------------------------------------------------------------------------------------------

@@ -2,19 +2,27 @@
 //  GNESectionedTableViewTests.h
 //  GNESectionedTableView
 //
-//  Created by Anthony Drendel on 3/21/15.
+//  Created by Anthony Drendel on 4/5/15.
 //  Copyright (c) 2015 Gone East LLC. All rights reserved.
 //
 
-#ifndef GNESectionedTableView_GNESectionedTableViewTests_h
-#define GNESectionedTableView_GNESectionedTableViewTests_h
-
-
+#import <Cocoa/Cocoa.h>
+#import <XCTest/XCTest.h>
 #import "GNESectionedTableView.h"
+#import "GNEMockBlocks.h"
+#import "GNEMockDataSource.h"
+#import "GNEMockDelegate.h"
+
+
+@class GNEMockDataSource, GNEMockDelegate;
+
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Sections
 // ------------------------------------------------------------------------------------------
+#ifndef GNESectionedTableViewTests_Sections
+#define GNESectionedTableViewTests_Sections
+
 #define XCTSetNumberOfSections(count) \
 { \
     MockNumberOfSectionsBlock block = ^NSUInteger() \
@@ -28,10 +36,14 @@
 #define XCTAssertNumberOfSections(count) \
     XCTAssertEqual(self.tableView.numberOfSections, count);
 
+#endif
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Rows
 // ------------------------------------------------------------------------------------------
+#ifndef GNESectionedTableViewTests_Rows
+#define GNESectionedTableViewTests_Rows
+
 #define XCTSetNumberOfRowsInSections(rows) \
 { \
     MockNumberOfRowsBlock block = ^NSUInteger(NSUInteger section) \
@@ -47,5 +59,15 @@
 #define XCTAssertNumberOfRowsInSection(rows, section) \
     XCTAssertEqual([self.tableView numberOfRowsInSection:section], rows);
 
-
 #endif
+
+// ------------------------------------------------------------------------------------------
+
+
+@interface GNESectionedTableViewTests : XCTestCase
+
+@property (nonatomic, strong, readonly) GNESectionedTableView *tableView;
+@property (nonatomic, strong, readonly) GNEMockDataSource *dataSource;
+@property (nonatomic, strong, readonly) GNEMockDelegate *delegate;
+
+@end

@@ -17,7 +17,7 @@
 // ------------------------------------------------------------------------------------------
 - (NSUInteger)numberOfSectionsInTableView:(GNESectionedTableView *)tableView
 {
-    MockNumberOfSectionsBlock block = (__bridge MockNumberOfSectionsBlock)[self blockForSelector:_cmd];
+    MockNumberOfSectionsBlock block = [self blockForSelector:_cmd];
 
     return (block) ? block() : 0;
 }
@@ -36,7 +36,7 @@
 // ------------------------------------------------------------------------------------------
 - (NSTableRowView *)tableView:(GNESectionedTableView *)tableView rowViewForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    MockViewAtIndexPathBlock block = (__bridge MockViewAtIndexPathBlock)[self blockForSelector:_cmd];
+    MockViewAtIndexPathBlock block = [self blockForSelector:_cmd];
 
     return (NSTableRowView *)block(indexPath);
 }
@@ -44,7 +44,7 @@
 
 - (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    MockViewAtIndexPathBlock block = (__bridge MockViewAtIndexPathBlock)[self blockForSelector:_cmd];
+    MockViewAtIndexPathBlock block = [self blockForSelector:_cmd];
 
     return (NSTableCellView *)block(indexPath);
 }
@@ -55,29 +55,29 @@
 // ------------------------------------------------------------------------------------------
 - (NSArray *)draggedTypesForTableView:(GNESectionedTableView *)tableView
 {
-    MockReturnArrayBlock block = (__bridge MockReturnArrayBlock)[self blockForSelector:_cmd];
+    MockReturnArrayBlock block = [self blockForSelector:_cmd];
 
-    return block();
+    return (block) ? block() : @[];
 }
 
 
 - (void)tableViewDraggingSessionWillBegin:(GNESectionedTableView *)tableView
 {
-    MockVoidBlock block = (__bridge MockVoidBlock)[self blockForSelector:_cmd];
+    MockVoidBlock block = [self blockForSelector:_cmd];
     block();
 }
 
 
 - (void)tableView:(GNESectionedTableView *)tableView didUpdateDrag:(id <NSDraggingInfo>)info
 {
-    MockObjectBlock block = (__bridge MockObjectBlock)[self blockForSelector:_cmd];
+    MockObjectBlock block = [self blockForSelector:_cmd];
     block(info);
 }
 
 
 - (BOOL)tableView:(GNESectionedTableView *)tableView canDragSection:(NSUInteger)section
 {
-    MockCanDragSectionBlock block = (__bridge MockCanDragSectionBlock)[self blockForSelector:_cmd];
+    MockCanDragSectionBlock block = [self blockForSelector:_cmd];
 
     return block(section);
 }
@@ -87,7 +87,7 @@
    canDragSection:(NSUInteger)fromSection
         toSection:(NSUInteger)toSection
 {
-    MockCanDragSectionToSectionBlock block = (__bridge MockCanDragSectionToSectionBlock)[self blockForSelector:_cmd];
+    MockCanDragSectionToSectionBlock block = [self blockForSelector:_cmd];
 
     return block(fromSection, toSection);
 }
@@ -97,14 +97,14 @@
   didDragSections:(NSIndexSet *)fromSections
         toSection:(NSUInteger)toSection
 {
-    MockObjectUnsignedIntegerBlock block = (__bridge MockObjectUnsignedIntegerBlock)[self blockForSelector:_cmd];
+    MockObjectUnsignedIntegerBlock block = [self blockForSelector:_cmd];
     block(fromSections, toSection);
 }
 
 
 - (BOOL)tableView:(GNESectionedTableView *)tableView canDragRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    MockCanDragRowBlock block = (__bridge MockCanDragRowBlock)[self blockForSelector:_cmd];
+    MockCanDragRowBlock block = [self blockForSelector:_cmd];
 
     return block(indexPath);
 }
@@ -114,7 +114,7 @@
   canDropRowAtIndexPath:(NSIndexPath *)fromIndexPath
       onHeaderInSection:(NSUInteger)section
 {
-    MockCanDropRowOnSectionBlock block = (__bridge MockCanDropRowOnSectionBlock)[self blockForSelector:_cmd];
+    MockCanDropRowOnSectionBlock block = [self blockForSelector:_cmd];
 
     return block(fromIndexPath, section);
 }
@@ -124,7 +124,7 @@
   canDropRowAtIndexPath:(NSIndexPath *)fromIndexPath
        onRowAtIndexPath:(NSIndexPath *)toIndexPath
 {
-    MockCanDropRowOnRowBlock block = (__bridge MockCanDropRowOnRowBlock)[self blockForSelector:_cmd];
+    MockCanDropRowOnRowBlock block = [self blockForSelector:_cmd];
 
     return block(fromIndexPath, toIndexPath);
 }
@@ -134,7 +134,7 @@
   canDragRowAtIndexPath:(NSIndexPath *)fromIndexPath
             toIndexPath:(NSIndexPath *)toIndexPath
 {
-    MockCanDragRowToRowBlock block = (__bridge MockCanDragRowToRowBlock)[self blockForSelector:_cmd];
+    MockCanDragRowToRowBlock block = [self blockForSelector:_cmd];
 
     return block(fromIndexPath, toIndexPath);
 }
@@ -144,7 +144,7 @@
 didDropRowsAtIndexPaths:(NSArray *)fromIndexPaths
       onHeaderInSection:(NSUInteger)section
 {
-    MockObjectUnsignedIntegerBlock block = (__bridge MockObjectUnsignedIntegerBlock)[self blockForSelector:_cmd];
+    MockObjectUnsignedIntegerBlock block = [self blockForSelector:_cmd];
     block(fromIndexPaths, section);
 }
 
@@ -153,7 +153,7 @@ didDropRowsAtIndexPaths:(NSArray *)fromIndexPaths
 didDropRowsAtIndexPaths:(NSArray *)fromIndexPaths
        onRowAtIndexPath:(NSIndexPath *)toIndexPath
 {
-    MockObjectObjectBlock block = (__bridge MockObjectObjectBlock)[self blockForSelector:_cmd];
+    MockObjectObjectBlock block = [self blockForSelector:_cmd];
     block(fromIndexPaths, toIndexPath);
 }
 
@@ -162,14 +162,14 @@ didDropRowsAtIndexPaths:(NSArray *)fromIndexPaths
 didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
             toIndexPath:(NSIndexPath *)toIndexPath
 {
-    MockObjectObjectBlock block = (__bridge MockObjectObjectBlock)[self blockForSelector:_cmd];
+    MockObjectObjectBlock block = [self blockForSelector:_cmd];
     block(fromIndexPaths, toIndexPath);
 }
 
 
 - (void)tableViewDraggingSessionDidEnd:(GNESectionedTableView *)tableView
 {
-    MockVoidBlock block = (__bridge MockVoidBlock)[self blockForSelector:_cmd];
+    MockVoidBlock block = [self blockForSelector:_cmd];
     block();
 }
 

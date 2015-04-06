@@ -6,18 +6,13 @@
 //  Copyright (c) 2015 Gone East LLC. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-#import <XCTest/XCTest.h>
 #import "GNESectionedTableViewTests.h"
-#import "GNEMockDataSource.h"
+
 
 // ------------------------------------------------------------------------------------------
 
 
-@interface GNESectionedTableViewCountTests : XCTestCase
-
-@property (nonatomic, strong) GNESectionedTableView *tableView;
-@property (nonatomic, strong) GNEMockDataSource *dataSource;
+@interface GNESectionedTableViewCountTests : GNESectionedTableViewTests
 
 @end
 
@@ -26,31 +21,6 @@
 
 
 @implementation GNESectionedTableViewCountTests
-
-
-// ------------------------------------------------------------------------------------------
-#pragma mark - Set Up & Tear Down
-// ------------------------------------------------------------------------------------------
-- (void)setUp
-{
-    [super setUp];
-
-    self.tableView = [[GNESectionedTableView alloc] initWithFrame:CGRectZero];
-    self.dataSource = [[GNEMockDataSource alloc] init];
-
-    self.tableView.tableViewDataSource = self.dataSource;
-    self.dataSource.didFinishSettingUp = YES;
-}
-
-
-- (void)tearDown
-{
-    self.tableView.tableViewDataSource = nil;
-    self.dataSource = nil;
-    self.tableView = nil;
-
-    [super tearDown];
-}
 
 
 // ------------------------------------------------------------------------------------------

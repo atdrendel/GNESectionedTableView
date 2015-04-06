@@ -7,16 +7,7 @@
 //
 
 #import "GNEMockObject.h"
-#import "GNESectionedTableViewTests.h"
 
-
-// ------------------------------------------------------------------------------------------
-
-
-
-// ------------------------------------------------------------------------------------------
-
-
-@interface GNEMockDelegate : GNEMockObject
+@interface GNEMockDelegate : GNEMockObject <GNESectionedTableViewDelegate>
 
 @end
