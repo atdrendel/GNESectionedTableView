@@ -29,6 +29,9 @@
 //  SOFTWARE.
 //
 
+@import Cocoa;
+
+
 @interface NSMutableArray (GNESectionedTableView)
 
 

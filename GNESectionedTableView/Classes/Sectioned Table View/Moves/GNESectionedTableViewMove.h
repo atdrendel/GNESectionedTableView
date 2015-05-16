@@ -29,6 +29,8 @@
 //  SOFTWARE.
 //
 
+@import Cocoa;
+
 @class GNESectionedTableView, GNESectionedTableViewMovingItem, GNEOrderedIndexSet;
 
 

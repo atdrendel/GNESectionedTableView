@@ -38,6 +38,8 @@
 #import "GNESectionedTableViewMove.h"
 #import "GNESectionedTableViewMovingItem.h"
 
+@import QuartzCore;
+
 // ------------------------------------------------------------------------------------------
 
 
@@ -528,8 +530,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             {
                 continue;
             }
-         
-            GNEParameterAssert([item.parentItem isEqual:parentItem]);
+
+#if GNE_ASSERT_ENABLED
+            GNEOutlineViewParentItem *actualParentItem = item.parentItem;
+            GNEParameterAssert([actualParentItem isEqual:parentItem]);
+#endif
             
 #if GNE_CRUD_LOGGING_ENABLED
             NSIndexPath *actualIndexPath = [self p_indexPathOfOutlineViewItem:item];
@@ -2560,7 +2565,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
  @return YES if the drop was retargeted, otherwise NO.
  */
 - (BOOL)p_retargetDropOnDragOperation:(id<NSDraggingInfo>)info
-                 toProposedParentItem:(GNEOutlineViewItem **)proposedParentItemPtr
+                 toProposedParentItem:(GNEOutlineViewItem * __autoreleasing *)proposedParentItemPtr
                    proposedChildIndex:(NSInteger *)proposedChildIndexPtr
 {
     if (proposedParentItemPtr == NULL || proposedChildIndexPtr == NULL)

@@ -29,6 +29,9 @@
 //  SOFTWARE.
 //
 
+@import Cocoa;
+
+
 @interface GNEOrderedIndexSet : NSObject <NSCopying>
 
 /// Returns the number of indexes contained in the receiver.

@@ -29,6 +29,7 @@
 //  SOFTWARE.
 //
 
+@import Cocoa;
 #import "GNEOutlineViewItem.h"
 #import "GNEOutlineViewParentItem.h"
 #import "GNEOrderedIndexSet.h"
