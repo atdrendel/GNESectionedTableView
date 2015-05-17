@@ -312,7 +312,7 @@ didSelectRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
  @param frameRect Frame of table view.
  @return Instance of GNESectionedTableView or one of its subclasses.
  */
-- (id __nonnull)initWithFrame:(NSRect)frameRect NS_DESIGNATED_INITIALIZER;
+- (nonnull instancetype)initWithFrame:(NSRect)frameRect NS_DESIGNATED_INITIALIZER;
 
 
 /**
@@ -321,7 +321,7 @@ didSelectRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
  @param coder An unarchiver object.
  @return Instance of GNESectionedTableView or one of its subclasses or nil.
  */
-- (id __nullable)initWithCoder:(NSCoder * __nonnull)coder NS_DESIGNATED_INITIALIZER;
+- (nullable instancetype)initWithCoder:(NSCoder * __nonnull)coder NS_DESIGNATED_INITIALIZER;
 
 
 #pragma mark - Reload data

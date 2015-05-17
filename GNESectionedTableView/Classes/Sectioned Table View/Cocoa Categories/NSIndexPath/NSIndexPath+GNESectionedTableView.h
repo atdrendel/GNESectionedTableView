@@ -46,7 +46,7 @@
  @param section Index path section (index at position 1)
  @return An instance of NSIndexPath with indexes { row, section }
  */
-+ (id __nonnull)gne_indexPathForRow:(NSUInteger)row inSection:(NSUInteger)section;
++ (nonnull instancetype)gne_indexPathForRow:(NSUInteger)row inSection:(NSUInteger)section;
 
 
 /**

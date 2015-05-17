@@ -37,7 +37,7 @@
 // ------------------------------------------------------------------------------------------
 #pragma mark - Initialization
 // ------------------------------------------------------------------------------------------
-+ (id __nonnull)gne_indexPathForRow:(NSUInteger)row inSection:(NSUInteger)section
++ (nonnull instancetype)gne_indexPathForRow:(NSUInteger)row inSection:(NSUInteger)section
 {
     NSUInteger indexes[] = {row, section};
     
