@@ -46,7 +46,7 @@
  @param section Index path section (index at position 1)
  @return An instance of NSIndexPath with indexes { row, section }
  */
-+ (instancetype)gne_indexPathForRow:(NSUInteger)row inSection:(NSUInteger)section;
++ (nonnull instancetype)gne_indexPathForRow:(NSUInteger)row inSection:(NSUInteger)section;
 
 
 /**
@@ -59,7 +59,7 @@
  @param section Section index to apply to all of the created index paths.
  @return An array containing the index paths corresponding to the specified indexes and section.
  */
-+ (NSArray *)gne_indexPathsForIndexes:(NSIndexSet *)indexSet inSection:(NSUInteger)section;
++ (NSArray * __nonnull)gne_indexPathsForIndexes:(NSIndexSet * __nonnull)indexSet inSection:(NSUInteger)section;
 
 
 /**
@@ -71,7 +71,7 @@
  NSOrderedDescending: The receiving index path comes after indexPath.
  NSOrderedSame: The receiving index path and indexPath are the same index path.
  */
-- (NSComparisonResult)gne_compare:(NSIndexPath *)indexPath;
+- (NSComparisonResult)gne_compare:(NSIndexPath * __nonnull)indexPath;
 
 
 /**
@@ -83,7 +83,7 @@
  NSOrderedDescending: The receiving index path comes before indexPath.
  NSOrderedSame: The receiving index path and indexPath are the same index path.
  */
-- (NSComparisonResult)gne_reverseCompare:(NSIndexPath *)indexPath;
+- (NSComparisonResult)gne_reverseCompare:(NSIndexPath * __nonnull)indexPath;
 
 
 @end

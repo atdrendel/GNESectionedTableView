@@ -37,7 +37,7 @@
 // ------------------------------------------------------------------------------------------
 #pragma mark - Initialization
 // ------------------------------------------------------------------------------------------
-+ (instancetype)gne_indexPathForRow:(NSUInteger)row inSection:(NSUInteger)section
++ (nonnull instancetype)gne_indexPathForRow:(NSUInteger)row inSection:(NSUInteger)section
 {
     NSUInteger indexes[] = {row, section};
     
@@ -48,7 +48,7 @@
 // ------------------------------------------------------------------------------------------
 #pragma mark - Collection helpers
 // ------------------------------------------------------------------------------------------
-+ (NSArray *)gne_indexPathsForIndexes:(NSIndexSet *)indexSet inSection:(NSUInteger)section
++ (NSArray * __nonnull)gne_indexPathsForIndexes:(NSIndexSet * __nonnull)indexSet inSection:(NSUInteger)section
 {
     NSMutableArray *mutableIndexPaths = [NSMutableArray array];
     
@@ -65,7 +65,7 @@
 // ------------------------------------------------------------------------------------------
 #pragma mark - Comparison
 // ------------------------------------------------------------------------------------------
-- (NSComparisonResult)gne_compare:(NSIndexPath *)indexPath
+- (NSComparisonResult)gne_compare:(NSIndexPath * __nonnull)indexPath
 {
     NSParameterAssert([indexPath respondsToSelector:@selector(gne_row)] &&
                       [indexPath respondsToSelector:@selector(gne_section)]);
@@ -96,7 +96,7 @@
 }
 
 
-- (NSComparisonResult)gne_reverseCompare:(NSIndexPath *)indexPath
+- (NSComparisonResult)gne_reverseCompare:(NSIndexPath * __nonnull)indexPath
 {
     NSParameterAssert([indexPath respondsToSelector:@selector(gne_row)] &&
                       [indexPath respondsToSelector:@selector(gne_section)]);

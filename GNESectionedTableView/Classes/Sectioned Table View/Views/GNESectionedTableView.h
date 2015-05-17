@@ -109,10 +109,10 @@ static const CGFloat GNESectionedTableViewInvisibleRowHeight = 1.0f;
 
 /* Views */
 @required
-- (NSTableRowView * __nullable)tableView:(GNESectionedTableView * __nonnull)tableView
+- (NSTableRowView * __nonnull)tableView:(GNESectionedTableView * __nonnull)tableView
                 rowViewForRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 @required
-- (NSTableCellView * __nullable)tableView:(GNESectionedTableView * __nonnull)tableView
+- (NSTableCellView * __nonnull)tableView:(GNESectionedTableView * __nonnull)tableView
                 cellViewForRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 
 /* Drag-and-drop */
@@ -322,7 +322,7 @@ didSelectRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
  @param frameRect Frame of table view.
  @return Instance of GNESectionedTableView or one of its subclasses.
  */
-- (id __nonnull)initWithFrame:(NSRect)frameRect NS_DESIGNATED_INITIALIZER;
+- (nonnull instancetype)initWithFrame:(NSRect)frameRect NS_DESIGNATED_INITIALIZER;
 
 
 /**
@@ -331,7 +331,7 @@ didSelectRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
  @param coder An unarchiver object.
  @return Instance of GNESectionedTableView or one of its subclasses or nil.
  */
-- (id __nullable)initWithCoder:(NSCoder * __nonnull)coder NS_DESIGNATED_INITIALIZER;
+- (nullable instancetype)initWithCoder:(NSCoder * __nonnull)coder NS_DESIGNATED_INITIALIZER;
 
 
 #pragma mark - Reload data
