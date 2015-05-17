@@ -31,6 +31,7 @@
 
 #import "GNEOutlineViewItem.h"
 #import "GNEOutlineViewParentItem.h"
+#import "NSIndexPath+GNESectionedTableView.h"
 
 
 // ------------------------------------------------------------------------------------------

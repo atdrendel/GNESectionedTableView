@@ -29,6 +29,9 @@
 //  SOFTWARE.
 //
 
+@import Cocoa;
+
+
 @interface GNESectionedTableViewMovingItem : NSObject
 
 @property (nonatomic, strong, readonly) NSView *view;

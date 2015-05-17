@@ -33,6 +33,7 @@
 #import "GNESectionedTableView.h"
 #import "GNESectionedTableViewMovingItem.h"
 #import "GNEOrderedIndexSet.h"
+@import QuartzCore;
 
 
 // ------------------------------------------------------------------------------------------
@@ -355,10 +356,11 @@ typedef void(^AnimationBlock)(NSIndexPath *fromIndexPath, NSUInteger indexPathIn
 
 - (void)p_selectRowsMovedToIndexPaths:(NSArray *)toIndexPaths atIndexes:(NSIndexSet *)indexes
 {
-    if (indexes.count > 0)
+    GNESectionedTableView *tableView = self.tableView;
+    if (tableView && indexes.count > 0)
     {
         NSArray *selectedIndexPaths = [toIndexPaths objectsAtIndexes:indexes];
-        [self.tableView selectRowsAtIndexPaths:selectedIndexPaths byExtendingSelection:YES];
+        [tableView selectRowsAtIndexPaths:selectedIndexPaths byExtendingSelection:YES];
     }
 }
 
