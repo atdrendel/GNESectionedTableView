@@ -183,9 +183,11 @@ didDragRowsAtIndexPaths:(NSArray * __nonnull)fromIndexPaths
 
 /* Views */
 @required
-- (NSTableRowView *)tableView:(GNESectionedTableView *)tableView rowViewForRowAtIndexPath:(NSIndexPath *)indexPath;
+- (NSTableRowView * __nonnull)tableView:(GNESectionedTableView * __nonnull)tableView
+               rowViewForRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 @required
-- (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForRowAtIndexPath:(NSIndexPath *)indexPath;
+- (NSTableCellView * __nonnull)tableView:(GNESectionedTableView * __nonnull)tableView
+               cellViewForRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 @optional
 /// Required if the table view includes headers.
 - (NSTableRowView * __nonnull)tableView:(GNESectionedTableView * __nonnull)tableView
