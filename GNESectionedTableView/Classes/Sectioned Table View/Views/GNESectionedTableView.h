@@ -103,61 +103,64 @@ static const CGFloat GNESectionedTableViewInvisibleRowHeight = 1.0f;
 
 /* Counts */
 @required
-- (NSUInteger)numberOfSectionsInTableView:(GNESectionedTableView *)tableView;
+- (NSUInteger)numberOfSectionsInTableView:(GNESectionedTableView * __nonnull)tableView;
 @required
-- (NSUInteger)tableView:(GNESectionedTableView *)tableView numberOfRowsInSection:(NSUInteger)section;
+- (NSUInteger)tableView:(GNESectionedTableView * __nonnull)tableView numberOfRowsInSection:(NSUInteger)section;
 
 /* Views */
 @required
-- (NSTableRowView *)tableView:(GNESectionedTableView *)tableView rowViewForRowAtIndexPath:(NSIndexPath *)indexPath;
+- (NSTableRowView * __nullable)tableView:(GNESectionedTableView * __nonnull)tableView
+                rowViewForRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 @required
-- (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForRowAtIndexPath:(NSIndexPath *)indexPath;
+- (NSTableCellView * __nullable)tableView:(GNESectionedTableView * __nonnull)tableView
+                cellViewForRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 
 /* Drag-and-drop */
 @optional
-- (NSArray *)draggedTypesForTableView:(GNESectionedTableView *)tableView;
+- (NSArray * __nullable)draggedTypesForTableView:(GNESectionedTableView * __nonnull)tableView;
 @optional
-- (void)tableViewDraggingSessionWillBegin:(GNESectionedTableView *)tableView;
+- (void)tableViewDraggingSessionWillBegin:(GNESectionedTableView * __nonnull)tableView;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didUpdateDrag:(id <NSDraggingInfo>)info;
+- (void)tableView:(GNESectionedTableView * __nonnull)tableView didUpdateDrag:(id <NSDraggingInfo> __nonnull)info;
 @optional
-- (BOOL)tableView:(GNESectionedTableView *)tableView canDragSection:(NSUInteger)section;
+- (BOOL)tableView:(GNESectionedTableView * __nonnull)tableView canDragSection:(NSUInteger)section;
 @optional
-- (BOOL)tableView:(GNESectionedTableView *)tableView
+- (BOOL)tableView:(GNESectionedTableView * __nonnull)tableView
    canDragSection:(NSUInteger)fromSection
         toSection:(NSUInteger)toSection;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView
-  didDragSections:(NSIndexSet *)fromSections
+- (void)tableView:(GNESectionedTableView * __nonnull)tableView
+  didDragSections:(NSIndexSet * __nonnull)fromSections
         toSection:(NSUInteger)toSection;
 @optional
-- (BOOL)tableView:(GNESectionedTableView *)tableView canDragRowAtIndexPath:(NSIndexPath *)indexPath;
+-       (BOOL)tableView:(GNESectionedTableView * __nonnull)tableView
+  canDragRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 @optional
--       (BOOL)tableView:(GNESectionedTableView *)tableView
-  canDropRowAtIndexPath:(NSIndexPath *)fromIndexPath
+-       (BOOL)tableView:(GNESectionedTableView * __nonnull)tableView
+  canDropRowAtIndexPath:(NSIndexPath * __nonnull)fromIndexPath
       onHeaderInSection:(NSUInteger)section;
 @optional
--       (BOOL)tableView:(GNESectionedTableView *)tableView
-  canDropRowAtIndexPath:(NSIndexPath *)fromIndexPath
-       onRowAtIndexPath:(NSIndexPath *)toIndexPath;
+-       (BOOL)tableView:(GNESectionedTableView * __nonnull)tableView
+  canDropRowAtIndexPath:(NSIndexPath * __nonnull)fromIndexPath
+       onRowAtIndexPath:(NSIndexPath * __nonnull)toIndexPath;
 @optional
--       (BOOL)tableView:(GNESectionedTableView *)tableView
-  canDragRowAtIndexPath:(NSIndexPath *)fromIndexPath
-            toIndexPath:(NSIndexPath *)toIndexPath;
+-       (BOOL)tableView:(GNESectionedTableView * __nonnull)tableView
+  canDragRowAtIndexPath:(NSIndexPath * __nonnull)fromIndexPath
+            toIndexPath:(NSIndexPath * __nonnull)toIndexPath;
 @optional
--       (void)tableView:(GNESectionedTableView *)tableView
-didDropRowsAtIndexPaths:(NSArray *)fromIndexPaths
+-       (void)tableView:(GNESectionedTableView * __nonnull)tableView
+didDropRowsAtIndexPaths:(NSArray * __nonnull)fromIndexPaths
       onHeaderInSection:(NSUInteger)section;
 @optional
--       (void)tableView:(GNESectionedTableView *)tableView
-didDropRowsAtIndexPaths:(NSArray *)fromIndexPaths
-       onRowAtIndexPath:(NSIndexPath *)toIndexPath;
+-       (void)tableView:(GNESectionedTableView * __nonnull)tableView
+didDropRowsAtIndexPaths:(NSArray * __nonnull)fromIndexPaths
+       onRowAtIndexPath:(NSIndexPath * __nonnull)toIndexPath;
 @optional
--       (void)tableView:(GNESectionedTableView *)tableView
-didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
-            toIndexPath:(NSIndexPath *)toIndexPath;
+-       (void)tableView:(GNESectionedTableView * __nonnull)tableView
+didDragRowsAtIndexPaths:(NSArray * __nonnull)fromIndexPaths
+            toIndexPath:(NSIndexPath * __nonnull)toIndexPath;
 @optional
-- (void)tableViewDraggingSessionDidEnd:(GNESectionedTableView *)tableView;
+- (void)tableViewDraggingSessionDidEnd:(GNESectionedTableView * __nonnull)tableView;
 
 @end
 
@@ -169,97 +172,108 @@ didDragRowsAtIndexPaths:(NSArray *)fromIndexPaths
 
 /* Sizing */
 @required
-- (CGFloat)tableView:(GNESectionedTableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath;
+-       (CGFloat)tableView:(GNESectionedTableView * __nonnull)tableView
+   heightForRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 @optional
 /// Required if the table view includes headers.
-- (CGFloat)tableView:(GNESectionedTableView *)tableView heightForHeaderInSection:(NSUInteger)section;
+- (CGFloat)tableView:(GNESectionedTableView * __nonnull)tableView heightForHeaderInSection:(NSUInteger)section;
 @optional
 /// Required if the table view includes footers.
-- (CGFloat)tableView:(GNESectionedTableView *)tableView heightForFooterInSection:(NSUInteger)section;
+- (CGFloat)tableView:(GNESectionedTableView * __nonnull)tableView heightForFooterInSection:(NSUInteger)section;
 
 /* Views */
 @optional
 /// Required if the table view includes headers.
-- (NSTableRowView *)tableView:(GNESectionedTableView *)tableView rowViewForHeaderInSection:(NSUInteger)section;
+- (NSTableRowView * __nonnull)tableView:(GNESectionedTableView * __nonnull)tableView
+              rowViewForHeaderInSection:(NSUInteger)section;
 @optional
 /// Required if the table view includes headers.
-- (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForHeaderInSection:(NSUInteger)section;
+- (NSTableCellView * __nonnull)tableView:(GNESectionedTableView * __nonnull)tableView
+              cellViewForHeaderInSection:(NSUInteger)section;
 @optional
 /// Required if the table view includes footers.
-- (NSTableRowView *)tableView:(GNESectionedTableView *)tableView rowViewForFooterInSection:(NSUInteger)section;
+- (NSTableRowView * __nonnull)tableView:(GNESectionedTableView * __nonnull)tableView
+              rowViewForFooterInSection:(NSUInteger)section;
 @optional
 /// Required if the table view includes footers.
-- (NSTableCellView *)tableView:(GNESectionedTableView *)tableView cellViewForFooterInSection:(NSUInteger)section;
+- (NSTableCellView * __nonnull)tableView:(GNESectionedTableView * __nonnull)tableView
+              cellViewForFooterInSection:(NSUInteger)section;
 @optional
--   (void)tableView:(GNESectionedTableView *)tableView
-  didDisplayRowView:(NSTableRowView *)rowView
+-   (void)tableView:(GNESectionedTableView * __nonnull)tableView
+  didDisplayRowView:(NSTableRowView * __nonnull)rowView
  forHeaderInSection:(NSUInteger)section;
 @optional
--   (void)tableView:(GNESectionedTableView *)tableView
-  didDisplayRowView:(NSTableRowView *)rowView
+-   (void)tableView:(GNESectionedTableView * __nonnull)tableView
+  didDisplayRowView:(NSTableRowView * __nonnull)rowView
  forFooterInSection:(NSUInteger)section;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView
-didDisplayRowView:(NSTableRowView *)rowView
-forRowAtIndexPath:(NSIndexPath *)indexPath;
+- (void)tableView:(GNESectionedTableView * __nonnull)tableView
+didDisplayRowView:(NSTableRowView * __nonnull)rowView
+forRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 @optional
--       (void)tableView:(GNESectionedTableView *)tableView
-didEndDisplayingRowView:(NSTableRowView *)rowView
+-       (void)tableView:(GNESectionedTableView * __nonnull)tableView
+didEndDisplayingRowView:(NSTableRowView * __nonnull)rowView
      forHeaderInSection:(NSUInteger)section;
 @optional
--       (void)tableView:(GNESectionedTableView *)tableView
-didEndDisplayingRowView:(NSTableRowView *)rowView
+-       (void)tableView:(GNESectionedTableView * __nonnull)tableView
+didEndDisplayingRowView:(NSTableRowView * __nonnull)rowView
      forFooterInSection:(NSUInteger)section;
 @optional
--       (void)tableView:(GNESectionedTableView *)tableView
-didEndDisplayingRowView:(NSTableRowView *)rowView
-      forRowAtIndexPath:(NSIndexPath *)indexPath;
+-       (void)tableView:(GNESectionedTableView * __nonnull)tableView
+didEndDisplayingRowView:(NSTableRowView * __nonnull)rowView
+      forRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 
 /* Expand/Collapse */
 @optional
-- (BOOL)tableView:(GNESectionedTableView *)tableView shouldExpandSection:(NSUInteger)section;
+- (BOOL)tableView:(GNESectionedTableView * __nonnull)tableView shouldExpandSection:(NSUInteger)section;
 @optional
-- (BOOL)tableView:(GNESectionedTableView *)tableView shouldCollapseSection:(NSUInteger)section;
+- (BOOL)tableView:(GNESectionedTableView * __nonnull)tableView shouldCollapseSection:(NSUInteger)section;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView willExpandSection:(NSUInteger)section;
+- (void)tableView:(GNESectionedTableView * __nonnull)tableView willExpandSection:(NSUInteger)section;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView willCollapseSection:(NSUInteger)section;
+- (void)tableView:(GNESectionedTableView * __nonnull)tableView willCollapseSection:(NSUInteger)section;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didExpandSection:(NSUInteger)section;
+- (void)tableView:(GNESectionedTableView * __nonnull)tableView didExpandSection:(NSUInteger)section;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didCollapseSection:(NSUInteger)section;
+- (void)tableView:(GNESectionedTableView * __nonnull)tableView didCollapseSection:(NSUInteger)section;
 
 /* Selection */
 @optional
-- (BOOL)tableView:(GNESectionedTableView *)tableView shouldSelectHeaderInSection:(NSUInteger)section;
+- (BOOL)tableView:(GNESectionedTableView * __nonnull)tableView shouldSelectHeaderInSection:(NSUInteger)section;
 @optional
-- (BOOL)tableView:(GNESectionedTableView *)tableView shouldSelectRowAtIndexPath:(NSIndexPath *)indexPath;
+-           (BOOL)tableView:(GNESectionedTableView * __nonnull)tableView
+ shouldSelectRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 @optional
--                   (void)tableView:(GNESectionedTableView *)tableView
-  proposedSelectedHeadersInSections:(NSIndexSet **)sectionIndexes
-      proposedSelectedRowIndexPaths:(NSArray **)indexPaths;
+-                   (void)tableView:(GNESectionedTableView * __nonnull)tableView
+  proposedSelectedHeadersInSections:(NSIndexSet * __nonnull * __nonnull)sectionIndexes
+      proposedSelectedRowIndexPaths:(NSArray * __nonnull * __nonnull)indexPaths;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didClickHeaderInSection:(NSUInteger)section;
+- (void)tableView:(GNESectionedTableView * __nonnull)tableView didClickHeaderInSection:(NSUInteger)section;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didClickFooterInSection:(NSUInteger)section;
+- (void)tableView:(GNESectionedTableView * __nonnull)tableView didClickFooterInSection:(NSUInteger)section;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didDoubleClickHeaderInSection:(NSUInteger)section;
+- (void)tableView:(GNESectionedTableView * __nonnull)tableView didDoubleClickHeaderInSection:(NSUInteger)section;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didDoubleClickFooterInSection:(NSUInteger)section;
+- (void)tableView:(GNESectionedTableView * __nonnull)tableView didDoubleClickFooterInSection:(NSUInteger)section;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didClickRowAtIndexPath:(NSIndexPath *)indexPath;
+-       (void)tableView:(GNESectionedTableView * __nonnull)tableView
+ didClickRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didDoubleClickRowAtIndexPath:(NSIndexPath *)indexPath;
+-               (void)tableView:(GNESectionedTableView * __nonnull)tableView
+   didDoubleClickRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 @optional
-- (void)tableViewDidDeselectAllHeadersAndRows:(GNESectionedTableView *)tableView;
+- (void)tableViewDidDeselectAllHeadersAndRows:(GNESectionedTableView * __nonnull)tableView;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didSelectHeaderInSection:(NSUInteger)section;
+- (void)tableView:(GNESectionedTableView * __nonnull)tableView didSelectHeaderInSection:(NSUInteger)section;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath;
+-       (void)tableView:(GNESectionedTableView * __nonnull)tableView
+didSelectRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didSelectHeadersInSections:(NSIndexSet *)sections;
+-           (void)tableView:(GNESectionedTableView * __nonnull)tableView
+ didSelectHeadersInSections:(NSIndexSet * __nonnull)sections;
 @optional
-- (void)tableView:(GNESectionedTableView *)tableView didSelectRowsAtIndexPaths:(NSArray *)indexPaths;
+-           (void)tableView:(GNESectionedTableView * __nonnull)tableView
+  didSelectRowsAtIndexPaths:(NSArray * __nonnull)indexPaths;
 
 @end
 
@@ -269,23 +283,23 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 @interface GNESectionedTableView : NSOutlineView
 
 /// Table view's current data source, which must conform to GNESectionedTableViewDataSource.
-@property (nonatomic, strong) id <GNESectionedTableViewDataSource> tableViewDataSource;
+@property (nonatomic, strong, nullable) id <GNESectionedTableViewDataSource> tableViewDataSource;
 
 /// Table view's current delegate, which must conform to GNESectionedTableViewDelegate.
-@property (nonatomic, strong) id <GNESectionedTableViewDelegate> tableViewDelegate;
+@property (nonatomic, strong, nullable) id <GNESectionedTableViewDelegate> tableViewDelegate;
 
 /// Returns the number of sections in the table view.
 @property (nonatomic, assign, readonly) NSUInteger numberOfSections;
 
 /// Returns the index path for the currently-selected row or nil if nothing is selected.
-@property (nonatomic, strong, readonly) NSIndexPath *selectedIndexPath;
+@property (nonatomic, strong, readonly, nullable) NSIndexPath *selectedIndexPath;
 
 /**
  Returns an array of index paths for the currently-selected rows or nil if nothing is selected.
  
  @discussion The index paths are returned sorted in ascending (section-first) order.
  */
-@property (nonatomic, strong, readonly) NSArray *selectedIndexPaths;
+@property (nonatomic, strong, readonly, nonnull) NSArray *selectedIndexPaths;
 
 /// Returns YES if the table view is in an -beginUpdate/-endUpdates block, otherwise NO.
 @property (nonatomic, assign, readonly) BOOL isUpdating;
@@ -298,7 +312,16 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  @param frameRect Frame of table view.
  @return Instance of GNESectionedTableView or one of its subclasses.
  */
-- (instancetype)initWithFrame:(NSRect)frameRect;
+- (id __nonnull)initWithFrame:(NSRect)frameRect NS_DESIGNATED_INITIALIZER;
+
+
+/**
+ Designated initializer. **Currently not fully implemented**
+ 
+ @param coder An unarchiver object.
+ @return Instance of GNESectionedTableView or one of its subclasses or nil.
+ */
+- (id __nullable)initWithCoder:(NSCoder * __nonnull)coder NS_DESIGNATED_INITIALIZER;
 
 
 #pragma mark - Reload data
@@ -321,7 +344,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  currently present in the table view.
  @return Index path corresponding to the specified view or nil.
  */
-- (NSIndexPath *)indexPathForView:(NSView *)view;
+- (NSIndexPath * __nullable)indexPathForView:(NSView * __nullable)view;
 
 /**
  Returns the table cell view at the specified index path, if one exists.
@@ -331,7 +354,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  @param indexPath Index path of a header, cell, or footer.
  @return Cell view at the specified index path, or nil.
  */
-- (NSTableCellView *)cellViewAtIndexPath:(NSIndexPath *)indexPath;
+- (NSTableCellView * __nullable)cellViewAtIndexPath:(NSIndexPath * __nullable)indexPath;
 
 
 #pragma mark - Counts
@@ -352,13 +375,13 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  path's section is less than the total number of sections in the table view and the row is less
  than the total number of rows in the section, otherwise NO.
  */
-- (BOOL)isIndexPathValid:(NSIndexPath *)indexPath;
+- (BOOL)isIndexPathValid:(NSIndexPath * __nullable)indexPath;
 
 /// Returns YES if the specified index path belongs to a section header, otherwise NO.
-- (BOOL)isIndexPathHeader:(NSIndexPath *)indexPath;
+- (BOOL)isIndexPathHeader:(NSIndexPath * __nullable)indexPath;
 
 /// Returns YES if the specified index path belongs to a section footer, otherwise NO.
-- (BOOL)isIndexPathFooter:(NSIndexPath *)indexPath;
+- (BOOL)isIndexPathFooter:(NSIndexPath * __nullable)indexPath;
 
 /**
  Returns the index path for the specified section header, or nil if the section isn't valid.
@@ -368,7 +391,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  @return Index path corresponding to the specified section header, or nil if the
  section is invalid.
  */
-- (NSIndexPath *)indexPathForHeaderInSection:(NSUInteger)section;
+- (NSIndexPath * __nullable)indexPathForHeaderInSection:(NSUInteger)section;
 
 /**
  Returns the index path for the specified section footer, or nil if the section isn't valid.
@@ -378,7 +401,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  @return Index path corresponding to the specified section footer, or nil if the
  section is invalid.
  */
-- (NSIndexPath *)indexPathForFooterInSection:(NSUInteger)section;
+- (NSIndexPath * __nullable)indexPathForFooterInSection:(NSUInteger)section;
 
 /**
  Returns the index path mapped to the underlying NSTableView row, or nil if the row isn't valid.
@@ -388,7 +411,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  @param row NSTableView row corresponding to a section header or row in the table view.
  @return Index path corresponding to the specified table view row or nil.
  */
-- (NSIndexPath *)indexPathForTableViewRow:(NSInteger)row;
+- (NSIndexPath * __nullable)indexPathForTableViewRow:(NSInteger)row;
 
 /**
  Returns the NSTableView row for the specified index path, if the index path maps to a valid
@@ -397,30 +420,37 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  @param indexPath Index path to match to a table view row.
  @return The NSTableView row mapped to the specified index path or -1.
  */
-- (NSInteger)tableViewRowForIndexPath:(NSIndexPath *)indexPath;
+- (NSInteger)tableViewRowForIndexPath:(NSIndexPath * __nullable)indexPath;
 
 
 #pragma mark - Insertion, Deletion, Move, and Update
-- (void)insertRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions;
-- (void)deleteRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions;
-- (void)moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath;
-- (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPaths:(NSArray *)toIndexPaths;
+- (void)insertRowsAtIndexPaths:(NSArray * __nonnull)indexPaths
+                 withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (void)deleteRowsAtIndexPaths:(NSArray * __nonnull)indexPaths
+                 withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (void)moveRowAtIndexPath:(NSIndexPath * __nonnull)fromIndexPath
+               toIndexPath:(NSIndexPath * __nonnull)toIndexPath;
+- (void)moveRowsAtIndexPaths:(NSArray * __nonnull)fromIndexPaths
+                toIndexPaths:(NSArray * __nonnull)toIndexPaths;
 /**
  Moves the rows at the specified from index paths to the specified to index path and maintains the
  order of the rows.
  */
-- (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPath:(NSIndexPath *)toIndexPath;
-- (void)reloadRowsAtIndexPaths:(NSArray *)indexPaths;
+- (void)moveRowsAtIndexPaths:(NSArray * __nonnull)fromIndexPaths toIndexPath:(NSIndexPath * __nonnull)toIndexPath;
+- (void)reloadRowsAtIndexPaths:(NSArray * __nonnull)indexPaths;
 
 /// Inserts the specified sections with the specified animation and expands them.
-- (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (void)insertSections:(NSIndexSet * __nonnull)sections
+         withAnimation:(NSTableViewAnimationOptions)animationOptions;
 /// Inserts the specified sections with the specified animation and expands or collapses them as specified.
-- (void)insertSections:(NSIndexSet *)sections
+- (void)insertSections:(NSIndexSet * __nonnull)sections
          withAnimation:(NSTableViewAnimationOptions)animationOptions
              expanded:(BOOL)expanded;
-- (void)deleteSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (void)deleteSections:(NSIndexSet * __nonnull)sections
+         withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)moveSection:(NSUInteger)fromSection toSection:(NSUInteger)toSection;
-- (void)moveSections:(GNEOrderedIndexSet *)fromSections toSections:(GNEOrderedIndexSet *)toSections;
+- (void)moveSections:(GNEOrderedIndexSet * __nonnull)fromSections
+          toSections:(GNEOrderedIndexSet * __nonnull)toSections;
 /**
  Moves the specified sections to the specified section index. The order of the from sections is maintained.
  
@@ -430,25 +460,25 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  @param fromSections Indexes of sections to be moved.
  @param toSection Index of section to move the specified sections to.
  */
-- (void)moveSections:(GNEOrderedIndexSet *)fromSections toSection:(NSUInteger)toSection;
+- (void)moveSections:(GNEOrderedIndexSet * __nonnull)fromSections toSection:(NSUInteger)toSection;
 
-- (void)reloadSections:(NSIndexSet *)sections;
+- (void)reloadSections:(NSIndexSet * __nonnull)sections;
 
 
 #pragma mark - Expand/Collapse Sections
 - (BOOL)isSectionExpanded:(NSUInteger)section;
 - (void)expandAllSections:(BOOL)animated;
 - (void)expandSection:(NSUInteger)section animated:(BOOL)animated;
-- (void)expandSections:(NSIndexSet *)sections animated:(BOOL)animated;
+- (void)expandSections:(NSIndexSet * __nonnull)sections animated:(BOOL)animated;
 - (void)collapseAllSections:(BOOL)animated;
 - (void)collapseSection:(NSUInteger)section animated:(BOOL)animated;
-- (void)collapseSections:(NSIndexSet *)sections animated:(BOOL)animated;
+- (void)collapseSections:(NSIndexSet * __nonnull)sections animated:(BOOL)animated;
 
 
 #pragma mark - Selection
-- (BOOL)isIndexPathSelected:(NSIndexPath *)indexPath;
-- (void)selectRowAtIndexPath:(NSIndexPath *)indexPath byExtendingSelection:(BOOL)extend;
-- (void)selectRowsAtIndexPaths:(NSArray *)indexPaths byExtendingSelection:(BOOL)extend;
+- (BOOL)isIndexPathSelected:(NSIndexPath * __nonnull)indexPath;
+- (void)selectRowAtIndexPath:(NSIndexPath * __nullable)indexPath byExtendingSelection:(BOOL)extend;
+- (void)selectRowsAtIndexPaths:(NSArray * __nullable)indexPaths byExtendingSelection:(BOOL)extend;
 
 
 #pragma mark - Layout Support
@@ -459,7 +489,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  @param point Point in the coordinate system of the receiver.
  @return Index path for the section header or row at the specified point or nil.
  */
-- (NSIndexPath *)indexPathForViewAtPoint:(CGPoint)point;
+- (NSIndexPath * __nullable)indexPathForViewAtPoint:(CGPoint)point;
 
 
 /**
@@ -471,7 +501,7 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
  @param indexPath Index path for the section header or row.
  @return Frame of the view at the specified index path in the coordinate space of the table view.
  */
-- (CGRect)frameOfViewAtIndexPath:(NSIndexPath *)indexPath;
+- (CGRect)frameOfViewAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 
 
 /**
@@ -484,6 +514,6 @@ didEndDisplayingRowView:(NSTableRowView *)rowView
 
 
 #pragma mark - Scrolling
-- (void)scrollRowAtIndexPathToVisible:(NSIndexPath *)indexPath;
+- (void)scrollRowAtIndexPathToVisible:(NSIndexPath * __nonnull)indexPath;
 
 @end

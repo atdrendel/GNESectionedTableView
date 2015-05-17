@@ -115,24 +115,31 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Initialization
 // ------------------------------------------------------------------------------------------
-- (instancetype)init
-{
-    if ((self = [super init]))
-    {
-        [self p_commonInitialization];
-    }
-    
-    return self;
-}
-
-
 - (instancetype)initWithFrame:(CGRect)frame
 {
     if ((self = [super initWithFrame:frame]))
     {
         [self p_commonInitialization];
     }
-    
+
+    return self;
+}
+
+
+- (instancetype)init
+{
+    return [self initWithFrame:CGRectZero];
+}
+
+
+- (instancetype)initWithCoder:(NSCoder *)coder
+{
+    if ((self = [super initWithCoder:coder]))
+    {
+        self.frame = CGRectZero;
+        [self p_commonInitialization];
+    }
+
     return self;
 }
 
@@ -279,7 +286,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Public - Views
 // ------------------------------------------------------------------------------------------
-- (NSIndexPath *)indexPathForView:(NSView *)view
+- (NSIndexPath * __nullable)indexPathForView:(NSView * __nullable)view
 {
     NSInteger tableViewRow = [self rowForView:view];
     
@@ -287,7 +294,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (NSTableCellView *)cellViewAtIndexPath:(NSIndexPath *)indexPath
+- (NSTableCellView * __nullable)cellViewAtIndexPath:(NSIndexPath * __nullable)indexPath
 {
     NSInteger tableViewRow = [self tableViewRowForIndexPath:indexPath];
     NSInteger columnCount = self.numberOfColumns;
@@ -329,7 +336,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Public - Index Paths / NSTableView Rows
 // ------------------------------------------------------------------------------------------
-- (BOOL)isIndexPathValid:(NSIndexPath *)indexPath
+- (BOOL)isIndexPathValid:(NSIndexPath * __nullable)indexPath
 {
     if (indexPath == nil)
     {
@@ -350,7 +357,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (BOOL)isIndexPathHeader:(NSIndexPath *)indexPath
+- (BOOL)isIndexPathHeader:(NSIndexPath * __nullable)indexPath
 {
     if (indexPath == nil)
     {
@@ -367,7 +374,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (BOOL)isIndexPathFooter:(NSIndexPath *)indexPath
+- (BOOL)isIndexPathFooter:(NSIndexPath * __nullable)indexPath
 {
     if (indexPath == nil)
     {
@@ -384,7 +391,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (NSIndexPath *)indexPathForHeaderInSection:(NSUInteger)section
+- (NSIndexPath * __nullable)indexPathForHeaderInSection:(NSUInteger)section
 {
     NSUInteger sectionCount = self.numberOfSections;
     if (section < sectionCount)
@@ -398,7 +405,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (NSIndexPath *)indexPathForFooterInSection:(NSUInteger)section
+- (NSIndexPath * __nullable)indexPathForFooterInSection:(NSUInteger)section
 {
     NSUInteger sectionCount = self.numberOfSections;
     if (section < sectionCount)
@@ -412,7 +419,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (NSIndexPath *)indexPathForTableViewRow:(NSInteger)row
+- (NSIndexPath  * __nullable)indexPathForTableViewRow:(NSInteger)row
 {
     if (row >= 0)
     {
@@ -420,12 +427,12 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
         return [self p_indexPathOfOutlineViewItem:item];
     }
-    
+
     return nil;
 }
 
 
-- (NSInteger)tableViewRowForIndexPath:(NSIndexPath *)indexPath
+- (NSInteger)tableViewRowForIndexPath:(NSIndexPath * __nullable)indexPath
 {
     if ([self isIndexPathValid:indexPath] == NO)
     {
@@ -441,7 +448,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Public - Insertion, Deletion, Move, and Update
 // ------------------------------------------------------------------------------------------
-- (void)insertRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions
+- (void)insertRowsAtIndexPaths:(NSArray * __nonnull)indexPaths
+                 withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
 #if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), indexPaths);
@@ -488,7 +496,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)deleteRowsAtIndexPaths:(NSArray *)indexPaths withAnimation:(NSTableViewAnimationOptions)animationOptions
+- (void)deleteRowsAtIndexPaths:(NSArray * __nonnull)indexPaths
+                 withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
 #if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), indexPaths);
@@ -557,7 +566,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
+- (void)moveRowAtIndexPath:(NSIndexPath * __nonnull)fromIndexPath
+               toIndexPath:(NSIndexPath * __nonnull)toIndexPath
 {
     GNEParameterAssert(fromIndexPath);
     GNEParameterAssert(toIndexPath);
@@ -566,7 +576,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPaths:(NSArray *)toIndexPaths
+- (void)moveRowsAtIndexPaths:(NSArray * __nonnull)fromIndexPaths
+                toIndexPaths:(NSArray * __nonnull)toIndexPaths
 {
     GNEParameterAssert(fromIndexPaths.count == toIndexPaths.count);
     
@@ -617,7 +628,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)moveRowsAtIndexPaths:(NSArray *)fromIndexPaths toIndexPath:(NSIndexPath *)toIndexPath
+- (void)moveRowsAtIndexPaths:(NSArray * __nonnull)fromIndexPaths
+                 toIndexPath:(NSIndexPath * __nonnull)toIndexPath
 {
     [self p_checkIndexPathsArray:fromIndexPaths];
     
@@ -638,7 +650,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)reloadRowsAtIndexPaths:(NSArray *)indexPaths
+- (void)reloadRowsAtIndexPaths:(NSArray * __nonnull)indexPaths
 {
 #if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), indexPaths);
@@ -669,13 +681,14 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)insertSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions
+- (void)insertSections:(NSIndexSet * __nonnull)sections
+         withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
     [self insertSections:sections withAnimation:animationOptions expanded:YES];
 }
 
 
-- (void)insertSections:(NSIndexSet *)sections
+- (void)insertSections:(NSIndexSet * __nonnull)sections
          withAnimation:(NSTableViewAnimationOptions)animationOptions
               expanded:(BOOL)expanded
 {
@@ -736,7 +749,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)deleteSections:(NSIndexSet *)sections withAnimation:(NSTableViewAnimationOptions)animationOptions
+- (void)deleteSections:(NSIndexSet * __nonnull)sections
+         withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
 #if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), sections);
@@ -787,8 +801,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)moveSections:(GNEOrderedIndexSet *)fromSections
-          toSections:(GNEOrderedIndexSet *)toSections
+- (void)moveSections:(GNEOrderedIndexSet * __nonnull)fromSections
+          toSections:(GNEOrderedIndexSet * __nonnull)toSections
 {
 #if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\nFrom: %@ To: %@", NSStringFromSelector(_cmd), fromSections, toSections);
@@ -847,7 +861,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)moveSections:(GNEOrderedIndexSet *)fromSections toSection:(NSUInteger)toSection
+- (void)moveSections:(GNEOrderedIndexSet * __nonnull)fromSections toSection:(NSUInteger)toSection
 {
     GNEParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
     
@@ -864,7 +878,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)reloadSections:(NSIndexSet *)sections
+- (void)reloadSections:(NSIndexSet * __nonnull)sections
 {
 #if GNE_CRUD_LOGGING_ENABLED
     NSLog(@"%@\n%@", NSStringFromSelector(_cmd), sections);
@@ -939,7 +953,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)expandSections:(NSIndexSet *)sections animated:(BOOL)animated
+- (void)expandSections:(NSIndexSet * __nonnull)sections animated:(BOOL)animated
 {
     if (animated)
     {
@@ -1000,7 +1014,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)collapseSections:(NSIndexSet *)sections animated:(BOOL)animated
+- (void)collapseSections:(NSIndexSet * __nonnull)sections animated:(BOOL)animated
 {
     if (animated)
     {
@@ -1088,7 +1102,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (BOOL)isIndexPathSelected:(NSIndexPath *)indexPath
+- (BOOL)isIndexPathSelected:(NSIndexPath * __nonnull)indexPath
 {
     GNEParameterAssert(indexPath);
     
@@ -1113,7 +1127,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)selectRowAtIndexPath:(NSIndexPath *)indexPath byExtendingSelection:(BOOL)extend
+- (void)selectRowAtIndexPath:(NSIndexPath * __nullable)indexPath byExtendingSelection:(BOOL)extend
 {
     if (indexPath == nil && extend == NO)
     {
@@ -1146,7 +1160,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (void)selectRowsAtIndexPaths:(NSArray *)indexPaths byExtendingSelection:(BOOL)extend
+- (void)selectRowsAtIndexPaths:(NSArray * __nullable)indexPaths byExtendingSelection:(BOOL)extend
 {
     if (indexPaths.count == 0 && extend == NO)
     {
@@ -1173,7 +1187,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Public - Layout Support
 // ------------------------------------------------------------------------------------------
-- (NSIndexPath *)indexPathForViewAtPoint:(CGPoint)point
+- (NSIndexPath * __nullable)indexPathForViewAtPoint:(CGPoint)point
 {
     NSInteger tableViewRow = [self rowAtPoint:point];
     
@@ -1181,7 +1195,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (CGRect)frameOfViewAtIndexPath:(NSIndexPath *)indexPath
+- (CGRect)frameOfViewAtIndexPath:(NSIndexPath * __nonnull)indexPath
 {
     GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
     NSInteger lastColumn = self.numberOfColumns - 1; // Assume only one column
@@ -1228,7 +1242,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Public - Scrolling
 // ------------------------------------------------------------------------------------------
-- (void)scrollRowAtIndexPathToVisible:(NSIndexPath *)indexPath
+- (void)scrollRowAtIndexPathToVisible:(NSIndexPath * __nonnull)indexPath
 {
     NSInteger tableViewRow = [self tableViewRowForIndexPath:indexPath];
     if (tableViewRow >= 0)
