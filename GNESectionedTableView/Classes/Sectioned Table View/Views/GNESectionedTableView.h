@@ -109,10 +109,10 @@ static const CGFloat GNESectionedTableViewInvisibleRowHeight = 1.0f;
 
 /* Views */
 @required
-- (NSTableRowView * __nullable)tableView:(GNESectionedTableView * __nonnull)tableView
+- (NSTableRowView * __nonnull)tableView:(GNESectionedTableView * __nonnull)tableView
                 rowViewForRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 @required
-- (NSTableCellView * __nullable)tableView:(GNESectionedTableView * __nonnull)tableView
+- (NSTableCellView * __nonnull)tableView:(GNESectionedTableView * __nonnull)tableView
                 cellViewForRowAtIndexPath:(NSIndexPath * __nonnull)indexPath;
 
 /* Drag-and-drop */
