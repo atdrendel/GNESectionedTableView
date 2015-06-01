@@ -30,6 +30,13 @@
 {
     [super setUp];
 
+    [self setUpRowViewBlock];
+    [self setUpCellViewBlock];
+}
+
+
+- (void)setUpRowViewBlock
+{
     __weak typeof(self) weakSelf = self;
     __weak typeof(self.tableView) weakTV = self.tableView;
 
@@ -47,6 +54,13 @@
     };
     [self.delegate setBlock:(__bridge void *)rowViewBlock
                 forSelector:@selector(tableView:rowViewForRowAtIndexPath:)];
+}
+
+
+- (void)setUpCellViewBlock
+{
+    __weak typeof(self) weakSelf = self;
+    __weak typeof(self.tableView) weakTV = self.tableView;
 
     MockViewForRowBlock cellViewBlock = ^NSTableCellView *(NSIndexPath *indexPath)
     {
@@ -78,6 +92,7 @@
     XCTSetNumberOfRowsInSections(@[@(rowCount)]);
     XCTSetHeightOfHeader(section, height);
     [self.tableView reloadData];
+    
     XCTAssertHeightOfHeader(section, height);
 }
 
@@ -96,8 +111,50 @@
     XCTSetHeightOfHeader(section, headerHeight);
     XCTSetHeightOfRow([NSIndexPath gne_indexPathForRow:row inSection:section], rowHeight);
     [self.tableView reloadData];
+
     XCTAssertHeightOfHeader(section, headerHeight);
     XCTAssertHeightOfRow([NSIndexPath gne_indexPathForRow:row inSection:section], rowHeight);
+}
+
+
+- (void)testHeightOfSections_HeadersAndRows
+{
+    NSUInteger sectionCount = 2;
+    NSUInteger rowCount = 2; // Per section
+    NSUInteger heights[2] = {0, 1};
+    GNEOrderedIndexSet *sections = [GNEOrderedIndexSet indexSetWithIndexes:heights count:2];
+    NSArray *headerHeights = @[@10.0, @20.0];
+    NSArray *rowHeights = @[@30.0, @40.0];
+    NSMutableArray *indexPaths = [NSMutableArray array];
+    NSMutableArray *rowHeightsForIndexPaths = [NSMutableArray array];
+    for (NSUInteger section = 0; section < sectionCount; section++)
+    {
+        for (NSUInteger row = 0; row < rowCount; row++)
+        {
+            NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
+            NSNumber *heightNumber = rowHeights[section];
+            [indexPaths addObject:indexPath];
+            [rowHeightsForIndexPaths addObject:heightNumber];
+        }
+    }
+    XCTSetNumberOfSections(sectionCount);
+    XCTSetNumberOfRowsInSections((@[@(rowCount), @(rowCount)]));
+    XCTSetHeightsOfHeaders(sections, headerHeights);
+    XCTSetHeightsOfRows(indexPaths, rowHeightsForIndexPaths);
+    [self.tableView reloadData];
+
+    for (NSUInteger i = 0; i < indexPaths.count; i++)
+    {
+        NSUInteger section = [indexPaths[i] gne_section];
+        XCTAssertHeightOfHeader(section, [headerHeights[section] doubleValue]);
+        XCTAssertHeightOfRow(indexPaths[i], [rowHeightsForIndexPaths[i] doubleValue]);
+    }
+}
+
+
+- (void)testHeightOfSections_HeaderRowAndFooter
+{
+
 }
 
 
