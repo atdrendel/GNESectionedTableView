@@ -232,8 +232,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     __strong typeof(self) strongSelf = self;
 
     [super reloadData];
-    
-    [strongSelf selectRowIndexes:nil byExtendingSelection:NO];
+
+    [strongSelf selectRowIndexes:[NSIndexSet indexSet]
+            byExtendingSelection:NO];
     
     [strongSelf.outlineViewParentItems removeAllObjects];
     [strongSelf.outlineViewItems removeAllObjects];
@@ -2275,7 +2276,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [info enumerateDraggingItemsWithOptions:0
                                     forView:self
                                     classes:@[[GNEOutlineViewItem class]]
-                              searchOptions:nil
+                              searchOptions:@{}
                                  usingBlock:^(NSDraggingItem *draggingItem,
                                               NSInteger idx __unused,
                                               BOOL *stop)
@@ -2341,7 +2342,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         [info enumerateDraggingItemsWithOptions:0
                                         forView:self
                                         classes:@[[GNEOutlineViewItem class]]
-                                  searchOptions:nil
+                                  searchOptions:@{}
                                      usingBlock:^(NSDraggingItem *draggingItem,
                                                   NSInteger idx __unused,
                                                   BOOL *stop)
@@ -2395,7 +2396,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [info enumerateDraggingItemsWithOptions:0
                                     forView:self
                                     classes:@[[GNEOutlineViewItem class]]
-                              searchOptions:nil
+                              searchOptions:@{}
                                  usingBlock:^(NSDraggingItem *draggingItem,
                                               NSInteger idx __unused,
                                               BOOL *stop)
@@ -2538,7 +2539,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [info enumerateDraggingItemsWithOptions:0
                                     forView:self
                                     classes:@[[GNEOutlineViewItem class]]
-                              searchOptions:0
+                              searchOptions:@{}
                                  usingBlock:^(NSDraggingItem *draggingItem,
                                               NSInteger idx __unused,
                                               BOOL *stop)
@@ -3609,7 +3610,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [session enumerateDraggingItemsWithOptions:0
                                        forView:outlineView
                                        classes:@[[GNEOutlineViewItem class]]
-                                 searchOptions:nil
+                                 searchOptions:@{}
                                     usingBlock:^(NSDraggingItem *draggingItem,
                                                  NSInteger idx,
                                                  BOOL *stop __unused)
@@ -3707,7 +3708,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [info enumerateDraggingItemsWithOptions:0
                                     forView:self
                                     classes:@[[GNEOutlineViewItem class]]
-                              searchOptions:0
+                              searchOptions:@{}
                                  usingBlock:^(NSDraggingItem *draggingItem,
                                               NSInteger idx __unused,
                                               BOOL *stop __unused)

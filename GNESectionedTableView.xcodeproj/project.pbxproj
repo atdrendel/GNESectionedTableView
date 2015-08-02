@@ -452,7 +452,7 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = GNE;
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Gone East LLC";
 			};
 			buildConfigurationList = 578E75701934B69E00333D86 /* Build configuration list for PBXProject "GNESectionedTableView" */;
@@ -612,6 +612,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -691,6 +692,7 @@
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				INFOPLIST_FILE = "GNESectionedTableView/GNESectionedTableView-Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.goneeast.GNESectionedTableView.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -722,6 +724,7 @@
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				INFOPLIST_FILE = "GNESectionedTableView/GNESectionedTableView-Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.goneeast.GNESectionedTableView.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -742,6 +745,7 @@
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = "GNESectionedTableViewTests/GNESectionedTableViewTests-Info.plist";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.goneeast.GNESectionedTableView.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = xctest;
 			};
@@ -758,6 +762,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "GNESectionedTableView/GNESectionedTableView-Prefix.pch";
 				INFOPLIST_FILE = "GNESectionedTableViewTests/GNESectionedTableViewTests-Info.plist";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.goneeast.GNESectionedTableView.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = xctest;
 			};
