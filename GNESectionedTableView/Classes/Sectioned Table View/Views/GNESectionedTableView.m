@@ -289,6 +289,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         [self expandSections:self.insertedSectionsToExpand animated:NO];
         [self.insertedSectionsToExpand removeAllIndexes];
         [self p_updateMapForAvailableRowViews];
+        [self p_checkDataSourceIntegrity];
     }
 }
 
