@@ -32,23 +32,14 @@
 @import Cocoa;
 #import "GNEOutlineViewItem.h"
 
-
 // ------------------------------------------------------------------------------------------
 
-
 @interface GNEOutlineViewParentItem : GNEOutlineViewItem
-
 
 /// YES if the parent item's section has a footer, otherwise NO.
 @property (nonatomic, assign) BOOL hasFooter;
 
-
-/**
- Default initializer.
- 
- @return Instance of WLOutlineViewItem or one of its subclasses.
- */
-- (instancetype)init;
-
+- (nonnull instancetype)init NS_DESIGNATED_INITIALIZER;
+- (nullable instancetype)initWithCoder:(nonnull NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
 
 @end

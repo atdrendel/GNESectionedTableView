@@ -56,11 +56,17 @@ static NSString * const GNEOutlineViewItemDraggedIndexPathKey = @"GNEOutlineView
 {
     if ((self = [super init]))
     {
-        _parentItem = parentItem; // Don't use accessor here because it may be nil (GNEOutlineViewParentItem).
+        _parentItem = parentItem;
         _draggedIndexPath = nil;
     }
     
     return self;
+}
+
+
+- (instancetype)init
+{
+    return [self initWithParentItem:nil];
 }
 
 
@@ -112,6 +118,8 @@ static NSString * const GNEOutlineViewItemDraggedIndexPathKey = @"GNEOutlineView
 // ------------------------------------------------------------------------------------------
 #pragma mark - NSPasteboardReader
 // ------------------------------------------------------------------------------------------
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-designated-initializers"
 - (instancetype)initWithPasteboardPropertyList:(id)propertyList ofType:(NSString *)type
 {
     if ([type isEqualToString:GNEOutlineViewItemPasteboardType])
@@ -121,6 +129,7 @@ static NSString * const GNEOutlineViewItemDraggedIndexPathKey = @"GNEOutlineView
     
     return nil;
 }
+#pragma clang diagnostic pop
 
 
 + (NSArray *)readableTypesForPasteboard:(NSPasteboard * __unused)pasteboard
@@ -184,20 +193,6 @@ static NSString * const GNEOutlineViewItemDraggedIndexPathKey = @"GNEOutlineView
 - (NSUInteger)hash
 {
     return (NSUInteger)self;
-}
-
-
-// ------------------------------------------------------------------------------------------
-#pragma mark - Accessors
-// ------------------------------------------------------------------------------------------
-- (void)setParentItem:(GNEOutlineViewParentItem *)parentItem
-{
-    NSParameterAssert(parentItem);
-    
-    if (_parentItem != parentItem)
-    {
-        _parentItem = parentItem;
-    }
 }
 
 

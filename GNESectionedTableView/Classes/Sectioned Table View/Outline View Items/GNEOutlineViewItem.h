@@ -34,55 +34,32 @@
 @class GNEOutlineViewItem;
 @class GNEOutlineViewParentItem;
 
-
 // ------------------------------------------------------------------------------------------
 
-
-extern NSString * const GNEOutlineViewItemPasteboardType;
-
-extern NSString * const GNEOutlineViewItemParentItemKey;
-
+extern NSString  * _Nonnull  const GNEOutlineViewItemPasteboardType;
+extern NSString  * _Nonnull  const GNEOutlineViewItemParentItemKey;
 
 // ------------------------------------------------------------------------------------------
-
 
 @protocol GNEOutlineViewItemPasteboardWritingDelegate <NSObject>
 
-
-- (NSIndexPath *)draggedIndexPathForOutlineViewItem:(GNEOutlineViewItem *)item;
-
+- (NSIndexPath * _Nullable)draggedIndexPathForOutlineViewItem:(GNEOutlineViewItem * _Nonnull)item;
 
 @end
 
-
 // ------------------------------------------------------------------------------------------
-
 
 @interface GNEOutlineViewItem : NSObject <NSSecureCoding, NSPasteboardReading, NSPasteboardWriting>
 
-
 @property (nonatomic, weak) id <GNEOutlineViewItemPasteboardWritingDelegate> pasteboardWritingDelegate;
 
-
-/**
- Parent item of this object.
- */
+/// Parent item of this object.
 @property (nonatomic, weak) GNEOutlineViewParentItem *parentItem;
 
+/// Index path of the receiver if it is being dragged, otherwise nil.
+@property (nullable, nonatomic, strong, readonly) NSIndexPath *draggedIndexPath;
 
-/**
- Index path of the receiver if it is being dragged, otherwise nil.
- */
-@property (nonatomic, strong, readonly) NSIndexPath *draggedIndexPath;
-
-
-/**
- Default initializer. The parent item points to this object's parent item. This reference must be kept up-to-date.
- 
- @param parentItem Parent item of this object.
- @return Instance of WLOutlineViewItem or one of its subclasses.
- */
-- (instancetype)initWithParentItem:(GNEOutlineViewParentItem *)parentItem;
-
+- (nonnull instancetype)initWithParentItem:(GNEOutlineViewParentItem * _Nullable)parentItem NS_DESIGNATED_INITIALIZER;
+- (nullable instancetype)initWithCoder:(nonnull NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
 
 @end

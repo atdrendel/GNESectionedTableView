@@ -17,7 +17,7 @@ static const NSUInteger kTestIndexSetMaxIndex = 10000;
 static const NSUInteger kPerformanceTestIterations = 10000;
 
 #ifndef GNEOrderedIndexSet_FoundationPerformanceTestsEnabled
-    #define GNEOrderedIndexSet_FoundationPerformanceTestsEnabled 1
+    #define GNEOrderedIndexSet_FoundationPerformanceTestsEnabled 0
 #endif
 
 #define XCTAssertCount(indexSet, c) \
