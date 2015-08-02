@@ -2893,7 +2893,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 #pragma mark - GNESectionedTableView - Internal - Debug Checks
 // ------------------------------------------------------------------------------------------
-#ifdef DEBUG
+#if DEBUG
 - (void)p_checkDataSourceIntegrity
 {
     if (self.isUpdating)
@@ -2913,21 +2913,24 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         return;
     }
-    
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-    NSUInteger numberOfSectionsInDataSource = (NSUInteger)[dataSource performSelector:numberOfSectionsSelector];
-#pragma clang diagnostic pop
+
+    NSUInteger (*numberOfSections)(id, SEL) = (NSUInteger (*)(id, SEL))[dataSource methodForSelector:numberOfSectionsSelector];
+    NSUInteger (*numberOfRows)(id, SEL) = (NSUInteger (*)(id, SEL))[dataSource methodForSelector:numberOfRowsSelector];
+    NSUInteger (*numberOfFooters)(id, SEL) = (NSUInteger (*)(id, SEL))[dataSource methodForSelector:numberOfFootersSelector];
+
+    if (numberOfSections == NULL || numberOfRows == NULL || numberOfFooters == NULL)
+    {
+        return;
+    }
+
+    NSUInteger numberOfSectionsInDataSource = numberOfSections(dataSource, numberOfRowsSelector);
     NSUInteger numberOfSectionsInOutlineView = (NSUInteger)[self p_numberOfSections];
     
     GNEParameterAssert(numberOfSectionsInDataSource == numberOfSectionsInOutlineView);
-    
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-    NSUInteger numberOfRowsInDataSource = (NSUInteger)[dataSource performSelector:numberOfRowsSelector];
-    NSUInteger numberOfFootersInDataSource = (NSUInteger)[dataSource performSelector:numberOfFootersSelector];
+
+    NSUInteger numberOfRowsInDataSource = numberOfRows(dataSource, numberOfRowsSelector);
+    NSUInteger numberOfFootersInDataSource = numberOfFooters(dataSource, numberOfFootersSelector);
     NSUInteger totalNumberOfRowsInDataSource = numberOfRowsInDataSource + numberOfFootersInDataSource;
-#pragma clang diagnostic pop
     NSUInteger numberOfRowsInOutlineView = [self p_numberOfRowsInOutlineView] - [self p_numberOfSections];
     
     GNEParameterAssert(totalNumberOfRowsInDataSource == numberOfRowsInOutlineView);
@@ -2940,7 +2943,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 #endif
 
 
-#ifdef DEBUG
+#if DEBUG
 - (void)p_checkIndexPathsArray:(NSArray *)indexPaths
 {
     for (NSIndexPath *indexPath in indexPaths)

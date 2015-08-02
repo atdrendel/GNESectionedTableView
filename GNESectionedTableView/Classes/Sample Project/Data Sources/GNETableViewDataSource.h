@@ -37,7 +37,7 @@
 - (void)setTableView:(GNESectionedTableView *)tableView;
 
 
-#ifdef DEBUG
+#if DEBUG
 - (NSUInteger)numberOfSections;
 - (NSUInteger)numberOfRows;
 - (NSUInteger)numberOfFooters;

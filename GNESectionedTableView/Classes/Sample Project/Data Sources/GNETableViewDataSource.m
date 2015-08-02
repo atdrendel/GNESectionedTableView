@@ -106,7 +106,7 @@ static NSString * const kFooterCellViewIdentifier = @"com.goneeast.FooterCellVie
 // ------------------------------------------------------------------------------------------
 #pragma mark - Public - Debugging
 // ------------------------------------------------------------------------------------------
-#ifdef DEBUG
+#if DEBUG
 - (NSUInteger)numberOfSections
 {
     NSParameterAssert(self.sections.count == self.rows.count);
