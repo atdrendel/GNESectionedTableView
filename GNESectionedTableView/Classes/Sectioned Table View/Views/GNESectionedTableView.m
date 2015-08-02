@@ -3838,8 +3838,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     if (_tableViewDataSource != tableViewDataSource)
     {
         _tableViewDataSource = tableViewDataSource;
-        
-        [self reloadData];
     }
 }
 
@@ -3852,9 +3850,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     if (_tableViewDelegate != tableViewDelegate)
     {
         _tableViewDelegate = tableViewDelegate;
-        
         [self p_registerForDraggedTypes];
-        [self reloadData];
     }
 }
 
