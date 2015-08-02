@@ -73,7 +73,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 
 
-@interface GNESectionedTableView () <NSOutlineViewDataSource, NSOutlineViewDelegate, GNEOutlineViewItemPasteboardWritingDelegate>
+@interface GNESectionedTableView () <NSOutlineViewDataSource, NSOutlineViewDelegate>
 
 
 /// Array of outline view parent items that map to the table view's sections.
@@ -2963,12 +2963,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 #pragma mark - NSOutlineViewDataSource - Required
 // ------------------------------------------------------------------------------------------
-- (NSInteger)numberOfRowsInOutlineView:(NSOutlineView * __unused)outlineView
-{
-    return (NSInteger)[self p_numberOfRowsInOutlineView];
-}
-
-
 - (id)outlineView:(NSOutlineView * __unused)outlineView
             child:(NSInteger)index
            ofItem:(GNEOutlineViewParentItem *)parentItem
@@ -3798,20 +3792,6 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
            movedToPoint:(NSPoint __unused)screenPoint
 {
     
-}
-
-
-// ------------------------------------------------------------------------------------------
-#pragma mark - GNEOutlineViewItemPasteboardWritingDelegate
-// ------------------------------------------------------------------------------------------
-- (NSIndexPath *)draggedIndexPathForOutlineViewItem:(GNEOutlineViewItem *)item
-{
-    if (item)
-    {
-        return [self p_indexPathOfOutlineViewItem:item];
-    }
-    
-    return nil;
 }
 
 

@@ -33,33 +33,31 @@
 
 @class GNEOutlineViewItem;
 @class GNEOutlineViewParentItem;
+@class GNESectionedTableView;
+@protocol GNESectionedTableViewDataSource;
+@protocol GNESectionedTableViewDelegate;
 
 // ------------------------------------------------------------------------------------------
 
 extern NSString  * _Nonnull  const GNEOutlineViewItemPasteboardType;
-extern NSString  * _Nonnull  const GNEOutlineViewItemParentItemKey;
-
-// ------------------------------------------------------------------------------------------
-
-@protocol GNEOutlineViewItemPasteboardWritingDelegate <NSObject>
-
-- (NSIndexPath * _Nullable)draggedIndexPathForOutlineViewItem:(GNEOutlineViewItem * _Nonnull)item;
-
-@end
 
 // ------------------------------------------------------------------------------------------
 
 @interface GNEOutlineViewItem : NSObject <NSSecureCoding, NSPasteboardReading, NSPasteboardWriting>
 
-@property (nonatomic, weak) id <GNEOutlineViewItemPasteboardWritingDelegate> pasteboardWritingDelegate;
-
-/// Parent item of this object.
+@property (nonnull, nonatomic, copy) NSIndexPath *indexPath;
 @property (nonatomic, weak) GNEOutlineViewParentItem *parentItem;
+@property (nonatomic, weak) GNESectionedTableView *tableView;
+@property (nonatomic, weak) id<GNESectionedTableViewDataSource> tableViewDataSource;
+@property (nonatomic, weak) id<GNESectionedTableViewDelegate> tableViewDelegate;
+@property (nonatomic, assign) BOOL isFooter;
 
-/// Index path of the receiver if it is being dragged, otherwise nil.
-@property (nullable, nonatomic, strong, readonly) NSIndexPath *draggedIndexPath;
+- (nonnull instancetype)initWithIndexPath:(NSIndexPath * _Nonnull)indexPath
+                               parentItem:(GNEOutlineViewParentItem * _Nullable)parentItem
+                                tableView:(GNESectionedTableView * _Nonnull)tableView
+                               dataSource:(id<GNESectionedTableViewDataSource> _Nonnull)dataSource
+                                 delegate:(id<GNESectionedTableViewDelegate> _Nonnull)delegate NS_DESIGNATED_INITIALIZER;
 
-- (nonnull instancetype)initWithParentItem:(GNEOutlineViewParentItem * _Nullable)parentItem NS_DESIGNATED_INITIALIZER;
 - (nullable instancetype)initWithCoder:(nonnull NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
 
 @end

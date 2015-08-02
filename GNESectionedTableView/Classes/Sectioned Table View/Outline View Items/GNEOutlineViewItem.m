@@ -31,6 +31,7 @@
 
 #import "GNEOutlineViewItem.h"
 #import "GNEOutlineViewParentItem.h"
+#import "GNESectionedTableView.h"
 #import "NSIndexPath+GNESectionedTableView.h"
 
 
@@ -39,8 +40,7 @@
 
 NSString * const GNEOutlineViewItemPasteboardType = @"com.goneeast.GNEOutlineViewItemPasteboardType";
 
-NSString * const GNEOutlineViewItemParentItemKey = @"GNEOutlineViewItemParentItem";
-static NSString * const GNEOutlineViewItemDraggedIndexPathKey = @"GNEOutlineViewItemDraggedIndexPathKey";
+static NSString * const kIndexPathKey = @"GNEOutlineViewItemIndexPathKey";
 
 
 // ------------------------------------------------------------------------------------------
@@ -52,31 +52,34 @@ static NSString * const GNEOutlineViewItemDraggedIndexPathKey = @"GNEOutlineView
 // ------------------------------------------------------------------------------------------
 #pragma mark - Initialization
 // ------------------------------------------------------------------------------------------
-- (instancetype)initWithParentItem:(GNEOutlineViewParentItem *)parentItem
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-designated-initializers"
+- (instancetype)init
+{
+    NSAssert3(NO, @"Instances of %@ should not be initialized with %@. Use %@ instead.",
+              NSStringFromClass([self class]), NSStringFromSelector(_cmd),
+              NSStringFromSelector(@selector(initWithIndexPath:parentItem:tableView:dataSource:delegate:)));
+    return nil;
+}
+#pragma clang diagnostic pop
+
+
+- (instancetype)initWithIndexPath:(NSIndexPath *)indexPath
+                       parentItem:(GNEOutlineViewParentItem *)parentItem
+                        tableView:(GNESectionedTableView *)tableView
+                       dataSource:(id<GNESectionedTableViewDataSource>)dataSource
+                         delegate:(id<GNESectionedTableViewDelegate>)delegate
 {
     if ((self = [super init]))
     {
+        _indexPath = indexPath;
         _parentItem = parentItem;
-        _draggedIndexPath = nil;
+        _tableView = tableView;
+        _tableViewDataSource = dataSource;
+        _tableViewDelegate = delegate;
     }
     
     return self;
-}
-
-
-- (instancetype)init
-{
-    return [self initWithParentItem:nil];
-}
-
-
-// ------------------------------------------------------------------------------------------
-#pragma mark - Dealloc
-// ------------------------------------------------------------------------------------------
-- (void)dealloc
-{
-    _pasteboardWritingDelegate = nil;
-    _draggedIndexPath = nil;
 }
 
 
@@ -85,27 +88,21 @@ static NSString * const GNEOutlineViewItemDraggedIndexPathKey = @"GNEOutlineView
 // ------------------------------------------------------------------------------------------
 - (instancetype)initWithCoder:(NSCoder *)aDecoder
 {
+    NSIndexPath *indexPath = [aDecoder decodeObjectOfClass:[NSIndexPath class]
+                                                    forKey:kIndexPathKey];
     if ((self = [super init]))
     {
-        _parentItem = [aDecoder decodeObjectOfClass:[GNEOutlineViewParentItem class]
-                                             forKey:GNEOutlineViewItemParentItemKey];
-        _draggedIndexPath = [aDecoder decodeObjectOfClass:[NSIndexPath class]
-                                                   forKey:GNEOutlineViewItemDraggedIndexPathKey];
+        _indexPath = indexPath;
+        _parentItem = nil;
     }
-    
+
     return self;
 }
 
 
 - (void)encodeWithCoder:(NSCoder *)aCoder
 {
-    [aCoder encodeObject:self.parentItem forKey:GNEOutlineViewItemParentItemKey];
-    id <GNEOutlineViewItemPasteboardWritingDelegate> delegate = self.pasteboardWritingDelegate;
-    if ([delegate respondsToSelector:@selector(draggedIndexPathForOutlineViewItem:)])
-    {
-        NSIndexPath *indexPath = [delegate draggedIndexPathForOutlineViewItem:self];
-        [aCoder encodeObject:indexPath forKey:GNEOutlineViewItemDraggedIndexPathKey];
-    }
+    [aCoder encodeObject:self.indexPath forKey:kIndexPathKey];
 }
 
 
@@ -165,19 +162,12 @@ static NSString * const GNEOutlineViewItemDraggedIndexPathKey = @"GNEOutlineView
 // ------------------------------------------------------------------------------------------
 - (NSString *)description
 {
-    NSString *indexPathString = @"";
-    id <GNEOutlineViewItemPasteboardWritingDelegate> theDelegate = self.pasteboardWritingDelegate;
-    SEL selector = NSSelectorFromString(@"draggedIndexPathForOutlineViewItem:");
-    if ([theDelegate respondsToSelector:selector])
-    {
-        NSIndexPath *indexPath = [theDelegate draggedIndexPathForOutlineViewItem:self];
-        unsigned long section = indexPath.gne_section;
-        unsigned long row = indexPath.gne_row;
-        indexPathString = [NSString stringWithFormat:@" Index Path: {%lu, %lu}", section, row];
-    }
+    unsigned long section = self.indexPath.gne_section;
+    unsigned long row = self.indexPath.gne_row;
+    NSString *indexPathString = [NSString stringWithFormat:@"Index Path: {%lu, %lu}", section, row];
     
-    return [NSString stringWithFormat:@"<%@: %p>%@ Parent: %@",
-            [self className], self, indexPathString, self.parentItem];
+    return [NSString stringWithFormat:@"<%@: %p> %@",
+            NSStringFromClass([self class]), self, indexPathString];
 }
 
 

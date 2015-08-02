@@ -106,6 +106,8 @@ static const CGFloat GNESectionedTableViewInvisibleRowHeight = 1.0f;
 - (NSUInteger)numberOfSectionsInTableView:(GNESectionedTableView * __nonnull)tableView;
 @required
 - (NSUInteger)tableView:(GNESectionedTableView * __nonnull)tableView numberOfRowsInSection:(NSUInteger)section;
+@optional
+- (BOOL)tableView:(GNESectionedTableView * __nonnull)tableView hasFooterInSection:(NSUInteger)section;
 
 /* Views */
 @required

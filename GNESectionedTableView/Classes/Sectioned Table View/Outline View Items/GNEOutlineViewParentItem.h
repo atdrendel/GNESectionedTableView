@@ -36,10 +36,20 @@
 
 @interface GNEOutlineViewParentItem : GNEOutlineViewItem
 
-/// YES if the parent item's section has a footer, otherwise NO.
-@property (nonatomic, assign) BOOL hasFooter;
+@property (nonatomic, assign) NSUInteger section;
+@property (nonatomic, assign, readonly) NSUInteger numberOfItems;
+@property (nonatomic, assign, readonly) BOOL hasFooter;
 
-- (nonnull instancetype)init NS_DESIGNATED_INITIALIZER;
+- (nonnull instancetype)initWithSection:(NSUInteger)section
+                              tableView:(GNESectionedTableView * _Nonnull)tableView
+                             dataSource:(id<GNESectionedTableViewDataSource> _Nonnull)dataSource
+                               delegate:(id<GNESectionedTableViewDelegate> _Nonnull)delegate NS_DESIGNATED_INITIALIZER;
+
 - (nullable instancetype)initWithCoder:(nonnull NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
+
+#pragma mark - Insert, Delete, and Update Items
+- (void)insertItems:(NSArray * _Nonnull)items atIndex:(NSUInteger)index;
+- (NSArray * _Nonnull)deleteItemsAtIndexes:(NSIndexSet * _Nonnull)indexes;
+- (void)reloadItemsAtIndexes:(NSIndexSet * _Nonnull)indexes;
 
 @end
