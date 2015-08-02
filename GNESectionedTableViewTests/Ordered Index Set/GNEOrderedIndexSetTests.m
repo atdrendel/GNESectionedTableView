@@ -17,7 +17,7 @@ static const NSUInteger kTestIndexSetMaxIndex = 10000;
 static const NSUInteger kPerformanceTestIterations = 10000;
 
 #ifndef GNEOrderedIndexSet_FoundationPerformanceTestsEnabled
-    #define GNEOrderedIndexSet_FoundationPerformanceTestsEnabled 0
+    #define GNEOrderedIndexSet_FoundationPerformanceTestsEnabled 1
 #endif
 
 #define XCTAssertCount(indexSet, c) \
@@ -1755,7 +1755,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     NSUInteger count = kPerformanceTestIterations;
     
     GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
-    [self p_addIndexesToIndexSet:indexSet count:count isPerformanceTest:NO];
+    [self p_addIndexesToIndexSet:indexSet count:count isPerformanceTest:YES];
     
     XCTAssertCount(indexSet, count);
     
@@ -1776,7 +1776,7 @@ static const NSUInteger kPerformanceTestIterations = 10000;
     NSUInteger count = kPerformanceTestIterations;
     
     GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSet];
-    [self p_addIndexesToIndexSet:indexSet count:count isPerformanceTest:NO];
+    [self p_addIndexesToIndexSet:indexSet count:count isPerformanceTest:YES];
     
     XCTAssertCount(indexSet, count);
     
