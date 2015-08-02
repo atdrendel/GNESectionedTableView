@@ -142,23 +142,136 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Appearance
+// ------------------------------------------------------------------------------------------
+- (CGFloat)height
+{
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    if ([delegate respondsToSelector:@selector(tableView:heightForHeaderInSection:)])
+    {
+        return [delegate tableView:self.tableView heightForHeaderInSection:self.section];
+    }
+
+    return GNESectionedTableViewInvisibleRowHeight;
+}
+
+
+- (NSTableRowView *)rowView
+{
+    NSTableRowView *rowView = nil;
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    if ([delegate respondsToSelector:@selector(tableView:rowViewForHeaderInSection:)])
+    {
+        rowView = [delegate tableView:self.tableView rowViewForHeaderInSection:self.section];
+    }
+
+    return rowView ?: [NSTableRowView new];
+}
+
+
+- (NSTableCellView *)cellView
+{
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    if ([delegate respondsToSelector:@selector(tableView:cellViewForHeaderInSection:)])
+    {
+        return [delegate tableView:self.tableView cellViewForHeaderInSection:self.section];
+    }
+
+    return nil;
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Item Accessors
+// ------------------------------------------------------------------------------------------
+- (GNEOutlineViewItem *)itemAtIndex:(NSUInteger)index
+{
+    NSUInteger count = self.rowItems.count;
+    if (index < count)
+    {
+        return self.rowItems[index];
+    }
+
+    return nil;
+}
+
+
+- (NSArray *)itemsAtIndexes:(NSIndexSet *)indexes
+{
+    NSMutableArray *items = [NSMutableArray array];
+    __weak typeof(self) weakSelf = self;
+    [indexes enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop __unused)
+    {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        GNEOutlineViewItem *item = [strongSelf itemAtIndex:index];
+        if (item)
+        {
+            [items addObject:item];
+        }
+    }];
+
+    return [items copy];
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Insert, Delete, and Update Items
 // ------------------------------------------------------------------------------------------
-- (void)insertItems:(NSArray *)items atIndex:(NSUInteger)index
+- (void)insertItems:(NSArray *)items
+            atIndex:(NSUInteger)index
+      withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
+    NSUInteger count = self.rowItems.count;
+    GNEParameterAssert(index <= count);
+    if (items.count == 0 || index > count) { return; }
 
+    NSMutableArray *mutableRowItems = [NSMutableArray arrayWithArray:self.rowItems];
+    NSRange indexRange = NSMakeRange(index, items.count);
+    NSIndexSet *indexes = [NSIndexSet indexSetWithIndexesInRange:indexRange];
+    [mutableRowItems insertObjects:items atIndexes:indexes];
+    [self p_updateParentItemOfRowItemsAndFooterItem];
+    [self p_updateIndexPathsOfRowItemsAndFooterItem];
+    [self.tableView insertItemsAtIndexes:indexes inParent:self withAnimation:animationOptions];
 }
 
 
 - (NSArray *)deleteItemsAtIndexes:(NSIndexSet *)indexes
+                    withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
-    return @[];
+    if (indexes.count == 0) { return @[]; };
+
+    NSMutableArray *deletedItems = [NSMutableArray array];
+    NSMutableArray *mutableRowItems = [NSMutableArray arrayWithArray:self.rowItems];
+    NSMutableIndexSet *deletedIndexes = [NSMutableIndexSet indexSet];
+
+    [indexes enumerateIndexesWithOptions:NSEnumerationReverse
+                              usingBlock:^(NSUInteger index, BOOL *stop __unused)
+    {
+        GNEParameterAssert(index < mutableRowItems.count);
+        if (index >= mutableRowItems.count) { return; }
+
+        GNEOutlineViewItem *item = mutableRowItems[index];
+        [deletedItems addObject:item];
+        [mutableRowItems removeObjectAtIndex:index];
+        [deletedIndexes addIndex:index];
+    }];
+
+    self.rowItems = [mutableRowItems copy];
+    [self.tableView removeItemsAtIndexes:deletedIndexes
+                                inParent:self
+                           withAnimation:animationOptions];
+
+    return [deletedItems copy];
 }
 
 
 - (void)reloadItemsAtIndexes:(NSIndexSet *)indexes
 {
-
+    NSArray *items = [self itemsAtIndexes:indexes];
+    for (GNEOutlineViewItem *item in items)
+    {
+        [self.tableView reloadItem:item];
+    }
 }
 
 
@@ -185,8 +298,7 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 {
     [self p_assertDataSourceDelegateAreValid];
     BOOL hasFooter = [self p_requestDelegateHasFooter];
-    NSIndexPath *indexPath = footerIndexPathForSection(self.section);
-    self.footerItem = (hasFooter) ? [self p_itemWithIndexPath:indexPath] : nil;
+    self.footerItem = (hasFooter) ? [self p_footerItem] : nil;
 }
 
 
@@ -222,6 +334,16 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
                                                                     delegate:self.tableViewDelegate];
 
     return item;
+}
+
+
+- (GNEOutlineViewItem *)p_footerItem
+{
+    NSIndexPath *indexPath = footerIndexPathForSection(self.section);
+    GNEOutlineViewItem *footerItem = [self p_itemWithIndexPath:indexPath];
+    footerItem.isFooter = YES;
+
+    return footerItem;
 }
 
 

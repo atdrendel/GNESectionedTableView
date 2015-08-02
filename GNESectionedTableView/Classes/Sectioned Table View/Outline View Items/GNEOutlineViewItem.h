@@ -50,6 +50,9 @@ extern NSString  * _Nonnull  const GNEOutlineViewItemPasteboardType;
 @property (nonatomic, weak) GNESectionedTableView *tableView;
 @property (nonatomic, weak) id<GNESectionedTableViewDataSource> tableViewDataSource;
 @property (nonatomic, weak) id<GNESectionedTableViewDelegate> tableViewDelegate;
+@property (nonatomic, assign, readonly) CGFloat height;
+@property (nonnull, nonatomic, strong, readonly) NSTableRowView *rowView;
+@property (nullable, nonatomic, strong, readonly) NSTableCellView *cellView;
 @property (nonatomic, assign) BOOL isFooter;
 
 - (nonnull instancetype)initWithIndexPath:(NSIndexPath * _Nonnull)indexPath

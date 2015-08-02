@@ -158,6 +158,104 @@ static NSString * const kIndexPathKey = @"GNEOutlineViewItemIndexPathKey";
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Appearance
+// ------------------------------------------------------------------------------------------
+- (CGFloat)height
+{
+    return (self.isFooter) ? [self p_requestDelegateHeightOfFooter] : [self p_requestDelegateHeightOfCell];
+}
+
+
+- (NSTableRowView *)rowView
+{
+    return (self.isFooter) ? [self p_requestDelegateRowViewOfFooter] : [self p_requestDelegateRowViewOfCell];
+}
+
+
+- (NSTableCellView *)cellView
+{
+    return (self.isFooter) ? [self p_requestDelegateCellViewOfFooter] : [self p_requestDelegateCellViewOfCell];
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - GNESectionedTableViewDelegate
+// ------------------------------------------------------------------------------------------
+- (CGFloat)p_requestDelegateHeightOfCell
+{
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    if ([delegate respondsToSelector:@selector(tableView:heightForRowAtIndexPath:)])
+    {
+        return [delegate tableView:self.tableView heightForRowAtIndexPath:self.indexPath];
+    }
+
+    return GNESectionedTableViewInvisibleRowHeight;
+}
+
+
+- (CGFloat)p_requestDelegateHeightOfFooter
+{
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    if ([delegate respondsToSelector:@selector(tableView:heightForFooterInSection:)])
+    {
+        return [delegate tableView:self.tableView heightForFooterInSection:self.indexPath.gne_section];
+    }
+
+    return GNESectionedTableViewInvisibleRowHeight;
+}
+
+
+- (NSTableRowView *)p_requestDelegateRowViewOfCell
+{
+    NSTableRowView *rowView = nil;
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    if ([delegate respondsToSelector:@selector(tableView:rowViewForRowAtIndexPath:)])
+    {
+        rowView = [delegate tableView:self.tableView rowViewForRowAtIndexPath:self.indexPath];
+    }
+
+    return rowView ?: [NSTableRowView new];
+}
+
+
+- (NSTableRowView *)p_requestDelegateRowViewOfFooter
+{
+    NSTableRowView *rowView = nil;
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    if ([delegate respondsToSelector:@selector(tableView:rowViewForFooterInSection:)])
+    {
+        rowView = [delegate tableView:self.tableView rowViewForFooterInSection:self.indexPath.gne_section];
+    }
+
+    return rowView ?: [NSTableRowView new];
+}
+
+
+- (NSTableCellView *)p_requestDelegateCellViewOfCell
+{
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    if ([delegate respondsToSelector:@selector(tableView:cellViewForRowAtIndexPath:)])
+    {
+        return [delegate tableView:self.tableView cellViewForRowAtIndexPath:self.indexPath];
+    }
+
+    return nil;
+}
+
+
+- (NSTableCellView *)p_requestDelegateCellViewOfFooter
+{
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    if ([delegate respondsToSelector:@selector(tableView:cellViewForFooterInSection:)])
+    {
+        return [delegate tableView:self.tableView cellViewForFooterInSection:self.indexPath.gne_section];
+    }
+
+    return nil;
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Description
 // ------------------------------------------------------------------------------------------
 - (NSString *)description

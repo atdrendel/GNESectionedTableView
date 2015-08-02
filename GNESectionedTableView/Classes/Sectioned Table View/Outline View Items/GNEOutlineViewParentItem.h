@@ -47,9 +47,16 @@
 
 - (nullable instancetype)initWithCoder:(nonnull NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
 
+#pragma mark - Item Accessors
+- (GNEOutlineViewItem * _Nullable)itemAtIndex:(NSUInteger)index;
+- (NSArray * _Nonnull)itemsAtIndexes:(NSIndexSet * _Nonnull)indexes;
+
 #pragma mark - Insert, Delete, and Update Items
-- (void)insertItems:(NSArray * _Nonnull)items atIndex:(NSUInteger)index;
-- (NSArray * _Nonnull)deleteItemsAtIndexes:(NSIndexSet * _Nonnull)indexes;
+- (void)insertItems:(NSArray * _Nonnull)items
+            atIndex:(NSUInteger)index
+      withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (NSArray * _Nonnull)deleteItemsAtIndexes:(NSIndexSet * _Nonnull)indexes
+                             withAnimation:(NSTableViewAnimationOptions)animationOptions;
 - (void)reloadItemsAtIndexes:(NSIndexSet * _Nonnull)indexes;
 
 @end
