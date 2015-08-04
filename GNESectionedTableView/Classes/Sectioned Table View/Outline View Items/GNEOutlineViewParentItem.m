@@ -68,6 +68,7 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 
 @interface GNEOutlineViewParentItem ()
 
+@property (nonatomic, assign, readwrite) BOOL isExpanded;
 @property (nonatomic, copy) NSArray *rowItems;
 @property (nonatomic, strong) GNEOutlineViewItem *footerItem;
 
@@ -184,6 +185,22 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Item Accessors
 // ------------------------------------------------------------------------------------------
+- (BOOL)isParentOfItem:(GNEOutlineViewItem *)item
+{
+    GNEParameterAssert(item);
+
+    return [self.rowItems containsObject:item];
+}
+
+
+- (NSUInteger)indexOfItem:(GNEOutlineViewItem *)item
+{
+    GNEParameterAssert(item);
+
+    return [self.rowItems indexOfObject:item];
+}
+
+
 - (GNEOutlineViewItem *)itemAtIndex:(NSUInteger)index
 {
     NSUInteger count = self.rowItems.count;
@@ -287,7 +304,7 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
     for (NSUInteger row = 0; row < count; row++)
     {
         NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
-        [rowItems addObject:[self p_itemWithIndexPath:indexPath]];
+        [rowItems addObject:[self p_newItemWithIndexPath:indexPath]];
     }
 
     self.rowItems = [rowItems copy];
@@ -298,7 +315,7 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 {
     [self p_assertDataSourceDelegateAreValid];
     BOOL hasFooter = [self p_requestDelegateHasFooter];
-    self.footerItem = (hasFooter) ? [self p_footerItem] : nil;
+    self.footerItem = (hasFooter) ? [self p_newFooterItem] : nil;
 }
 
 
@@ -325,7 +342,7 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 }
 
 
-- (GNEOutlineViewItem *)p_itemWithIndexPath:(NSIndexPath *)indexPath
+- (GNEOutlineViewItem *)p_newItemWithIndexPath:(NSIndexPath *)indexPath
 {
     GNEOutlineViewItem *item = [[GNEOutlineViewItem alloc] initWithIndexPath:indexPath
                                                                   parentItem:self
@@ -337,10 +354,10 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 }
 
 
-- (GNEOutlineViewItem *)p_footerItem
+- (GNEOutlineViewItem *)p_newFooterItem
 {
     NSIndexPath *indexPath = footerIndexPathForSection(self.section);
-    GNEOutlineViewItem *footerItem = [self p_itemWithIndexPath:indexPath];
+    GNEOutlineViewItem *footerItem = [self p_newItemWithIndexPath:indexPath];
     footerItem.isFooter = YES;
 
     return footerItem;
@@ -401,9 +418,27 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Accessors
 // ------------------------------------------------------------------------------------------
+- (GNEOutlineViewParentItem * _Nullable)parentItem
+{
+    return nil;
+}
+
+
 - (void)setParentItem:(GNEOutlineViewParentItem * __unused)parentItem
 {
     NSAssert(NO, @"Outline view parent items cannot have parent items.");
+}
+
+
+- (BOOL)isFooter
+{
+    return NO;
+}
+
+
+- (void)setIsFooter:(BOOL __unused)isFooter
+{
+    NSAssert(NO, @"Outline view parent items can't be footers.");
 }
 
 

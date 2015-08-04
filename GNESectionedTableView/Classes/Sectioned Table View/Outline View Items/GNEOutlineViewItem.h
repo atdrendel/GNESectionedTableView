@@ -45,14 +45,16 @@ extern NSString  * _Nonnull  const GNEOutlineViewItemPasteboardType;
 
 @interface GNEOutlineViewItem : NSObject <NSSecureCoding, NSPasteboardReading, NSPasteboardWriting>
 
-@property (nonnull, nonatomic, copy) NSIndexPath *indexPath;
-@property (nonatomic, weak) GNEOutlineViewParentItem *parentItem;
 @property (nonatomic, weak) GNESectionedTableView *tableView;
 @property (nonatomic, weak) id<GNESectionedTableViewDataSource> tableViewDataSource;
 @property (nonatomic, weak) id<GNESectionedTableViewDelegate> tableViewDelegate;
+
+@property (nonnull, nonatomic, copy) NSIndexPath *indexPath;
+@property (nonatomic, weak) GNEOutlineViewParentItem *parentItem;
 @property (nonatomic, assign, readonly) CGFloat height;
 @property (nonnull, nonatomic, strong, readonly) NSTableRowView *rowView;
 @property (nullable, nonatomic, strong, readonly) NSTableCellView *cellView;
+@property (nonatomic, assign) BOOL isSelected;
 @property (nonatomic, assign) BOOL isFooter;
 
 - (nonnull instancetype)initWithIndexPath:(NSIndexPath * _Nonnull)indexPath

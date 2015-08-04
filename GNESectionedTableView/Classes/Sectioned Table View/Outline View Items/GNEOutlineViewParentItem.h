@@ -38,6 +38,7 @@
 
 @property (nonatomic, assign) NSUInteger section;
 @property (nonatomic, assign, readonly) NSUInteger numberOfItems;
+@property (nonatomic, assign, readonly) BOOL isExpanded;
 @property (nonatomic, assign, readonly) BOOL hasFooter;
 
 - (nonnull instancetype)initWithSection:(NSUInteger)section
@@ -48,6 +49,8 @@
 - (nullable instancetype)initWithCoder:(nonnull NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
 
 #pragma mark - Item Accessors
+- (BOOL)isParentOfItem:(GNEOutlineViewItem * _Nonnull)item;
+- (NSUInteger)indexOfItem:(GNEOutlineViewItem * _Nonnull)item;
 - (GNEOutlineViewItem * _Nullable)itemAtIndex:(NSUInteger)index;
 - (NSArray * _Nonnull)itemsAtIndexes:(NSIndexSet * _Nonnull)indexes;
 

@@ -40,7 +40,8 @@
 
 NSString * const GNEOutlineViewItemPasteboardType = @"com.goneeast.GNEOutlineViewItemPasteboardType";
 
-static NSString * const kIndexPathKey = @"GNEOutlineViewItemIndexPathKey";
+static NSString * const kIndexPathKey = @"GNEOutlineViewItemIndexPath";
+static NSString * const kIsSelectedKey = @"GNEOutlineViewItemIsSelected";
 
 
 // ------------------------------------------------------------------------------------------
@@ -84,15 +85,28 @@ static NSString * const kIndexPathKey = @"GNEOutlineViewItemIndexPathKey";
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Dealloc
+// ------------------------------------------------------------------------------------------
+- (void)dealloc
+{
+    _tableView = nil;
+    _tableViewDataSource = nil;
+    _tableViewDelegate = nil;
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - NSSecureCoding
 // ------------------------------------------------------------------------------------------
 - (instancetype)initWithCoder:(NSCoder *)aDecoder
 {
     NSIndexPath *indexPath = [aDecoder decodeObjectOfClass:[NSIndexPath class]
                                                     forKey:kIndexPathKey];
+    BOOL isSelected = [aDecoder decodeBoolForKey:kIsSelectedKey];
     if ((self = [super init]))
     {
         _indexPath = indexPath;
+        _isSelected = isSelected;
         _parentItem = nil;
     }
 
@@ -103,6 +117,7 @@ static NSString * const kIndexPathKey = @"GNEOutlineViewItemIndexPathKey";
 - (void)encodeWithCoder:(NSCoder *)aCoder
 {
     [aCoder encodeObject:self.indexPath forKey:kIndexPathKey];
+    [aCoder encodeBool:self.isSelected forKey:kIsSelectedKey];
 }
 
 
