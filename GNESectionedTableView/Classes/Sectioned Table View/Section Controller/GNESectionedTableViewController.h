@@ -44,9 +44,25 @@
                                dataSource:(id<GNESectionedTableViewDataSource> _Nonnull)dataSource
                                  delegate:(id<GNESectionedTableViewDelegate> _Nonnull)delegate;
 
-#pragma mark - Item Accessors
-- (GNEOutlineViewSectionItem * _Nullable)itemForSection:(NSUInteger)section;
-- (NSArray * _Nonnull)itemsForSections:(NSIndexSet * _Nonnull)sections;
+#pragma mark - Expand/Collapse Sections
+- (BOOL)isSectionExpanded:(NSUInteger)section;
+- (void)expandAllSections:(BOOL)animated;
+- (void)expandSection:(NSUInteger)section animated:(BOOL)animated;
+- (void)expandSections:(NSIndexSet * __nonnull)sections animated:(BOOL)animated;
+- (void)collapseAllSections:(BOOL)animated;
+- (void)collapseSection:(NSUInteger)section animated:(BOOL)animated;
+- (void)collapseSections:(NSIndexSet * __nonnull)sections animated:(BOOL)animated;
+
+#pragma mark - Insert, Delete, and Update Sections
+- (void)insertSections:(NSIndexSet * __nonnull)sections
+         withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (void)insertSections:(NSIndexSet * __nonnull)sections
+         withAnimation:(NSTableViewAnimationOptions)animationOptions
+              expanded:(BOOL)expanded;
+- (void)deleteSections:(NSIndexSet * __nonnull)sections
+         withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (void)moveSections:(GNEOrderedIndexSet * __nonnull)fromSections
+          toSections:(GNEOrderedIndexSet * __nonnull)toSections;
 
 #pragma mark - Insert, Delete, and Update Rows
 - (void)insertRowsAtIndexPaths:(NSArray * __nonnull)indexPaths
@@ -56,16 +72,5 @@
 - (void)moveRowsAtIndexPaths:(NSArray * __nonnull)fromIndexPaths
                 toIndexPaths:(NSArray * __nonnull)toIndexPaths;
 - (void)reloadRowsAtIndexPaths:(NSArray * __nonnull)indexPaths;
-
-#pragma mark - Insert, Delete, and Update Sections
-- (void)insertSections:(NSIndexSet * __nonnull)sections
-         withAnimation:(NSTableViewAnimationOptions)animationOptions;
-- (void)insertSections:(NSIndexSet * __nonnull)sections
-         withAnimation:(NSTableViewAnimationOptions)animationOptions
-             expanded:(BOOL)expanded;
-- (void)deleteSections:(NSIndexSet * __nonnull)sections
-         withAnimation:(NSTableViewAnimationOptions)animationOptions;
-- (void)moveSections:(GNEOrderedIndexSet * __nonnull)fromSections
-          toSections:(GNEOrderedIndexSet * __nonnull)toSections;
 
 @end

@@ -48,7 +48,7 @@ static const NSUInteger kSectionFooterRowModifier = 2;
 // ------------------------------------------------------------------------------------------
 
 
-NSIndexPath * headerIndexPathForSection(NSUInteger section)
+NSIndexPath * GNEHeaderIndexPathForSection(NSUInteger section)
 {
     NSUInteger headerRow = (NSUInteger)(NSNotFound - kSectionHeaderRowModifier);
 
@@ -56,7 +56,7 @@ NSIndexPath * headerIndexPathForSection(NSUInteger section)
 }
 
 
-NSIndexPath * footerIndexPathForSection(NSUInteger section)
+NSIndexPath * GNEFooterIndexPathForSection(NSUInteger section)
 {
     NSUInteger footerRow = (NSUInteger)(NSNotFound - kSectionFooterRowModifier);
         
@@ -242,6 +242,33 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Expand/Collapse
+// ------------------------------------------------------------------------------------------
+- (void)expand:(BOOL)animated
+{
+    GNESectionedTableView *tableView = [self p_tableView:animated];
+    if (self.canExpand)
+    {
+        [self p_notifyDelegateWillExpand];
+        [tableView expandItem:self expandChildren:YES];
+        [self p_notifyDelegateDidExpand];
+    }
+}
+
+
+- (void)collapse:(BOOL)animated
+{
+    GNESectionedTableView *tableView = [self p_tableView:animated];
+    if (self.canCollapse)
+    {
+        [self p_notifyDelegateWillCollapse];
+        [tableView collapseItem:self collapseChildren:YES];
+        [self p_notifyDelegateDidCollapse];
+    }
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Insert, Delete, and Update Items
 // ------------------------------------------------------------------------------------------
 - (void)insertRowItems:(NSArray *)items
@@ -299,6 +326,17 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
     {
         [self.tableView reloadItem:item];
     }
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Table View
+// ------------------------------------------------------------------------------------------
+- (GNESectionedTableView *)p_tableView:(BOOL)animated
+{
+    GNESectionedTableView *tableView = self.tableView;
+
+    return (animated) ? tableView.animator : tableView;
 }
 
 
@@ -396,6 +434,46 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 }
 
 
+- (void)p_notifyDelegateWillExpand
+{
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    if ([delegate respondsToSelector:@selector(tableView:willExpandSection:)])
+    {
+        [delegate tableView:self.tableView willExpandSection:self.section];
+    }
+}
+
+
+- (void)p_notifyDelegateWillCollapse
+{
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    if ([delegate respondsToSelector:@selector(tableView:willCollapseSection:)])
+    {
+        [delegate tableView:self.tableView willCollapseSection:self.section];
+    }
+}
+
+
+- (void)p_notifyDelegateDidExpand
+{
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    if ([delegate respondsToSelector:@selector(tableView:didExpandSection:)])
+    {
+        [delegate tableView:self.tableView didExpandSection:self.section];
+    }
+}
+
+
+- (void)p_notifyDelegateDidCollapse
+{
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    if ([delegate respondsToSelector:@selector(tableView:didCollapseSection:)])
+    {
+        [delegate tableView:self.tableView didCollapseSection:self.section];
+    }
+}
+
+
 - (BOOL)p_requestDelegateHasFooter
 {
     id<GNESectionedTableViewDataSource> dataSource = self.tableViewDataSource;
@@ -435,6 +513,40 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
         _section = section;
         [self p_updateIndexPathsOfRowItemsAndFooterItem];
     }
+}
+
+
+- (BOOL)isCollapsed
+{
+    return (self.isExpanded == NO);
+}
+
+
+- (BOOL)canExpand
+{
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    SEL selector = @selector(tableView:shouldExpandSection:);
+    BOOL responds = [delegate respondsToSelector:selector];
+    if (responds)
+    {
+        return [delegate tableView:self.tableView shouldExpandSection:self.section];
+    }
+
+    return YES;
+}
+
+
+- (BOOL)canCollapse
+{
+    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
+    SEL selector = @selector(tableView:shouldCollapseSection:);
+    BOOL responds = [delegate respondsToSelector:selector];
+    if (responds)
+    {
+        return [delegate tableView:self.tableView shouldCollapseSection:self.section];
+    }
+
+    return YES;
 }
 
 

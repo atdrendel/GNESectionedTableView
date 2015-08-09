@@ -45,6 +45,8 @@ typedef NS_ENUM(NSUInteger, GNEOutlineViewItemType)
     GNEOutlineViewItemTypeRow
 };
 
+typedef void(^GNECompletionBlock)();
+
 // ------------------------------------------------------------------------------------------
 
 @interface GNEOutlineViewItem : NSObject <NSSecureCoding, NSPasteboardReading, NSPasteboardWriting>

@@ -34,11 +34,19 @@
 
 // ------------------------------------------------------------------------------------------
 
+extern NSIndexPath * _Nonnull GNEHeaderIndexPathForSection(NSUInteger section);
+extern NSIndexPath * _Nonnull GNEFooterIndexPathForSection(NSUInteger section);
+
+// ------------------------------------------------------------------------------------------
+
 @interface GNEOutlineViewSectionItem : GNEOutlineViewItem
 
 @property (nonatomic, assign) NSUInteger section;
 @property (nonatomic, assign, readonly) NSUInteger numberOfItems;
 @property (nonatomic, assign, readonly) BOOL isExpanded;
+@property (nonatomic, assign, readonly) BOOL isCollapsed;
+@property (nonatomic, assign, readonly) BOOL canExpand;
+@property (nonatomic, assign, readonly) BOOL canCollapse;
 @property (nonatomic, assign, readonly) BOOL hasFooter;
 
 - (nonnull instancetype)initWithSection:(NSUInteger)section
@@ -53,6 +61,10 @@
 - (NSUInteger)indexOfRowItem:(GNEOutlineViewRowItem * _Nonnull)item;
 - (GNEOutlineViewRowItem * _Nullable)rowItemAtIndex:(NSUInteger)index;
 - (NSArray * _Nonnull)rowItemsAtIndexes:(NSIndexSet * _Nonnull)indexes;
+
+#pragma mark - Expand/Collapse
+- (void)expand:(BOOL)animated;
+- (void)collapse:(BOOL)animated;
 
 #pragma mark - Insert, Delete, and Update Items
 - (void)insertRowItems:(NSArray * _Nonnull)items
