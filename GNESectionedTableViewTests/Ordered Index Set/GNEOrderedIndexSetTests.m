@@ -986,6 +986,42 @@ static const NSUInteger kPerformanceTestIterations = 10000;
 }
 
 
+- (void)testEnumeration_3
+{
+    NSUInteger count = 3;
+    NSUInteger indexes[3] = { 1, 5, 3 };
+    GNEOrderedIndexSet *indexSet = [GNEOrderedIndexSet indexSetWithIndexes:indexes count:count];
+    XCTAssertCount(indexSet, count);
+    XCTAssertIndexPosition(indexSet, 1, 0);
+    XCTAssertIndexPosition(indexSet, 5, 1);
+    XCTAssertIndexPosition(indexSet, 3, 2);
+
+    __block NSUInteger iterations = 0;
+    [indexSet enumerateIndexesUsingBlock:^(NSUInteger idx, NSUInteger position, BOOL *stop)
+    {
+        switch (position)
+        {
+            case 0:
+                XCTAssertEqual(idx, 1);
+                break;
+            case 1:
+                XCTAssertEqual(idx, 5);
+                break;
+            case 2:
+                XCTAssertEqual(idx, 3);
+                break;
+            default:
+                XCTAssertTrue(NO);
+                break;
+        }
+
+        iterations++;
+    }];
+
+    XCTAssertEqual(iterations, count);
+}
+
+
 - (void)testEnumeration_10
 {
     NSUInteger count = 10;
