@@ -2,8 +2,8 @@
 //  GNEOutlineViewItem.m
 //  GNESectionedTableView
 //
-//  Created by Anthony Drendel on 5/27/14.
-//  Copyright (c) 2014 Gone East LLC. All rights reserved.
+//  Created by Anthony Drendel on 8/9/15.
+//  Copyright © 2015 Gone East LLC. All rights reserved.
 //
 //
 //  The MIT License (MIT)
@@ -30,18 +30,15 @@
 //
 
 #import "GNEOutlineViewItem.h"
-#import "GNEOutlineViewParentItem.h"
 #import "GNESectionedTableView.h"
-#import "NSIndexPath+GNESectionedTableView.h"
 
 
 // ------------------------------------------------------------------------------------------
 
 
-NSString * const GNEOutlineViewItemPasteboardType = @"com.goneeast.GNEOutlineViewItemPasteboardType";
+NSString * const GNEOutlineViewRowItemPasteboardType = @"com.goneeast.GNEOutlineViewItemPasteboardType";
 
-static NSString * const kIndexPathKey = @"GNEOutlineViewItemIndexPath";
-static NSString * const kIsSelectedKey = @"GNEOutlineViewItemIsSelected";
+static NSString * const kIsSelectedKey = @"GNEOutlineViewRowItemIsSelected";
 
 
 // ------------------------------------------------------------------------------------------
@@ -59,27 +56,23 @@ static NSString * const kIsSelectedKey = @"GNEOutlineViewItemIsSelected";
 {
     NSAssert3(NO, @"Instances of %@ should not be initialized with %@. Use %@ instead.",
               NSStringFromClass([self class]), NSStringFromSelector(_cmd),
-              NSStringFromSelector(@selector(initWithIndexPath:parentItem:tableView:dataSource:delegate:)));
+              NSStringFromSelector(@selector(initWithTableView:dataSource:delegate:)));
     return nil;
 }
 #pragma clang diagnostic pop
 
 
-- (instancetype)initWithIndexPath:(NSIndexPath *)indexPath
-                       parentItem:(GNEOutlineViewParentItem *)parentItem
-                        tableView:(GNESectionedTableView *)tableView
+- (instancetype)initWithTableView:(GNESectionedTableView *)tableView
                        dataSource:(id<GNESectionedTableViewDataSource>)dataSource
                          delegate:(id<GNESectionedTableViewDelegate>)delegate
 {
     if ((self = [super init]))
     {
-        _indexPath = indexPath;
-        _parentItem = parentItem;
         _tableView = tableView;
         _tableViewDataSource = dataSource;
         _tableViewDelegate = delegate;
     }
-    
+
     return self;
 }
 
@@ -100,14 +93,10 @@ static NSString * const kIsSelectedKey = @"GNEOutlineViewItemIsSelected";
 // ------------------------------------------------------------------------------------------
 - (instancetype)initWithCoder:(NSCoder *)aDecoder
 {
-    NSIndexPath *indexPath = [aDecoder decodeObjectOfClass:[NSIndexPath class]
-                                                    forKey:kIndexPathKey];
     BOOL isSelected = [aDecoder decodeBoolForKey:kIsSelectedKey];
     if ((self = [super init]))
     {
-        _indexPath = indexPath;
         _isSelected = isSelected;
-        _parentItem = nil;
     }
 
     return self;
@@ -116,7 +105,6 @@ static NSString * const kIsSelectedKey = @"GNEOutlineViewItemIsSelected";
 
 - (void)encodeWithCoder:(NSCoder *)aCoder
 {
-    [aCoder encodeObject:self.indexPath forKey:kIndexPathKey];
     [aCoder encodeBool:self.isSelected forKey:kIsSelectedKey];
 }
 
@@ -173,114 +161,48 @@ static NSString * const kIsSelectedKey = @"GNEOutlineViewItemIsSelected";
 
 
 // ------------------------------------------------------------------------------------------
+#pragma mark - Type
+// ------------------------------------------------------------------------------------------
+- (GNEOutlineViewItemType)type
+{
+    NSAssert1(NO, @"Subclasses of GNEOutlineViewItem must implement %@", NSStringFromSelector(_cmd));
+    return GNEOutlineViewItemTypeUnknown;
+}
+
+
+- (BOOL)isSection
+{
+    return (self.type == GNEOutlineViewItemTypeSection);
+}
+
+
+- (BOOL)isRow
+{
+    return (self.type == GNEOutlineViewItemTypeRow);
+}
+
+
+// ------------------------------------------------------------------------------------------
 #pragma mark - Appearance
 // ------------------------------------------------------------------------------------------
 - (CGFloat)height
 {
-    return (self.isFooter) ? [self p_requestDelegateHeightOfFooter] : [self p_requestDelegateHeightOfCell];
+    NSAssert1(NO, @"Subclasses of GNEOutlineViewItem must implement %@", NSStringFromSelector(_cmd));
+    return GNESectionedTableViewInvisibleRowHeight;
 }
 
 
 - (NSTableRowView *)rowView
 {
-    return (self.isFooter) ? [self p_requestDelegateRowViewOfFooter] : [self p_requestDelegateRowViewOfCell];
+    NSAssert1(NO, @"Subclasses of GNEOutlineViewItem must implement %@", NSStringFromSelector(_cmd));
+    return [NSTableRowView new];
 }
 
 
 - (NSTableCellView *)cellView
 {
-    return (self.isFooter) ? [self p_requestDelegateCellViewOfFooter] : [self p_requestDelegateCellViewOfCell];
-}
-
-
-// ------------------------------------------------------------------------------------------
-#pragma mark - GNESectionedTableViewDelegate
-// ------------------------------------------------------------------------------------------
-- (CGFloat)p_requestDelegateHeightOfCell
-{
-    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
-    if ([delegate respondsToSelector:@selector(tableView:heightForRowAtIndexPath:)])
-    {
-        return [delegate tableView:self.tableView heightForRowAtIndexPath:self.indexPath];
-    }
-
-    return GNESectionedTableViewInvisibleRowHeight;
-}
-
-
-- (CGFloat)p_requestDelegateHeightOfFooter
-{
-    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
-    if ([delegate respondsToSelector:@selector(tableView:heightForFooterInSection:)])
-    {
-        return [delegate tableView:self.tableView heightForFooterInSection:self.indexPath.gne_section];
-    }
-
-    return GNESectionedTableViewInvisibleRowHeight;
-}
-
-
-- (NSTableRowView *)p_requestDelegateRowViewOfCell
-{
-    NSTableRowView *rowView = nil;
-    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
-    if ([delegate respondsToSelector:@selector(tableView:rowViewForRowAtIndexPath:)])
-    {
-        rowView = [delegate tableView:self.tableView rowViewForRowAtIndexPath:self.indexPath];
-    }
-
-    return rowView ?: [NSTableRowView new];
-}
-
-
-- (NSTableRowView *)p_requestDelegateRowViewOfFooter
-{
-    NSTableRowView *rowView = nil;
-    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
-    if ([delegate respondsToSelector:@selector(tableView:rowViewForFooterInSection:)])
-    {
-        rowView = [delegate tableView:self.tableView rowViewForFooterInSection:self.indexPath.gne_section];
-    }
-
-    return rowView ?: [NSTableRowView new];
-}
-
-
-- (NSTableCellView *)p_requestDelegateCellViewOfCell
-{
-    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
-    if ([delegate respondsToSelector:@selector(tableView:cellViewForRowAtIndexPath:)])
-    {
-        return [delegate tableView:self.tableView cellViewForRowAtIndexPath:self.indexPath];
-    }
-
+    NSAssert1(NO, @"Subclasses of GNEOutlineViewItem must implement %@", NSStringFromSelector(_cmd));
     return nil;
-}
-
-
-- (NSTableCellView *)p_requestDelegateCellViewOfFooter
-{
-    id<GNESectionedTableViewDelegate> delegate = self.tableViewDelegate;
-    if ([delegate respondsToSelector:@selector(tableView:cellViewForFooterInSection:)])
-    {
-        return [delegate tableView:self.tableView cellViewForFooterInSection:self.indexPath.gne_section];
-    }
-
-    return nil;
-}
-
-
-// ------------------------------------------------------------------------------------------
-#pragma mark - Description
-// ------------------------------------------------------------------------------------------
-- (NSString *)description
-{
-    unsigned long section = self.indexPath.gne_section;
-    unsigned long row = self.indexPath.gne_row;
-    NSString *indexPathString = [NSString stringWithFormat:@"Index Path: {%lu, %lu}", section, row];
-    
-    return [NSString stringWithFormat:@"<%@: %p> %@",
-            NSStringFromClass([self class]), self, indexPathString];
 }
 
 

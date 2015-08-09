@@ -30,8 +30,8 @@
 //
 
 @import Cocoa;
-#import "GNEOutlineViewItem.h"
-#import "GNEOutlineViewParentItem.h"
+#import "GNEOutlineViewRowItem.h"
+#import "GNEOutlineViewSectionItem.h"
 #import "GNEOrderedIndexSet.h"
 #import "NSMutableArray+GNESectionedTableView.h"
 #import "NSIndexPath+GNESectionedTableView.h"

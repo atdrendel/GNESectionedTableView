@@ -32,8 +32,8 @@
 #import "GNESectionedTableView.h"
 #import "NSOutlineView+GNE_Additions.h"
 
-#import "GNEOutlineViewItem.h"
-#import "GNEOutlineViewParentItem.h"
+#import "GNEOutlineViewSectionItem.h"
+#import "GNEOutlineViewRowItem.h"
 
 #import "GNESectionedTableViewMove.h"
 #import "GNESectionedTableViewMovingItem.h"
@@ -434,7 +434,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     if (row >= 0)
     {
-        GNEOutlineViewItem *item = [self itemAtRow:row];
+        GNEOutlineViewRowItem *item = [self itemAtRow:row];
 
         return [self p_indexPathOfOutlineViewItem:item];
     }
@@ -450,7 +450,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         return -1;
     }
     
-    GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
+    GNEOutlineViewRowItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
     
     return [self rowForItem:item];
 }
@@ -478,7 +478,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             NSMutableIndexSet *insertedIndexes = [NSMutableIndexSet indexSet];
             NSUInteger section = ((NSIndexPath *)indexPathsInSection.firstObject).gne_section;
             
-            GNEOutlineViewParentItem *parentItem = [self p_outlineViewParentItemForSection:section];
+            GNEOutlineViewSectionItem *parentItem = [self p_outlineViewParentItemForSection:section];
             GNEAssert1(parentItem, @"No outline view parent item exists for section %lu", (long unsigned)section);
             
             if (parentItem == nil)
@@ -493,7 +493,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             
             for (NSIndexPath *indexPath in indexPathsInSection)
             {
-                GNEOutlineViewItem *outlineViewItem = [[GNEOutlineViewItem alloc] initWithParentItem:parentItem];
+                GNEOutlineViewRowItem *outlineViewItem = [[GNEOutlineViewRowItem alloc] initWithParentItem:parentItem];
                 outlineViewItem.pasteboardWritingDelegate = self;
                 [insertedIndexes addIndex:[rows gne_insertObject:outlineViewItem atIndex:indexPath.gne_row]];
             }
@@ -530,21 +530,21 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             continue;
         }
         
-        GNEOutlineViewItem *firstItem = [self p_outlineViewItemAtIndexPath:firstIndexPath];
+        GNEOutlineViewRowItem *firstItem = [self p_outlineViewItemAtIndexPath:firstIndexPath];
         
         if (firstItem == nil)
         {
             continue;
         }
         
-        GNEOutlineViewParentItem *parentItem = firstItem.parentItem;
+        GNEOutlineViewSectionItem *parentItem = firstItem.parentItem;
         
         GNEParameterAssert(parentItem);
         
         NSMutableIndexSet *deletedIndexes = [NSMutableIndexSet indexSet];
         for (NSIndexPath *indexPath in indexPathsInSection)
         {
-            GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
+            GNEOutlineViewRowItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
             
             if (item == nil)
             {
@@ -552,7 +552,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             }
 
 #if GNE_ASSERT_ENABLED
-            GNEOutlineViewParentItem *actualParentItem = item.parentItem;
+            GNEOutlineViewSectionItem *actualParentItem = item.parentItem;
             GNEParameterAssert([actualParentItem isEqual:parentItem]);
 #endif
             
@@ -676,7 +676,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         for (NSIndexPath *indexPath in indexPathsInSection)
         {
-            GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
+            GNEOutlineViewRowItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
             
             if (item == nil)
             {
@@ -721,7 +721,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             NSUInteger sectionCount = outlineViewParentItemsCopy.count;
             NSUInteger section = (proposedSection > sectionCount) ? sectionCount : proposedSection;
             
-            GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc] init];
+            GNEOutlineViewSectionItem *parentItem = [[GNEOutlineViewSectionItem alloc] init];
             parentItem.pasteboardWritingDelegate = self;
             parentItem.hasFooter = [self p_requestDelegateHasFooterInSection:section];
             [outlineViewParentItemsCopy gne_insertObject:parentItem atIndex:section];
@@ -734,7 +734,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             
             for (NSUInteger row = 0; row < rowCount; row++)
             {
-                GNEOutlineViewItem *item = [[GNEOutlineViewItem alloc] initWithParentItem:parentItem];
+                GNEOutlineViewRowItem *item = [[GNEOutlineViewRowItem alloc] initWithParentItem:parentItem];
                 item.pasteboardWritingDelegate = self;
                 
                 [rows addObject:item];
@@ -773,7 +773,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     NSMutableIndexSet *deletedSections = [NSMutableIndexSet indexSet];
     [sections enumerateIndexesWithOptions:NSEnumerationReverse usingBlock:^(NSUInteger section, BOOL *stop __unused)
     {
-        GNEOutlineViewParentItem *parentItem = [self p_outlineViewParentItemForSection:section];
+        GNEOutlineViewSectionItem *parentItem = [self p_outlineViewParentItemForSection:section];
         
         if (parentItem)
         {
@@ -902,7 +902,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [self beginUpdates];
     [sections enumerateIndexesUsingBlock:^(NSUInteger section, BOOL *stop __unused)
     {
-        GNEOutlineViewParentItem *parentItem = nil;
+        GNEOutlineViewSectionItem *parentItem = nil;
         if (section < sectionCount && (parentItem = [self p_outlineViewParentItemForSection:section]))
         {
             [self reloadItem:parentItem];
@@ -931,7 +931,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     if (section < self.outlineViewParentItems.count)
     {
-        GNEOutlineViewParentItem *parentItem = self.outlineViewParentItems[section];
+        GNEOutlineViewSectionItem *parentItem = self.outlineViewParentItems[section];
         
         return [self isItemExpanded:parentItem];
     }
@@ -992,7 +992,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             id outlineView = (animated) ? strongSelf.animator : strongSelf;
             if (section < count)
             {
-                GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[section];
+                GNEOutlineViewSectionItem *parentItem = strongSelf.outlineViewParentItems[section];
                 if ([strongSelf isItemExpanded:parentItem] == NO)
                 {
                     [outlineView expandItem:parentItem];
@@ -1053,7 +1053,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             id outlineView = (animated) ? strongSelf.animator : strongSelf;
             if (section < count)
             {
-                GNEOutlineViewParentItem *parentItem = strongSelf.outlineViewParentItems[section];
+                GNEOutlineViewSectionItem *parentItem = strongSelf.outlineViewParentItems[section];
                 if ([strongSelf isItemExpanded:parentItem])
                 {
                     [outlineView collapseItem:parentItem];
@@ -1073,7 +1073,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     if (selectedRow >= 0)
     {
-        GNEOutlineViewItem *item = [self itemAtRow:selectedRow];
+        GNEOutlineViewRowItem *item = [self itemAtRow:selectedRow];
         
         return [self p_indexPathOfOutlineViewItem:item];
     }
@@ -1094,7 +1094,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         {
             __strong typeof(weakSelf) strongSelf = weakSelf;
             
-            GNEOutlineViewItem *item = [strongSelf itemAtRow:(NSInteger)idx];
+            GNEOutlineViewRowItem *item = [strongSelf itemAtRow:(NSInteger)idx];
             NSIndexPath *indexPath = [strongSelf p_indexPathOfOutlineViewItem:item];
             if (indexPath)
             {
@@ -1159,7 +1159,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         return;
     }
     
-    GNEOutlineViewItem *item = ((NSArray *)self.outlineViewItems[section])[row];
+    GNEOutlineViewRowItem *item = ((NSArray *)self.outlineViewItems[section])[row];
     NSInteger tableViewRow = [self rowForItem:item];
     
     if (tableViewRow >= 0 &&
@@ -1208,7 +1208,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (CGRect)frameOfViewAtIndexPath:(NSIndexPath * __nonnull)indexPath
 {
-    GNEOutlineViewItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
+    GNEOutlineViewRowItem *item = [self p_outlineViewItemAtIndexPath:indexPath];
     NSInteger lastColumn = self.numberOfColumns - 1; // Assume only one column
     if (item && lastColumn >= 0)
     {
@@ -1223,7 +1223,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (CGRect)frameOfSection:(NSUInteger)section
 {
-    GNEOutlineViewParentItem *parentItem = [self p_outlineViewParentItemForSection:section];
+    GNEOutlineViewSectionItem *parentItem = [self p_outlineViewParentItemForSection:section];
     NSIndexPath *sectionIndexPath = [self p_indexPathOfOutlineViewItem:parentItem];
     
     if (sectionIndexPath == nil)
@@ -1235,7 +1235,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     if ([self isItemExpanded:parentItem])
     {
         NSArray *rowsArray = self.outlineViewItems[section];
-        for (GNEOutlineViewItem *item in rowsArray)
+        for (GNEOutlineViewRowItem *item in rowsArray)
         {
             NSIndexPath *indexPath = [self p_indexPathOfOutlineViewItem:item];
             if (indexPath == nil)
@@ -1271,7 +1271,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     NSUInteger sectionCount = [self p_numberOfSections];
     for (NSUInteger section = 0; section < sectionCount; section++)
     {
-        GNEOutlineViewParentItem *parentItem = [[GNEOutlineViewParentItem alloc] init];
+        GNEOutlineViewSectionItem *parentItem = [[GNEOutlineViewSectionItem alloc] init];
         parentItem.pasteboardWritingDelegate = self;
         parentItem.hasFooter = [self p_requestDelegateHasFooterInSection:section];
         
@@ -1283,7 +1283,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         rowCount += ((parentItem.hasFooter) ? 1 : 0);
         for (NSUInteger row = 0; row < rowCount; row++)
         {
-            GNEOutlineViewItem *item = [[GNEOutlineViewItem alloc] initWithParentItem:parentItem];
+            GNEOutlineViewRowItem *item = [[GNEOutlineViewRowItem alloc] initWithParentItem:parentItem];
             item.pasteboardWritingDelegate = self;
             [rowArray addObject:item];
         }
@@ -1488,7 +1488,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
  @return Index matching the current location of the specified outline view parent item in table view's outline
  view parent items array, or NSNotFound if the outline view parent item could not be found.
  */
-- (NSUInteger)p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)parentItem
+- (NSUInteger)p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)parentItem
 {
     NSUInteger index = [self.outlineViewParentItems indexOfObject:parentItem];
     
@@ -1512,11 +1512,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [rowIndexes enumerateIndexesUsingBlock:^(NSUInteger tableViewRow, BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
-        GNEOutlineViewItem *item = [strongSelf itemAtRow:(NSInteger)tableViewRow];
+        GNEOutlineViewRowItem *item = [strongSelf itemAtRow:(NSInteger)tableViewRow];
         if (item && item.parentItem == nil)
         {
-            GNEParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
-            NSUInteger section = [strongSelf p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+            GNEParameterAssert([item isKindOfClass:[GNEOutlineViewSectionItem class]]);
+            NSUInteger section = [strongSelf p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)item];
             if (section != NSNotFound)
             {
                 [sectionIndexes addIndex:section];
@@ -1544,7 +1544,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     [rowIndexes enumerateIndexesUsingBlock:^(NSUInteger tableViewRow, BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
-        GNEOutlineViewItem *item = [strongSelf itemAtRow:(NSInteger)tableViewRow];
+        GNEOutlineViewRowItem *item = [strongSelf itemAtRow:(NSInteger)tableViewRow];
         BOOL isFooter = [self p_isOutlineViewItemFooter:item];
         if (isFooter)
         {
@@ -1639,10 +1639,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
  Throws an exception if the specified outline view parent item does not match the specified
  outline view item's parent.
  */
-- (NSUInteger)p_childIndexOfOutlineViewItem:(GNEOutlineViewItem *)item
-                               inParentItem:(GNEOutlineViewParentItem *)parentItem
+- (NSUInteger)p_childIndexOfOutlineViewItem:(GNEOutlineViewRowItem *)item
+                               inParentItem:(GNEOutlineViewSectionItem *)parentItem
 {
-    GNEOutlineViewParentItem *theParentItem = item.parentItem;
+    GNEOutlineViewSectionItem *theParentItem = item.parentItem;
     
     GNEParameterAssert([theParentItem isEqual:parentItem]);
     
@@ -1656,7 +1656,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 
 /// Returns the child index of the specified outline view item in its parent, otherwise NSNotFound.
-- (NSUInteger)p_childIndexOfOutlineViewItem:(GNEOutlineViewItem *)item
+- (NSUInteger)p_childIndexOfOutlineViewItem:(GNEOutlineViewRowItem *)item
 {
     NSUInteger section = [self p_sectionForOutlineViewParentItem:item.parentItem];
     NSUInteger sectionCount = self.outlineViewItems.count;
@@ -1679,7 +1679,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
  @return Index path matching the current location of the specified outline view item in table view's outline view
             items array, or nil if it couldn't be found.
  */
-- (NSIndexPath *)p_indexPathOfOutlineViewItem:(GNEOutlineViewItem *)item
+- (NSIndexPath *)p_indexPathOfOutlineViewItem:(GNEOutlineViewRowItem *)item
 {
     if (item == nil)
     {
@@ -1689,10 +1689,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     NSUInteger sectionCount = self.outlineViewItems.count;
     
     // If it's a outline view parent item, make a section header index path for it.
-    GNEOutlineViewParentItem *parentItem = item.parentItem;
+    GNEOutlineViewSectionItem *parentItem = item.parentItem;
     if (parentItem == nil)
     {
-        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)item];
         NSIndexPath *indexPath = [self indexPathForHeaderInSection:section];
         
         return ((section == NSNotFound) ? nil : indexPath);
@@ -1754,7 +1754,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
 
-        GNEOutlineViewItem *item = [strongSelf itemAtRow:(NSInteger)idx];
+        GNEOutlineViewRowItem *item = [strongSelf itemAtRow:(NSInteger)idx];
         if (item.parentItem)
         {
             NSIndexPath *indexPath = [strongSelf p_indexPathOfOutlineViewItem:item];
@@ -1780,9 +1780,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
  an outline view parent item.
  @return Outline view item or outline view parent item located at the specified index of the specified parent.
  */
-- (GNEOutlineViewItem *)p_outlineViewItemAtIndex:(NSUInteger)index ofParent:(GNEOutlineViewParentItem *)parentItem
+- (GNEOutlineViewRowItem *)p_outlineViewItemAtIndex:(NSUInteger)index ofParent:(GNEOutlineViewSectionItem *)parentItem
 {
-    GNEParameterAssert(parentItem == nil || [parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+    GNEParameterAssert(parentItem == nil || [parentItem isKindOfClass:[GNEOutlineViewSectionItem class]]);
     
     if (parentItem)
     {
@@ -1812,7 +1812,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
  @param section Section to use to find a matching outline view parent item.
  @return Outline view parent item for the specified section, otherwise nil.
  */
-- (GNEOutlineViewParentItem *)p_outlineViewParentItemForSection:(NSUInteger)section
+- (GNEOutlineViewSectionItem *)p_outlineViewParentItemForSection:(NSUInteger)section
 {
     NSIndexPath *indexPath = [self indexPathForHeaderInSection:section];
     
@@ -1826,7 +1826,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
  @param indexPath Index path to use to find a matching outline view parent item.
  @return Outline view parent item at the specified index path, otherwise nil.
  */
-- (GNEOutlineViewParentItem *)p_outlineViewParentItemWithIndexPath:(NSIndexPath *)indexPath
+- (GNEOutlineViewSectionItem *)p_outlineViewParentItemWithIndexPath:(NSIndexPath *)indexPath
 {
     GNEParameterAssert(indexPath);
     GNEParameterAssert([self isIndexPathHeader:indexPath]);
@@ -1850,7 +1850,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
  @param indexPath Index path to use to find a matching outline view item.
  @return Outline view item at the specified index path, otherwise nil.
  */
-- (GNEOutlineViewItem *)p_outlineViewItemAtIndexPath:(NSIndexPath *)indexPath
+- (GNEOutlineViewRowItem *)p_outlineViewItemAtIndexPath:(NSIndexPath *)indexPath
 {
     GNEParameterAssert(indexPath);
     
@@ -1886,9 +1886,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (GNEOutlineViewItem *)p_outlineViewItemForFooterInSection:(NSUInteger)section
+- (GNEOutlineViewRowItem *)p_outlineViewItemForFooterInSection:(NSUInteger)section
 {
-    GNEOutlineViewParentItem *parentItem = [self p_outlineViewParentItemForSection:section];
+    GNEOutlineViewSectionItem *parentItem = [self p_outlineViewParentItemForSection:section];
     
     return [self p_outlineViewItemForFooterInOutlineViewParentItem:parentItem];
 }
@@ -1899,7 +1899,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
  outline view parent item or nil if the section for the parent item doesn't have a footer
  or can't be found.
  */
-- (GNEOutlineViewItem *)p_outlineViewItemForFooterInOutlineViewParentItem:(GNEOutlineViewParentItem *)parentItem
+- (GNEOutlineViewRowItem *)p_outlineViewItemForFooterInOutlineViewParentItem:(GNEOutlineViewSectionItem *)parentItem
 {
     if (parentItem.hasFooter == NO)
     {
@@ -1922,16 +1922,16 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         return nil;
     }
     
-    GNEOutlineViewItem *item = items[rowCount - 1];
+    GNEOutlineViewRowItem *item = items[rowCount - 1];
     
     return item;
 }
 
 
 /// Returns YES if the specified outline view item represents the footer in its section, otherwise NO.
-- (BOOL)p_isOutlineViewItemFooter:(GNEOutlineViewItem *)item
+- (BOOL)p_isOutlineViewItemFooter:(GNEOutlineViewRowItem *)item
 {
-    GNEOutlineViewParentItem *parentItem = item.parentItem;
+    GNEOutlineViewSectionItem *parentItem = item.parentItem;
     
     if (parentItem == nil || parentItem.hasFooter == NO)
     {
@@ -1997,9 +1997,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
  Returns the number of outline view items (including items that represent normal rows and footers)
  in the specified outline view parent item.
  */
-- (NSUInteger)p_numberOfOutlineViewItemsForOutlineViewParentItem:(GNEOutlineViewParentItem *)parentItem
+- (NSUInteger)p_numberOfOutlineViewItemsForOutlineViewParentItem:(GNEOutlineViewSectionItem *)parentItem
 {
-    GNEParameterAssert([parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+    GNEParameterAssert([parentItem isKindOfClass:[GNEOutlineViewSectionItem class]]);
     
     NSUInteger section = [self p_sectionForOutlineViewParentItem:parentItem];
     if (section < self.outlineViewItems.count)
@@ -2017,10 +2017,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 - (NSUInteger)p_sectionForExpandCollapseNotification:(NSNotification *)notification
 {
     NSString * const kItemKey = @"NSObject";
-    GNEOutlineViewParentItem *parentItem = notification.userInfo[kItemKey];
+    GNEOutlineViewSectionItem *parentItem = notification.userInfo[kItemKey];
     
     if ([notification.object isEqual:self] == NO ||
-        [parentItem isKindOfClass:[GNEOutlineViewParentItem class]] == NO)
+        [parentItem isKindOfClass:[GNEOutlineViewSectionItem class]] == NO)
     {
         return NSNotFound;
     }
@@ -2040,7 +2040,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }
     
     NSInteger clickedRow = self.clickedRow;
-    GNEOutlineViewItem *item = nil;
+    GNEOutlineViewRowItem *item = nil;
     if (clickedRow >= 0 && (item = [self itemAtRow:clickedRow]))
     {
         BOOL shouldDelay = [self p_shouldDelayClickActionForOutlineViewItem:item];
@@ -2069,16 +2069,16 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     NSInteger clickedRow = self.clickedRow;
     
-    GNEOutlineViewItem *item = nil;
+    GNEOutlineViewRowItem *item = nil;
     if (clickedRow >= 0 && (item = [self itemAtRow:clickedRow]))
     {
-        GNEOutlineViewParentItem *parentItem = item.parentItem;
+        GNEOutlineViewSectionItem *parentItem = item.parentItem;
         
         SEL headerSelector = @selector(tableView:didDoubleClickHeaderInSection:);
         if (parentItem == nil && [self.tableViewDelegate respondsToSelector:headerSelector])
         {
             [self p_cancelClickActions];
-            NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+            NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)item];
             [self.tableViewDelegate tableView:self didDoubleClickHeaderInSection:section];
         }
         
@@ -2110,16 +2110,16 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     NSInteger clickedRow = rowNumber.integerValue;
     
-    GNEOutlineViewItem *item = nil;
+    GNEOutlineViewRowItem *item = nil;
     if (clickedRow >= 0 && (item = [self itemAtRow:clickedRow]))
     {
         [self p_cancelClickActions];
-        GNEOutlineViewParentItem *parentItem = item.parentItem;
+        GNEOutlineViewSectionItem *parentItem = item.parentItem;
         
         SEL headerSelector = @selector(tableView:didClickHeaderInSection:);
         if (parentItem == nil && [self.tableViewDelegate respondsToSelector:headerSelector])
         {
-            NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+            NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)item];
             [self.tableViewDelegate tableView:self didClickHeaderInSection:section];
         }
         
@@ -2145,7 +2145,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (BOOL)p_shouldDelayClickActionForOutlineViewItem:(GNEOutlineViewItem *)item
+- (BOOL)p_shouldDelayClickActionForOutlineViewItem:(GNEOutlineViewRowItem *)item
 {
     if (item == nil)
     {
@@ -2202,7 +2202,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 {
     [self unregisterDraggedTypes];
     
-    NSArray *draggedTypes = @[GNEOutlineViewItemPasteboardType];
+    NSArray *draggedTypes = @[GNEOutlineViewRowItemPasteboardType];
     
     if ([self.tableViewDataSource respondsToSelector:@selector(draggedTypesForTableView:)])
     {
@@ -2232,9 +2232,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (void)p_collapseDraggedSectionsForOutlineViewItems:(NSArray *)items
 {
-    for (GNEOutlineViewItem *item in items)
+    for (GNEOutlineViewRowItem *item in items)
     {
-        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)item];
         
         if (section == NSNotFound)
         {
@@ -2276,7 +2276,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     __weak typeof(self) weakSelf = self;
     [info enumerateDraggingItemsWithOptions:0
                                     forView:self
-                                    classes:@[[GNEOutlineViewItem class]]
+                                    classes:@[[GNEOutlineViewRowItem class]]
                               searchOptions:@{}
                                  usingBlock:^(NSDraggingItem *draggingItem,
                                               NSInteger idx __unused,
@@ -2284,7 +2284,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
 
-        GNEOutlineViewItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
+        GNEOutlineViewRowItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
         NSIndexPath *fromIndexPath = [self p_indexPathOfOutlineViewItem:draggedItem];
 
         SEL selector = @selector(tableView:canDragSection:toSection:);
@@ -2312,10 +2312,10 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 
 - (NSDragOperation)p_rowDragOperationForDrop:(id<NSDraggingInfo>)info
-                          proposedParentItem:(GNEOutlineViewItem *)proposedParentItem
+                          proposedParentItem:(GNEOutlineViewRowItem *)proposedParentItem
                           proposedChildIndex:(NSInteger)proposedChildIndex
 {
-    NSUInteger toSection = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)proposedParentItem];
+    NSUInteger toSection = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)proposedParentItem];
     SEL selector = @selector(tableView:canDragRowAtIndexPath:toIndexPath:);
     
     if (proposedChildIndex == NSOutlineViewDropOnItemIndex)
@@ -2326,7 +2326,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     // Only allow drags to locations inside sections, not between sections
     else if (toSection != NSNotFound && [self.tableViewDataSource respondsToSelector:selector])
     {
-        GNEParameterAssert([proposedParentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+        GNEParameterAssert([proposedParentItem isKindOfClass:[GNEOutlineViewSectionItem class]]);
         GNEParameterAssert(toSection < self.outlineViewItems.count);
         
         __block BOOL canDrag = NO;
@@ -2342,7 +2342,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         __weak typeof(self) weakSelf = self;
         [info enumerateDraggingItemsWithOptions:0
                                         forView:self
-                                        classes:@[[GNEOutlineViewItem class]]
+                                        classes:@[[GNEOutlineViewRowItem class]]
                                   searchOptions:@{}
                                      usingBlock:^(NSDraggingItem *draggingItem,
                                                   NSInteger idx __unused,
@@ -2356,7 +2356,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                 return;
             }
             
-            GNEOutlineViewItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
+            GNEOutlineViewRowItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
             NSIndexPath *fromIndexPath = [strongSelf p_indexPathOfOutlineViewItem:draggedItem];
             
             if (fromIndexPath == nil)
@@ -2384,19 +2384,19 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 
 - (NSDragOperation)p_rowDragOperationForDropOnItemDrop:(id<NSDraggingInfo>)info
-                                    proposedParentItem:(GNEOutlineViewItem *)proposedParentItem
+                                    proposedParentItem:(GNEOutlineViewRowItem *)proposedParentItem
 {
     __block BOOL canDropOn = NO;
     
     SEL headerSelector = @selector(tableView:canDropRowAtIndexPath:onHeaderInSection:);
     SEL rowSelector = @selector(tableView:canDropRowAtIndexPath:onRowAtIndexPath:);
     
-    GNEOutlineViewParentItem *parentItem = proposedParentItem.parentItem;
+    GNEOutlineViewSectionItem *parentItem = proposedParentItem.parentItem;
     
     __weak typeof(self) weakSelf = self;
     [info enumerateDraggingItemsWithOptions:0
                                     forView:self
-                                    classes:@[[GNEOutlineViewItem class]]
+                                    classes:@[[GNEOutlineViewRowItem class]]
                               searchOptions:@{}
                                  usingBlock:^(NSDraggingItem *draggingItem,
                                               NSInteger idx __unused,
@@ -2410,7 +2410,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             return;
         }
         
-        GNEOutlineViewItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
+        GNEOutlineViewRowItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
         NSIndexPath *fromIndexPath = [strongSelf p_indexPathOfOutlineViewItem:draggedItem];
         BOOL isFooter = [strongSelf p_isOutlineViewItemFooter:proposedParentItem];
         
@@ -2424,7 +2424,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         if (proposedParentItem && parentItem == nil &&
             [strongSelf.tableViewDataSource respondsToSelector:headerSelector])
         {
-            GNEOutlineViewParentItem *theParentItem = (GNEOutlineViewParentItem *)proposedParentItem;
+            GNEOutlineViewSectionItem *theParentItem = (GNEOutlineViewSectionItem *)proposedParentItem;
             NSUInteger section = [strongSelf p_sectionForOutlineViewParentItem:theParentItem];
             if (section != NSNotFound)
             {
@@ -2456,7 +2456,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (BOOL)p_performDropOnDragOperationWithProposedParentItem:(GNEOutlineViewItem *)proposedParentItem
+- (BOOL)p_performDropOnDragOperationWithProposedParentItem:(GNEOutlineViewRowItem *)proposedParentItem
                                             fromIndexPaths:(NSArray *)fromIndexPaths
 {
     GNEParameterAssert([self p_isOutlineViewItemFooter:proposedParentItem] == NO);
@@ -2464,7 +2464,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     SEL headerSelector = @selector(tableView:didDropRowsAtIndexPaths:onHeaderInSection:);
     SEL rowSelector = @selector(tableView:didDropRowsAtIndexPaths:onRowAtIndexPath:);
     
-    GNEOutlineViewParentItem *parentItem = proposedParentItem.parentItem;
+    GNEOutlineViewSectionItem *parentItem = proposedParentItem.parentItem;
     NSIndexPath *toIndexPath = [self p_indexPathOfOutlineViewItem:proposedParentItem];
     
     if (parentItem == nil && [self.tableViewDataSource respondsToSelector:headerSelector])
@@ -2506,13 +2506,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (BOOL)p_performRowDragOperationWithProposedParentItem:(GNEOutlineViewParentItem *)proposedParentItem
+- (BOOL)p_performRowDragOperationWithProposedParentItem:(GNEOutlineViewSectionItem *)proposedParentItem
                                      proposedChildIndex:(NSInteger)proposedChildIndex
                                          fromIndexPaths:(NSArray *)fromIndexPaths
 {
-    GNEParameterAssert([proposedParentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+    GNEParameterAssert([proposedParentItem isKindOfClass:[GNEOutlineViewSectionItem class]]);
     
-    NSUInteger toSection = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)proposedParentItem];
+    NSUInteger toSection = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)proposedParentItem];
     NSIndexPath *toIndexPath = [NSIndexPath gne_indexPathForRow:(NSUInteger)proposedChildIndex
                                                       inSection:toSection];
     
@@ -2539,7 +2539,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     __weak typeof(self) weakSelf = self;
     [info enumerateDraggingItemsWithOptions:0
                                     forView:self
-                                    classes:@[[GNEOutlineViewItem class]]
+                                    classes:@[[GNEOutlineViewRowItem class]]
                               searchOptions:@{}
                                  usingBlock:^(NSDraggingItem *draggingItem,
                                               NSInteger idx __unused,
@@ -2553,7 +2553,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             return;
         }
         
-        GNEOutlineViewItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
+        GNEOutlineViewRowItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
         
         if (draggedItem.parentItem == nil)
         {
@@ -2585,12 +2585,12 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
  previous section. Additionally, if the user drags the row past the last row, we need to retarget it to 
  the count (last index plus one) of the last section.
  @param info Drag operation
- @param proposedParentItemPtr Pointer to a pointer to an instance of GNEOutlineViewItem or nil.
+ @param proposedParentItemPtr Pointer to a pointer to an instance of GNEOutlineViewRowItem or nil.
  @param proposedChildIndexPtr Pointer to the proposedChildIndex integer.
  @return YES if the drop was retargeted, otherwise NO.
  */
 - (BOOL)p_retargetDropOnDragOperation:(id<NSDraggingInfo>)info
-                 toProposedParentItem:(GNEOutlineViewItem * __autoreleasing *)proposedParentItemPtr
+                 toProposedParentItem:(GNEOutlineViewRowItem * __autoreleasing *)proposedParentItemPtr
                    proposedChildIndex:(NSInteger *)proposedChildIndexPtr
 {
     if (proposedParentItemPtr == NULL || proposedChildIndexPtr == NULL)
@@ -2598,20 +2598,20 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         return NO;
     }
     
-    GNEOutlineViewItem *proposedParent = *proposedParentItemPtr;
+    GNEOutlineViewRowItem *proposedParent = *proposedParentItemPtr;
     NSInteger proposedChildIndex = *proposedChildIndexPtr;
-    GNEOutlineViewParentItem *parentItem = proposedParent.parentItem;
+    GNEOutlineViewSectionItem *parentItem = proposedParent.parentItem;
     if (proposedParent && parentItem == nil)
     {
-        GNEParameterAssert([proposedParent isKindOfClass:[GNEOutlineViewParentItem class]]);
+        GNEParameterAssert([proposedParent isKindOfClass:[GNEOutlineViewSectionItem class]]);
         
-        GNEOutlineViewParentItem *aParentItem = (GNEOutlineViewParentItem *)proposedParent;
+        GNEOutlineViewSectionItem *aParentItem = (GNEOutlineViewSectionItem *)proposedParent;
         NSUInteger toSection = [self p_sectionForOutlineViewParentItem:aParentItem];
         
         if (toSection > 0 && toSection != NSNotFound)
         {
             NSUInteger prevSection = toSection - 1;
-            GNEOutlineViewParentItem *prevParentItem = [self p_outlineViewParentItemForSection:prevSection];
+            GNEOutlineViewSectionItem *prevParentItem = [self p_outlineViewParentItemForSection:prevSection];
             GNEParameterAssert(prevParentItem);
             NSUInteger rowCount = [self p_numberOfOutlineViewItemsForOutlineViewParentItem:prevParentItem];
             *proposedParentItemPtr = prevParentItem;
@@ -2623,8 +2623,8 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }
     else if (proposedParent && parentItem)
     {
-        GNEParameterAssert([proposedParent isMemberOfClass:[GNEOutlineViewItem class]]);
-        GNEParameterAssert([parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+        GNEParameterAssert([proposedParent isMemberOfClass:[GNEOutlineViewRowItem class]]);
+        GNEParameterAssert([parentItem isKindOfClass:[GNEOutlineViewSectionItem class]]);
         
         /*
          When a row is dragged past the last row in the table view, the default behavior is to create a "drop on"
@@ -2657,7 +2657,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
                 NSUInteger nextSection = section + 1;
                 if (nextSection < sectionCount) // It's not the last section.
                 {
-                    GNEOutlineViewParentItem *nextSectionParentItem = self.outlineViewParentItems[nextSection];
+                    GNEOutlineViewSectionItem *nextSectionParentItem = self.outlineViewParentItems[nextSection];
                     *proposedParentItemPtr = nextSectionParentItem;
                     *proposedChildIndexPtr = 0;
                     [self setDropItem:nextSectionParentItem dropChildIndex:0];
@@ -2693,12 +2693,12 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (NSIndexPath *)p_targetIndexPathForDragToProposedParentItem:(GNEOutlineViewItem *)proposedParentItem
+- (NSIndexPath *)p_targetIndexPathForDragToProposedParentItem:(GNEOutlineViewRowItem *)proposedParentItem
                                            proposedChildIndex:(NSInteger)proposedChildIndex
 {
     GNEParameterAssert(self.outlineViewParentItems.count == self.outlineViewItems.count);
     
-    GNEOutlineViewParentItem *parentItem = (GNEOutlineViewParentItem *)proposedParentItem;
+    GNEOutlineViewSectionItem *parentItem = (GNEOutlineViewSectionItem *)proposedParentItem;
     
     NSUInteger sectionCount = self.outlineViewItems.count;
     NSUInteger toSection = [self p_sectionForOutlineViewParentItem:parentItem];
@@ -2714,7 +2714,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         NSUInteger nextSection = toSection + 1;
         if (nextSection < sectionCount)
         {
-            GNEOutlineViewParentItem *nextParentItem = self.outlineViewParentItems[nextSection];
+            GNEOutlineViewSectionItem *nextParentItem = self.outlineViewParentItems[nextSection];
             [self setDropItem:nextParentItem dropChildIndex:0];
             
             return [NSIndexPath gne_indexPathForRow:0 inSection:nextSection];
@@ -2750,11 +2750,11 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (GNEOutlineViewItem *)p_draggedItemForDraggingItem:(NSDraggingItem *)draggingItem
+- (GNEOutlineViewRowItem *)p_draggedItemForDraggingItem:(NSDraggingItem *)draggingItem
 {
-    GNEOutlineViewItem *draggedItem = nil;
+    GNEOutlineViewRowItem *draggedItem = nil;
     
-    GNEOutlineViewItem *item = draggingItem.item;
+    GNEOutlineViewRowItem *item = draggingItem.item;
     NSIndexPath *indexPath = item.draggedIndexPath;
     
     if (indexPath)
@@ -2965,17 +2965,17 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 - (id)outlineView:(NSOutlineView * __unused)outlineView
             child:(NSInteger)index
-           ofItem:(GNEOutlineViewParentItem *)parentItem
+           ofItem:(GNEOutlineViewSectionItem *)parentItem
 {
-    GNEParameterAssert(parentItem == nil || [parentItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+    GNEParameterAssert(parentItem == nil || [parentItem isKindOfClass:[GNEOutlineViewSectionItem class]]);
     
     return [self p_outlineViewItemAtIndex:(NSUInteger)index ofParent:parentItem];
 }
 
 
-- (BOOL)outlineView:(NSOutlineView * __unused)outlineView isItemExpandable:(GNEOutlineViewItem *)item
+- (BOOL)outlineView:(NSOutlineView * __unused)outlineView isItemExpandable:(GNEOutlineViewRowItem *)item
 {
-    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewRowItem class]]);
     
     if (item)
     {
@@ -2993,15 +2993,15 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (NSInteger)outlineView:(NSOutlineView * __unused)outlineView numberOfChildrenOfItem:(GNEOutlineViewItem *)item
+- (NSInteger)outlineView:(NSOutlineView * __unused)outlineView numberOfChildrenOfItem:(GNEOutlineViewRowItem *)item
 {
-    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewRowItem class]]);
     
     if (item)
     {
         if (item.parentItem == nil)
         {
-            GNEOutlineViewParentItem *parentItem = (GNEOutlineViewParentItem *)item;
+            GNEOutlineViewSectionItem *parentItem = (GNEOutlineViewSectionItem *)item;
             
             return (NSInteger)[self p_numberOfOutlineViewItemsForOutlineViewParentItem:parentItem];
         }
@@ -3018,9 +3018,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 -           (id)outlineView:(NSOutlineView * __unused)outlineView
   objectValueForTableColumn:(NSTableColumn * __unused)tableColumn
-                     byItem:(GNEOutlineViewItem *)item
+                     byItem:(GNEOutlineViewRowItem *)item
 {
-    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewRowItem class]]);
     
     return item;
 }
@@ -3029,16 +3029,16 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 #pragma mark - NSOutlineViewDelegate - View Size and Appearance
 // ------------------------------------------------------------------------------------------
-- (CGFloat)outlineView:(NSOutlineView * __unused)outlineView heightOfRowByItem:(GNEOutlineViewItem *)item
+- (CGFloat)outlineView:(NSOutlineView * __unused)outlineView heightOfRowByItem:(GNEOutlineViewRowItem *)item
 {
-    GNEParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert([item isKindOfClass:[GNEOutlineViewRowItem class]]);
     
-    GNEOutlineViewParentItem *parentItem = item.parentItem;
+    GNEOutlineViewSectionItem *parentItem = item.parentItem;
     
     // Section header
     if (parentItem == nil)
     {
-        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)item];
         if (section != NSNotFound &&
             [self p_requestDelegateHasHeaderInSection:section])
         {
@@ -3070,28 +3070,28 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (BOOL)outlineView:(NSOutlineView * __unused)outlineView isGroupItem:(GNEOutlineViewItem * __unused)item
+- (BOOL)outlineView:(NSOutlineView * __unused)outlineView isGroupItem:(GNEOutlineViewRowItem * __unused)item
 {
-    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewRowItem class]]);
     
     return NO;
 }
 
 
-- (NSTableRowView *)outlineView:(NSOutlineView *)outlineView rowViewForItem:(GNEOutlineViewItem *)item
+- (NSTableRowView *)outlineView:(NSOutlineView *)outlineView rowViewForItem:(GNEOutlineViewRowItem *)item
 {
-    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewRowItem class]]);
     GNEParameterAssert([self.tableViewDelegate respondsToSelector:@selector(tableView:rowViewForRowAtIndexPath:)]);
     
     NSTableRowView *rowView = nil;
     NSIndexPath *indexPath = nil;
     
-    GNEOutlineViewParentItem *parentItem = item.parentItem;
+    GNEOutlineViewSectionItem *parentItem = item.parentItem;
     
     // Section header
     if (parentItem == nil)
     {
-        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)item];
         if (section != NSNotFound)
         {
             indexPath = [self indexPathForHeaderInSection:section];
@@ -3147,17 +3147,17 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (NSView *)outlineView:(NSOutlineView * __unused)outlineView
      viewForTableColumn:(NSTableColumn * __unused)tableColumn
-                   item:(GNEOutlineViewItem *)item
+                   item:(GNEOutlineViewRowItem *)item
 {
-    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert(item == nil || [item isKindOfClass:[GNEOutlineViewRowItem class]]);
     GNEParameterAssert([self.tableViewDataSource respondsToSelector:@selector(tableView:cellViewForRowAtIndexPath:)]);
     
-    GNEOutlineViewParentItem *parentItem = item.parentItem;
+    GNEOutlineViewSectionItem *parentItem = item.parentItem;
     
     // Section header
     if (parentItem == nil)
     {
-        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)item];
         if (section != NSNotFound && [self p_requestDelegateHasHeaderInSection:section])
         {
             return [self.tableViewDelegate tableView:self cellViewForHeaderInSection:section];
@@ -3290,9 +3290,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 // ------------------------------------------------------------------------------------------
 #pragma mark - NSOutlineViewDelegate - Expand/Collapse
 // ------------------------------------------------------------------------------------------
-- (BOOL)outlineView:(NSOutlineView * __unused)outlineView shouldExpandItem:(GNEOutlineViewItem *)item
+- (BOOL)outlineView:(NSOutlineView * __unused)outlineView shouldExpandItem:(GNEOutlineViewRowItem *)item
 {
-    GNEParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert([item isKindOfClass:[GNEOutlineViewRowItem class]]);
     
     // Don't allow rows or footers to be expanded.
     if (item.parentItem)
@@ -3300,7 +3300,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         return NO;
     }
     
-    NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+    NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)item];
     if ([self.tableViewDelegate respondsToSelector:@selector(tableView:shouldExpandSection:)] &&
         section != NSNotFound)
     {
@@ -3311,9 +3311,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 }
 
 
-- (BOOL)outlineView:(NSOutlineView * __unused)outlineView shouldCollapseItem:(GNEOutlineViewItem *)item
+- (BOOL)outlineView:(NSOutlineView * __unused)outlineView shouldCollapseItem:(GNEOutlineViewRowItem *)item
 {
-    GNEParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert([item isKindOfClass:[GNEOutlineViewRowItem class]]);
     
     // Don't allow rows or footers to be collapsed.
     if (item.parentItem)
@@ -3321,7 +3321,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
         return NO;
     }
     
-    NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+    NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)item];
     if ([self.tableViewDelegate respondsToSelector:@selector(tableView:shouldCollapseSection:)] &&
         section != NSNotFound)
     {
@@ -3509,12 +3509,12 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }
     else if (selectedRows.count == 1)
     {
-        GNEOutlineViewItem *item = [self itemAtRow:(NSInteger)selectedRows.firstIndex];
-        GNEOutlineViewParentItem *parentItem = item.parentItem;
+        GNEOutlineViewRowItem *item = [self itemAtRow:(NSInteger)selectedRows.firstIndex];
+        GNEOutlineViewSectionItem *parentItem = item.parentItem;
         if (parentItem == nil && [self.tableViewDelegate respondsToSelector:selectHeaderSelector])
         {
-            GNEParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
-            NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+            GNEParameterAssert([item isKindOfClass:[GNEOutlineViewSectionItem class]]);
+            NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)item];
             [self.tableViewDelegate tableView:self didSelectHeaderInSection:section];
         }
         else if (parentItem && [self.tableViewDelegate respondsToSelector:selectRowSelector])
@@ -3544,9 +3544,9 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 #pragma mark - NSOutlineViewDataSource - Drag-and-drop
 // ------------------------------------------------------------------------------------------
 - (id<NSPasteboardWriting>)outlineView:(NSOutlineView * __unused)outlineView
-               pasteboardWriterForItem:(GNEOutlineViewItem *)item
+               pasteboardWriterForItem:(GNEOutlineViewRowItem *)item
 {
-    GNEParameterAssert([item isKindOfClass:[GNEOutlineViewItem class]]);
+    GNEParameterAssert([item isKindOfClass:[GNEOutlineViewRowItem class]]);
     
     // Footers are never draggable.
     if ([self p_isOutlineViewItemFooter:item])
@@ -3556,13 +3556,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     BOOL canDrag = NO;
     
-    GNEOutlineViewParentItem *parentItem = item.parentItem;
+    GNEOutlineViewSectionItem *parentItem = item.parentItem;
     if (parentItem == nil &&
         [self.tableViewDataSource respondsToSelector:@selector(tableView:canDragSection:)])
     {
-        GNEParameterAssert([item isKindOfClass:[GNEOutlineViewParentItem class]]);
+        GNEParameterAssert([item isKindOfClass:[GNEOutlineViewSectionItem class]]);
         
-        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewParentItem *)item];
+        NSUInteger section = [self p_sectionForOutlineViewParentItem:(GNEOutlineViewSectionItem *)item];
         canDrag = [self.tableViewDataSource tableView:self canDragSection:section];
     }
     else if (parentItem &&
@@ -3607,7 +3607,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     
     [session enumerateDraggingItemsWithOptions:0
                                        forView:outlineView
-                                       classes:@[[GNEOutlineViewItem class]]
+                                       classes:@[[GNEOutlineViewRowItem class]]
                                  searchOptions:@{}
                                     usingBlock:^(NSDraggingItem *draggingItem,
                                                  NSInteger idx,
@@ -3619,13 +3619,13 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
             return;
         }
         
-        GNEOutlineViewItem *item = draggingItem.item;
+        GNEOutlineViewRowItem *item = draggingItem.item;
         NSInteger column = [outlineView columnWithIdentifier:kOutlineViewStandardColumnIdentifier];
         NSIndexPath *indexPath = item.draggedIndexPath;
-        GNEOutlineViewItem *draggedItem = [strongSelf p_outlineViewItemAtIndexPath:indexPath];
+        GNEOutlineViewRowItem *draggedItem = [strongSelf p_outlineViewItemAtIndexPath:indexPath];
         NSInteger row = [strongSelf rowForItem:draggedItem];
         
-        if ([item isKindOfClass:[GNEOutlineViewItem class]] && column >= 0 && row >= 0)
+        if ([item isKindOfClass:[GNEOutlineViewRowItem class]] && column >= 0 && row >= 0)
         {
             NSTableRowView *rowView = [outlineView rowViewAtRow:row makeIfNecessary:YES];
             NSTableCellView *cellView = [outlineView viewAtColumn:column row:row makeIfNecessary:YES];
@@ -3657,7 +3657,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (NSDragOperation)outlineView:(NSOutlineView * __unused)outlineView
                   validateDrop:(id<NSDraggingInfo>)info
-                  proposedItem:(GNEOutlineViewItem *)proposedParentItem
+                  proposedItem:(GNEOutlineViewRowItem *)proposedParentItem
             proposedChildIndex:(NSInteger)proposedChildIndex
 {
     NSDragOperation dragOperation = NSDragOperationNone;
@@ -3696,7 +3696,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
 
 - (BOOL)outlineView:(NSOutlineView * __unused)outlineView
          acceptDrop:(id<NSDraggingInfo>)info
-               item:(GNEOutlineViewItem *)proposedParentItem
+               item:(GNEOutlineViewRowItem *)proposedParentItem
          childIndex:(NSInteger)proposedChildIndex
 {
     NSMutableIndexSet *fromSections = [NSMutableIndexSet indexSet];
@@ -3705,7 +3705,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     __weak typeof(self) weakSelf = self;
     [info enumerateDraggingItemsWithOptions:0
                                     forView:self
-                                    classes:@[[GNEOutlineViewItem class]]
+                                    classes:@[[GNEOutlineViewRowItem class]]
                               searchOptions:@{}
                                  usingBlock:^(NSDraggingItem *draggingItem,
                                               NSInteger idx __unused,
@@ -3713,16 +3713,16 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         
-        GNEOutlineViewItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
+        GNEOutlineViewRowItem *draggedItem = [strongSelf p_draggedItemForDraggingItem:draggingItem];
         
         if (draggedItem)
         {
-            GNEOutlineViewParentItem *parentItem = draggedItem.parentItem;
+            GNEOutlineViewSectionItem *parentItem = draggedItem.parentItem;
             if (parentItem == nil)
             {
-                GNEParameterAssert([draggedItem isKindOfClass:[GNEOutlineViewParentItem class]]);
+                GNEParameterAssert([draggedItem isKindOfClass:[GNEOutlineViewSectionItem class]]);
                 
-                GNEOutlineViewParentItem *aParentItem = (GNEOutlineViewParentItem *)draggedItem;
+                GNEOutlineViewSectionItem *aParentItem = (GNEOutlineViewSectionItem *)draggedItem;
                 NSUInteger section = [strongSelf p_sectionForOutlineViewParentItem:aParentItem];
                 [fromSections addIndex:section];
             }
@@ -3747,7 +3747,7 @@ typedef NS_ENUM(NSUInteger, GNEDragLocation)
     }
     else // Calculate the destination index path and move the items there.
     {
-        GNEOutlineViewParentItem *aParentItem = (GNEOutlineViewParentItem *)proposedParentItem;
+        GNEOutlineViewSectionItem *aParentItem = (GNEOutlineViewSectionItem *)proposedParentItem;
         success = [self p_performRowDragOperationWithProposedParentItem:aParentItem
                                                      proposedChildIndex:proposedChildIndex
                                                          fromIndexPaths:fromIndexPaths];

@@ -1,5 +1,5 @@
 //
-//  GNEOutlineViewParentItem.h
+//  GNEOutlineViewSectionItem.h
 //  GNESectionedTableView
 //
 //  Created by Anthony Drendel on 5/27/14.
@@ -29,12 +29,12 @@
 //  SOFTWARE.
 //
 
-@import Cocoa;
 #import "GNEOutlineViewItem.h"
+@class GNEOutlineViewRowItem;
 
 // ------------------------------------------------------------------------------------------
 
-@interface GNEOutlineViewParentItem : GNEOutlineViewItem
+@interface GNEOutlineViewSectionItem : GNEOutlineViewItem
 
 @property (nonatomic, assign) NSUInteger section;
 @property (nonatomic, assign, readonly) NSUInteger numberOfItems;
@@ -49,17 +49,17 @@
 - (nullable instancetype)initWithCoder:(nonnull NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
 
 #pragma mark - Item Accessors
-- (BOOL)isParentOfItem:(GNEOutlineViewItem * _Nonnull)item;
-- (NSUInteger)indexOfItem:(GNEOutlineViewItem * _Nonnull)item;
-- (GNEOutlineViewItem * _Nullable)itemAtIndex:(NSUInteger)index;
-- (NSArray * _Nonnull)itemsAtIndexes:(NSIndexSet * _Nonnull)indexes;
+- (BOOL)containsRowItem:(GNEOutlineViewRowItem * _Nonnull)item;
+- (NSUInteger)indexOfRowItem:(GNEOutlineViewRowItem * _Nonnull)item;
+- (GNEOutlineViewRowItem * _Nullable)rowItemAtIndex:(NSUInteger)index;
+- (NSArray * _Nonnull)rowItemsAtIndexes:(NSIndexSet * _Nonnull)indexes;
 
 #pragma mark - Insert, Delete, and Update Items
-- (void)insertItems:(NSArray * _Nonnull)items
-            atIndex:(NSUInteger)index
-      withAnimation:(NSTableViewAnimationOptions)animationOptions;
-- (NSArray * _Nonnull)deleteItemsAtIndexes:(NSIndexSet * _Nonnull)indexes
-                             withAnimation:(NSTableViewAnimationOptions)animationOptions;
-- (void)reloadItemsAtIndexes:(NSIndexSet * _Nonnull)indexes;
+- (void)insertRowItems:(NSArray * _Nonnull)items
+               atIndex:(NSUInteger)index
+         withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (NSArray * _Nonnull)deleteRowItemsAtIndexes:(NSIndexSet * _Nonnull)indexes
+                                withAnimation:(NSTableViewAnimationOptions)animationOptions;
+- (void)reloadRowItemsAtIndexes:(NSIndexSet * _Nonnull)indexes;
 
 @end

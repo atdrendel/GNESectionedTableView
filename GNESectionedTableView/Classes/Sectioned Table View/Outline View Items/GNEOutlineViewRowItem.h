@@ -1,9 +1,9 @@
 //
-//  GNEOutlineViewItem.h
+//  GNEOutlineViewRowItem.h
 //  GNESectionedTableView
 //
-//  Created by Anthony Drendel on 8/9/15.
-//  Copyright © 2015 Gone East LLC. All rights reserved.
+//  Created by Anthony Drendel on 5/27/14.
+//  Copyright (c) 2014 Gone East LLC. All rights reserved.
 //
 //
 //  The MIT License (MIT)
@@ -29,40 +29,22 @@
 //  SOFTWARE.
 //
 
-@import Cocoa;
-@class GNESectionedTableView;
-@protocol GNESectionedTableViewDataSource;
-@protocol GNESectionedTableViewDelegate;
+#import "GNEOutlineViewItem.h"
+
+@class GNEOutlineViewSectionItem;
 
 // ------------------------------------------------------------------------------------------
 
-extern NSString  * _Nonnull  const GNEOutlineViewItemPasteboardType;
+@interface GNEOutlineViewRowItem : GNEOutlineViewItem
 
-typedef NS_ENUM(NSUInteger, GNEOutlineViewItemType)
-{
-    GNEOutlineViewItemTypeUnknown = 0,
-    GNEOutlineViewItemTypeSection,
-    GNEOutlineViewItemTypeRow
-};
+@property (nonnull, nonatomic, copy) NSIndexPath *indexPath;
+@property (nonatomic, weak) GNEOutlineViewSectionItem *sectionItem;
 
-// ------------------------------------------------------------------------------------------
+@property (nonatomic, assign) BOOL isFooter;
 
-@interface GNEOutlineViewItem : NSObject <NSSecureCoding, NSPasteboardReading, NSPasteboardWriting>
-
-@property (nonatomic, weak) GNESectionedTableView *tableView;
-@property (nonatomic, weak) id<GNESectionedTableViewDataSource> tableViewDataSource;
-@property (nonatomic, weak) id<GNESectionedTableViewDelegate> tableViewDelegate;
-
-@property (nonatomic, assign, readonly) GNEOutlineViewItemType type;
-@property (nonatomic, assign, readonly) BOOL isSection;
-@property (nonatomic, assign, readonly) BOOL isRow;
-
-@property (nonatomic, assign) BOOL isSelected;
-@property (nonatomic, assign, readonly) CGFloat height;
-@property (nonnull, nonatomic, strong, readonly) NSTableRowView *rowView;
-@property (nullable, nonatomic, strong, readonly) NSTableCellView *cellView;
-
-- (nonnull instancetype)initWithTableView:(GNESectionedTableView * _Nonnull)tableView
+- (nonnull instancetype)initWithIndexPath:(NSIndexPath * _Nonnull)indexPath
+                              sectionItem:(GNEOutlineViewSectionItem * _Nullable)sectionItem
+                                tableView:(GNESectionedTableView * _Nonnull)tableView
                                dataSource:(id<GNESectionedTableViewDataSource> _Nonnull)dataSource
                                  delegate:(id<GNESectionedTableViewDelegate> _Nonnull)delegate NS_DESIGNATED_INITIALIZER;
 

@@ -1,5 +1,5 @@
 //
-//  GNEOutlineViewParentItem.m
+//  GNEOutlineViewSectionItem.m
 //  GNESectionedTableView
 //
 //  Created by Anthony Drendel on 5/27/14.
@@ -29,16 +29,17 @@
 //  SOFTWARE.
 //
 
+#import "GNEOutlineViewSectionItem.h"
+#import "GNEOutlineViewRowItem.h"
 #import "GNESectionedTableView.h"
-#import "GNEOutlineViewParentItem.h"
 #import "NSIndexPath+GNESectionedTableView.h"
 
 
 // ------------------------------------------------------------------------------------------
 
 
-static NSString * const kRowItemsKey = @"GNEOutlineViewParentItemRowItems";
-static NSString * const kFooterItemKey = @"GNEOutlineViewParentItemFooterItem";
+static NSString * const kRowItemsKey = @"GNEOutlineViewSectionItemRowItems";
+static NSString * const kFooterItemKey = @"GNEOutlineViewSectionItemFooterItem";
 
 static const NSUInteger kSectionHeaderRowModifier = 1;
 static const NSUInteger kSectionFooterRowModifier = 2;
@@ -66,11 +67,11 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 // ------------------------------------------------------------------------------------------
 
 
-@interface GNEOutlineViewParentItem ()
+@interface GNEOutlineViewSectionItem ()
 
 @property (nonatomic, assign, readwrite) BOOL isExpanded;
 @property (nonatomic, copy) NSArray *rowItems;
-@property (nonatomic, strong) GNEOutlineViewItem *footerItem;
+@property (nonatomic, strong) GNEOutlineViewRowItem *footerItem;
 
 @end
 
@@ -78,17 +79,13 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 // ------------------------------------------------------------------------------------------
 
 
-@implementation GNEOutlineViewParentItem
-
-@dynamic section;
+@implementation GNEOutlineViewSectionItem
 
 
 // ------------------------------------------------------------------------------------------
 #pragma mark - Initialization
 // ------------------------------------------------------------------------------------------
-- (instancetype)initWithIndexPath:(NSIndexPath *)indexPath
-                       parentItem:(GNEOutlineViewParentItem * __unused)parentItem
-                        tableView:(GNESectionedTableView *)tableView
+- (instancetype)initWithTableView:(GNESectionedTableView *)tableView
                        dataSource:(id<GNESectionedTableViewDataSource>)dataSource
                          delegate:(id<GNESectionedTableViewDelegate>)delegate
 {
@@ -96,8 +93,10 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
               NSStringFromClass([self class]), NSStringFromSelector(_cmd),
               NSStringFromSelector(@selector(initWithSection:tableView:dataSource:delegate:)));
 
-    return [self initWithSection:indexPath.gne_section tableView:tableView
-                      dataSource:dataSource delegate:delegate];
+    return [self initWithSection:NSNotFound
+                       tableView:tableView
+                      dataSource:dataSource
+                        delegate:delegate];
 }
 
 
@@ -106,10 +105,11 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
                      dataSource:(id<GNESectionedTableViewDataSource>)dataSource
                        delegate:(id<GNESectionedTableViewDelegate>)delegate
 {
-    NSIndexPath *indexPath = headerIndexPathForSection(section);
-    if ((self = [super initWithIndexPath:indexPath parentItem:nil tableView:tableView
-                              dataSource:dataSource delegate:delegate]))
+    if ((self = [super initWithTableView:tableView
+                              dataSource:dataSource
+                                delegate:delegate]))
     {
+        _section = section;
         [self p_buildRowItems];
         [self p_buildFooterItem];
     }
@@ -126,7 +126,7 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
     if ((self = [super initWithCoder:aDecoder]))
     {
         _rowItems = [aDecoder decodeObjectOfClass:[NSArray class] forKey:kRowItemsKey];
-        _footerItem = [aDecoder decodeObjectOfClass:[GNEOutlineViewItem class] forKey:kFooterItemKey];
+        _footerItem = [aDecoder decodeObjectOfClass:[GNEOutlineViewRowItem class] forKey:kFooterItemKey];
         [self p_updateParentItemOfRowItemsAndFooterItem];
     }
     
@@ -139,6 +139,15 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
     [super encodeWithCoder:aCoder];
     [aCoder encodeObject:self.rowItems forKey:kRowItemsKey];
     [aCoder encodeObject:self.footerItem forKey:kFooterItemKey];
+}
+
+
+// ------------------------------------------------------------------------------------------
+#pragma mark - Type
+// ------------------------------------------------------------------------------------------
+- (GNEOutlineViewItemType)type
+{
+    return GNEOutlineViewItemTypeSection;
 }
 
 
@@ -185,24 +194,25 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Item Accessors
 // ------------------------------------------------------------------------------------------
-- (BOOL)isParentOfItem:(GNEOutlineViewItem *)item
+- (BOOL)containsRowItem:(GNEOutlineViewRowItem *)item
 {
-    GNEParameterAssert(item);
+    GNEParameterAssert(item.isRow);
 
     return [self.rowItems containsObject:item];
 }
 
 
-- (NSUInteger)indexOfItem:(GNEOutlineViewItem *)item
+- (NSUInteger)indexOfRowItem:(GNEOutlineViewRowItem *)item
 {
-    GNEParameterAssert(item);
+    GNEParameterAssert(item.isRow);
 
     return [self.rowItems indexOfObject:item];
 }
 
 
-- (GNEOutlineViewItem *)itemAtIndex:(NSUInteger)index
+- (GNEOutlineViewRowItem *)rowItemAtIndex:(NSUInteger)index
 {
+    GNEParameterAssert(index < self.rowItems.count);
     NSUInteger count = self.rowItems.count;
     if (index < count)
     {
@@ -213,14 +223,14 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 }
 
 
-- (NSArray *)itemsAtIndexes:(NSIndexSet *)indexes
+- (NSArray *)rowItemsAtIndexes:(NSIndexSet *)indexes
 {
     NSMutableArray *items = [NSMutableArray array];
     __weak typeof(self) weakSelf = self;
     [indexes enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop __unused)
     {
         __strong typeof(weakSelf) strongSelf = weakSelf;
-        GNEOutlineViewItem *item = [strongSelf itemAtIndex:index];
+        GNEOutlineViewRowItem *item = [strongSelf rowItemAtIndex:index];
         if (item)
         {
             [items addObject:item];
@@ -234,9 +244,9 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Insert, Delete, and Update Items
 // ------------------------------------------------------------------------------------------
-- (void)insertItems:(NSArray *)items
-            atIndex:(NSUInteger)index
-      withAnimation:(NSTableViewAnimationOptions)animationOptions
+- (void)insertRowItems:(NSArray *)items
+               atIndex:(NSUInteger)index
+         withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
     NSUInteger count = self.rowItems.count;
     GNEParameterAssert(index <= count);
@@ -252,8 +262,8 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 }
 
 
-- (NSArray *)deleteItemsAtIndexes:(NSIndexSet *)indexes
-                    withAnimation:(NSTableViewAnimationOptions)animationOptions
+- (NSArray *)deleteRowItemsAtIndexes:(NSIndexSet *)indexes
+                       withAnimation:(NSTableViewAnimationOptions)animationOptions
 {
     if (indexes.count == 0) { return @[]; };
 
@@ -267,7 +277,7 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
         GNEParameterAssert(index < mutableRowItems.count);
         if (index >= mutableRowItems.count) { return; }
 
-        GNEOutlineViewItem *item = mutableRowItems[index];
+        GNEOutlineViewRowItem *item = mutableRowItems[index];
         [deletedItems addObject:item];
         [mutableRowItems removeObjectAtIndex:index];
         [deletedIndexes addIndex:index];
@@ -282,10 +292,10 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 }
 
 
-- (void)reloadItemsAtIndexes:(NSIndexSet *)indexes
+- (void)reloadRowItemsAtIndexes:(NSIndexSet *)indexes
 {
-    NSArray *items = [self itemsAtIndexes:indexes];
-    for (GNEOutlineViewItem *item in items)
+    NSArray *items = [self rowItemsAtIndexes:indexes];
+    for (GNEOutlineViewRowItem *item in items)
     {
         [self.tableView reloadItem:item];
     }
@@ -304,7 +314,7 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
     for (NSUInteger row = 0; row < count; row++)
     {
         NSIndexPath *indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
-        [rowItems addObject:[self p_newItemWithIndexPath:indexPath]];
+        [rowItems addObject:[self p_newRowItemWithIndexPath:indexPath]];
     }
 
     self.rowItems = [rowItems copy];
@@ -321,11 +331,11 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 
 - (void)p_updateParentItemOfRowItemsAndFooterItem
 {
-    for (GNEOutlineViewItem *item in self.rowItems)
+    for (GNEOutlineViewRowItem *item in self.rowItems)
     {
-        item.parentItem = self;
+        item.sectionItem = self;
     }
-    self.footerItem.parentItem = self;
+    self.footerItem.sectionItem = self;
 }
 
 
@@ -335,29 +345,29 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
     NSUInteger count = self.rowItems.count;
     for (NSUInteger row = 0; row < count; row++)
     {
-        GNEOutlineViewItem *item = self.rowItems[row];
+        GNEOutlineViewRowItem *item = self.rowItems[row];
         item.indexPath = [NSIndexPath gne_indexPathForRow:row inSection:section];
     }
     self.footerItem.indexPath = footerIndexPathForSection(section);
 }
 
 
-- (GNEOutlineViewItem *)p_newItemWithIndexPath:(NSIndexPath *)indexPath
+- (GNEOutlineViewRowItem *)p_newRowItemWithIndexPath:(NSIndexPath *)indexPath
 {
-    GNEOutlineViewItem *item = [[GNEOutlineViewItem alloc] initWithIndexPath:indexPath
-                                                                  parentItem:self
-                                                                   tableView:self.tableView
-                                                                  dataSource:self.tableViewDataSource
-                                                                    delegate:self.tableViewDelegate];
+    GNEOutlineViewRowItem *item = [[GNEOutlineViewRowItem alloc] initWithIndexPath:indexPath
+                                                                       sectionItem:self
+                                                                         tableView:self.tableView
+                                                                        dataSource:self.tableViewDataSource
+                                                                          delegate:self.tableViewDelegate];
 
     return item;
 }
 
 
-- (GNEOutlineViewItem *)p_newFooterItem
+- (GNEOutlineViewRowItem *)p_newFooterItem
 {
     NSIndexPath *indexPath = footerIndexPathForSection(self.section);
-    GNEOutlineViewItem *footerItem = [self p_newItemWithIndexPath:indexPath];
+    GNEOutlineViewRowItem *footerItem = [self p_newRowItemWithIndexPath:indexPath];
     footerItem.isFooter = YES;
 
     return footerItem;
@@ -404,7 +414,7 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 - (NSString *)description
 {
     NSString *sectionString = @"[\n";
-    for (GNEOutlineViewItem *item in self.rowItems)
+    for (GNEOutlineViewRowItem *item in self.rowItems)
     {
         sectionString = [sectionString stringByAppendingFormat:@"\t%@\n", item.description];
     }
@@ -418,41 +428,11 @@ NSIndexPath * footerIndexPathForSection(NSUInteger section)
 // ------------------------------------------------------------------------------------------
 #pragma mark - Accessors
 // ------------------------------------------------------------------------------------------
-- (GNEOutlineViewParentItem * _Nullable)parentItem
-{
-    return nil;
-}
-
-
-- (void)setParentItem:(GNEOutlineViewParentItem * __unused)parentItem
-{
-    NSAssert(NO, @"Outline view parent items cannot have parent items.");
-}
-
-
-- (BOOL)isFooter
-{
-    return NO;
-}
-
-
-- (void)setIsFooter:(BOOL __unused)isFooter
-{
-    NSAssert(NO, @"Outline view parent items can't be footers.");
-}
-
-
-- (NSUInteger)section
-{
-    return self.indexPath.gne_section;
-}
-
-
 - (void)setSection:(NSUInteger)section
 {
-    if (self.indexPath.gne_section != section)
+    if (_section != section)
     {
-        self.indexPath = headerIndexPathForSection(section);
+        _section = section;
         [self p_updateIndexPathsOfRowItemsAndFooterItem];
     }
 }

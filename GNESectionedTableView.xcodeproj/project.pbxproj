@@ -13,10 +13,10 @@
 		572E26D61945676B000F4656 /* NSIndexPath+GNESectionedTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26C91945676B000F4656 /* NSIndexPath+GNESectionedTableView.m */; };
 		572E26D71945676B000F4656 /* NSOutlineView+GNE_Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26CC1945676B000F4656 /* NSOutlineView+GNE_Additions.m */; };
 		572E26D81945676B000F4656 /* NSOutlineView+GNE_Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26CC1945676B000F4656 /* NSOutlineView+GNE_Additions.m */; };
-		572E26D91945676B000F4656 /* GNEOutlineViewItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26CF1945676B000F4656 /* GNEOutlineViewItem.m */; };
-		572E26DA1945676B000F4656 /* GNEOutlineViewItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26CF1945676B000F4656 /* GNEOutlineViewItem.m */; };
-		572E26DB1945676B000F4656 /* GNEOutlineViewParentItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26D11945676B000F4656 /* GNEOutlineViewParentItem.m */; };
-		572E26DC1945676B000F4656 /* GNEOutlineViewParentItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26D11945676B000F4656 /* GNEOutlineViewParentItem.m */; };
+		572E26D91945676B000F4656 /* GNEOutlineViewRowItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26CF1945676B000F4656 /* GNEOutlineViewRowItem.m */; };
+		572E26DA1945676B000F4656 /* GNEOutlineViewRowItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26CF1945676B000F4656 /* GNEOutlineViewRowItem.m */; };
+		572E26DB1945676B000F4656 /* GNEOutlineViewSectionItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26D11945676B000F4656 /* GNEOutlineViewSectionItem.m */; };
+		572E26DC1945676B000F4656 /* GNEOutlineViewSectionItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26D11945676B000F4656 /* GNEOutlineViewSectionItem.m */; };
 		572E26DD1945676B000F4656 /* GNESectionedTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26D41945676B000F4656 /* GNESectionedTableView.m */; };
 		572E26DE1945676B000F4656 /* GNESectionedTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26D41945676B000F4656 /* GNESectionedTableView.m */; };
 		572E26EA1945683A000F4656 /* GNETableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 572E26E91945683A000F4656 /* GNETableViewController.m */; };
@@ -31,6 +31,8 @@
 		57692F551AD1D4250044FFCC /* GNESectionedTableViewTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 57692F541AD1D4250044FFCC /* GNESectionedTableViewTests.m */; };
 		576BD9801A49D8A400DA1211 /* GNEOrderedIndexSetTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 576BD97F1A49D8A400DA1211 /* GNEOrderedIndexSetTests.m */; };
 		576E1B321ABF13D9002069B4 /* GNEMockDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 576E1B311ABF13D9002069B4 /* GNEMockDelegate.m */; };
+		577031651B7752D400DDB436 /* GNEOutlineViewItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 577031641B7752D400DDB436 /* GNEOutlineViewItem.m */; };
+		577031661B7752D400DDB436 /* GNEOutlineViewItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 577031641B7752D400DDB436 /* GNEOutlineViewItem.m */; };
 		578E75791934B69E00333D86 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 578E75781934B69E00333D86 /* Cocoa.framework */; };
 		578E75831934B69E00333D86 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 578E75811934B69E00333D86 /* InfoPlist.strings */; };
 		578E75851934B69E00333D86 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 578E75841934B69E00333D86 /* main.m */; };
@@ -54,8 +56,8 @@
 		57BC90821A48A58F0016C8A4 /* GNEOrderedIndexSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 57BC90811A48A58F0016C8A4 /* GNEOrderedIndexSet.m */; };
 		57BC90831A48A58F0016C8A4 /* GNEOrderedIndexSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 57BC90811A48A58F0016C8A4 /* GNEOrderedIndexSet.m */; };
 		57D3C5121AD2F2B500E4A237 /* GNESectionedTableViewHeightTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 57D3C5111AD2F2B500E4A237 /* GNESectionedTableViewHeightTests.m */; };
-		57FDA0B31B6E372B002AE9AB /* GNESectionController.m in Sources */ = {isa = PBXBuildFile; fileRef = 57FDA0B21B6E372B002AE9AB /* GNESectionController.m */; };
-		57FDA0B41B6E372B002AE9AB /* GNESectionController.m in Sources */ = {isa = PBXBuildFile; fileRef = 57FDA0B21B6E372B002AE9AB /* GNESectionController.m */; };
+		57FDA0B31B6E372B002AE9AB /* GNESectionedTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 57FDA0B21B6E372B002AE9AB /* GNESectionedTableViewController.m */; };
+		57FDA0B41B6E372B002AE9AB /* GNESectionedTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 57FDA0B21B6E372B002AE9AB /* GNESectionedTableViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,10 +77,10 @@
 		572E26C91945676B000F4656 /* NSIndexPath+GNESectionedTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSIndexPath+GNESectionedTableView.m"; sourceTree = "<group>"; };
 		572E26CB1945676B000F4656 /* NSOutlineView+GNE_Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSOutlineView+GNE_Additions.h"; sourceTree = "<group>"; };
 		572E26CC1945676B000F4656 /* NSOutlineView+GNE_Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSOutlineView+GNE_Additions.m"; sourceTree = "<group>"; };
-		572E26CE1945676B000F4656 /* GNEOutlineViewItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEOutlineViewItem.h; sourceTree = "<group>"; };
-		572E26CF1945676B000F4656 /* GNEOutlineViewItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEOutlineViewItem.m; sourceTree = "<group>"; };
-		572E26D01945676B000F4656 /* GNEOutlineViewParentItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEOutlineViewParentItem.h; sourceTree = "<group>"; };
-		572E26D11945676B000F4656 /* GNEOutlineViewParentItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEOutlineViewParentItem.m; sourceTree = "<group>"; };
+		572E26CE1945676B000F4656 /* GNEOutlineViewRowItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEOutlineViewRowItem.h; sourceTree = "<group>"; };
+		572E26CF1945676B000F4656 /* GNEOutlineViewRowItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEOutlineViewRowItem.m; sourceTree = "<group>"; };
+		572E26D01945676B000F4656 /* GNEOutlineViewSectionItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEOutlineViewSectionItem.h; sourceTree = "<group>"; };
+		572E26D11945676B000F4656 /* GNEOutlineViewSectionItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEOutlineViewSectionItem.m; sourceTree = "<group>"; };
 		572E26D31945676B000F4656 /* GNESectionedTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNESectionedTableView.h; sourceTree = "<group>"; };
 		572E26D41945676B000F4656 /* GNESectionedTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNESectionedTableView.m; sourceTree = "<group>"; };
 		572E26E81945683A000F4656 /* GNETableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNETableViewController.h; sourceTree = "<group>"; };
@@ -96,6 +98,8 @@
 		576BD97F1A49D8A400DA1211 /* GNEOrderedIndexSetTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GNEOrderedIndexSetTests.m; path = "GNESectionedTableViewTests/Ordered Index Set/GNEOrderedIndexSetTests.m"; sourceTree = SOURCE_ROOT; };
 		576E1B301ABF13D9002069B4 /* GNEMockDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEMockDelegate.h; sourceTree = "<group>"; };
 		576E1B311ABF13D9002069B4 /* GNEMockDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEMockDelegate.m; sourceTree = "<group>"; };
+		577031631B7752D400DDB436 /* GNEOutlineViewItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEOutlineViewItem.h; sourceTree = "<group>"; };
+		577031641B7752D400DDB436 /* GNEOutlineViewItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEOutlineViewItem.m; sourceTree = "<group>"; };
 		578E75751934B69E00333D86 /* GNESectionedTableView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GNESectionedTableView.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		578E75781934B69E00333D86 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		578E757B1934B69E00333D86 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -128,8 +132,8 @@
 		57BC90801A48A58F0016C8A4 /* GNEOrderedIndexSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNEOrderedIndexSet.h; sourceTree = "<group>"; };
 		57BC90811A48A58F0016C8A4 /* GNEOrderedIndexSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNEOrderedIndexSet.m; sourceTree = "<group>"; };
 		57D3C5111AD2F2B500E4A237 /* GNESectionedTableViewHeightTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNESectionedTableViewHeightTests.m; sourceTree = "<group>"; };
-		57FDA0B11B6E372B002AE9AB /* GNESectionController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNESectionController.h; sourceTree = "<group>"; };
-		57FDA0B21B6E372B002AE9AB /* GNESectionController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNESectionController.m; sourceTree = "<group>"; };
+		57FDA0B11B6E372B002AE9AB /* GNESectionedTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GNESectionedTableViewController.h; sourceTree = "<group>"; };
+		57FDA0B21B6E372B002AE9AB /* GNESectionedTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GNESectionedTableViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -207,10 +211,12 @@
 		572E26CD1945676B000F4656 /* Outline View Items */ = {
 			isa = PBXGroup;
 			children = (
-				572E26CE1945676B000F4656 /* GNEOutlineViewItem.h */,
-				572E26CF1945676B000F4656 /* GNEOutlineViewItem.m */,
-				572E26D01945676B000F4656 /* GNEOutlineViewParentItem.h */,
-				572E26D11945676B000F4656 /* GNEOutlineViewParentItem.m */,
+				577031631B7752D400DDB436 /* GNEOutlineViewItem.h */,
+				577031641B7752D400DDB436 /* GNEOutlineViewItem.m */,
+				572E26CE1945676B000F4656 /* GNEOutlineViewRowItem.h */,
+				572E26CF1945676B000F4656 /* GNEOutlineViewRowItem.m */,
+				572E26D01945676B000F4656 /* GNEOutlineViewSectionItem.h */,
+				572E26D11945676B000F4656 /* GNEOutlineViewSectionItem.m */,
 			);
 			path = "Outline View Items";
 			sourceTree = "<group>";
@@ -415,8 +421,8 @@
 		57FDA0B01B6E370B002AE9AB /* Section Controller */ = {
 			isa = PBXGroup;
 			children = (
-				57FDA0B11B6E372B002AE9AB /* GNESectionController.h */,
-				57FDA0B21B6E372B002AE9AB /* GNESectionController.m */,
+				57FDA0B11B6E372B002AE9AB /* GNESectionedTableViewController.h */,
+				57FDA0B21B6E372B002AE9AB /* GNESectionedTableViewController.m */,
 			);
 			path = "Section Controller";
 			sourceTree = "<group>";
@@ -522,16 +528,17 @@
 				57676F421A0DDFD400901BAD /* GNETableRowView.m in Sources */,
 				572E26DD1945676B000F4656 /* GNESectionedTableView.m in Sources */,
 				572E26EA1945683A000F4656 /* GNETableViewController.m in Sources */,
+				577031651B7752D400DDB436 /* GNEOutlineViewItem.m in Sources */,
 				57BC907D1A4829CC0016C8A4 /* GNESectionedTableViewMove.m in Sources */,
 				572E26EE1945684F000F4656 /* GNETableViewDataSource.m in Sources */,
 				57A128B8194574C200B72A49 /* GNETableCellView.m in Sources */,
-				572E26D91945676B000F4656 /* GNEOutlineViewItem.m in Sources */,
+				572E26D91945676B000F4656 /* GNEOutlineViewRowItem.m in Sources */,
 				57164A0C194DC2C40083FA03 /* NSMutableArray+GNESectionedTableView.m in Sources */,
 				57BC90791A4829B30016C8A4 /* GNESectionedTableViewMovingItem.m in Sources */,
 				572E26D71945676B000F4656 /* NSOutlineView+GNE_Additions.m in Sources */,
 				5742D9EA1946C0ED004D2BE2 /* GNEHeaderCellView.m in Sources */,
-				57FDA0B31B6E372B002AE9AB /* GNESectionController.m in Sources */,
-				572E26DB1945676B000F4656 /* GNEOutlineViewParentItem.m in Sources */,
+				57FDA0B31B6E372B002AE9AB /* GNESectionedTableViewController.m in Sources */,
+				572E26DB1945676B000F4656 /* GNEOutlineViewSectionItem.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -544,7 +551,7 @@
 				57B5FF081ABDF46100F8D1F2 /* GNESectionedTableViewCountTests.m in Sources */,
 				57692F551AD1D4250044FFCC /* GNESectionedTableViewTests.m in Sources */,
 				578E75B71934BC1D00333D86 /* GNEAppDelegate.m in Sources */,
-				57FDA0B41B6E372B002AE9AB /* GNESectionController.m in Sources */,
+				57FDA0B41B6E372B002AE9AB /* GNESectionedTableViewController.m in Sources */,
 				57676F431A0DDFD400901BAD /* GNETableRowView.m in Sources */,
 				57D3C5121AD2F2B500E4A237 /* GNESectionedTableViewHeightTests.m in Sources */,
 				572E26DE1945676B000F4656 /* GNESectionedTableView.m in Sources */,
@@ -552,13 +559,14 @@
 				57BC907E1A4829CC0016C8A4 /* GNESectionedTableViewMove.m in Sources */,
 				572E26EF1945684F000F4656 /* GNETableViewDataSource.m in Sources */,
 				57A128B9194574C200B72A49 /* GNETableCellView.m in Sources */,
-				572E26DA1945676B000F4656 /* GNEOutlineViewItem.m in Sources */,
+				572E26DA1945676B000F4656 /* GNEOutlineViewRowItem.m in Sources */,
 				57164A0D194DC2C40083FA03 /* NSMutableArray+GNESectionedTableView.m in Sources */,
 				57BC907A1A4829B30016C8A4 /* GNESectionedTableViewMovingItem.m in Sources */,
 				572E26D81945676B000F4656 /* NSOutlineView+GNE_Additions.m in Sources */,
 				5742D9EB1946C0ED004D2BE2 /* GNEHeaderCellView.m in Sources */,
 				57B5FF0F1ABE030B00F8D1F2 /* GNEMockObject.m in Sources */,
-				572E26DC1945676B000F4656 /* GNEOutlineViewParentItem.m in Sources */,
+				577031661B7752D400DDB436 /* GNEOutlineViewItem.m in Sources */,
+				572E26DC1945676B000F4656 /* GNEOutlineViewSectionItem.m in Sources */,
 				576BD9801A49D8A400DA1211 /* GNEOrderedIndexSetTests.m in Sources */,
 				57B5FF0C1ABDF6E900F8D1F2 /* GNEMockDataSource.m in Sources */,
 				576E1B321ABF13D9002069B4 /* GNEMockDelegate.m in Sources */,
